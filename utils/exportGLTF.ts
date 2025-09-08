@@ -46,20 +46,22 @@ class ExportThree extends Three {
         const loader = new GLTFLoader();
         loader.load(url,
             (gltf) => {
-                const children = gltf.scene.children
+                const root = gltf.scene.getObjectByName("root")
+                const children = root.children
                 const group = new THREE.Group()
-                const object3DList = children.filter(ele => ele.type === 'Object3D' && ele.children.length > 0)
-                if (object3DList.length > 0) {
-                    const childrenList = object3DList[0].children
-                    this.containterList = [...childrenList]
+                // const object3DList = children.filter(ele => ele.type === 'Object3D' && ele.children.length > 0)
+               
+                // if (object3DList.length > 0) {
+                //     const childrenList = object3DList[0].children
+                    this.containterList = [...children]
                     const objectList: ITree[] = []
                     for (let index = 0; index < this.containterList.length; index++) {
                         const element = this.containterList[index];
                         objectList.push(this.getObjectData(element))
                     }
                     this.cbk.loadCbk(objectList)
-                    group.add(...childrenList)
-                }
+                    group.add(...children)
+                // }
                 const size = this.calculateGroupDimensions(group)
                 this.scene.add(group)
                 // const object = gltf.scene.getObjectByName("Group_37")
@@ -90,7 +92,7 @@ class ExportThree extends Three {
                 // 方法2: 直接使用旋转方法
                 // const p2_alternative = new THREE.Vector3().copy(p1).applyAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
               console.log("size.center",size.center)
-                const number = 3000
+                const number = 200
                 this.camera!.position.set(size.center.x, size.center.y, size.center.z + number)
                 this.controls.target.set(size.center.x, size.center.y, size.center.z)
             }, (xhr) => {
