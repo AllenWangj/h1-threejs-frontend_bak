@@ -172,7 +172,7 @@ class Three {
      * 释放材质及其关联的纹理
      * @param {THREE.Material} material - 要释放的材质
      */
-    protected disposeMaterial(material) {
+    protected disposeMaterial(material:THREE.Material) {
         // 释放材质本身
         material.dispose();
         // 释放材质上的纹理
@@ -181,6 +181,27 @@ class Three {
                 material[key].dispose();
             }
         }
+    }
+    protected calculateTransformMatrix(position:THREE.Vector3) {
+        // const angle = THREE.MathUtils.degToRad(deg);
+            
+        // 2. 创建旋转矩阵 - 沿自定义轴旋转
+        const matrix = new THREE.Matrix4()
+        // 创建一个单位矩阵
+        // const matrix = new THREE.Matrix4();
+        
+        // 平移参数：x=100, y=100, z=100
+        const translation = position.clone();
+        
+        // 旋转参数：沿X轴旋转90度（转换为弧度）
+        // const rotationX = THREE.MathUtils.degToRad(deg);
+        // 先应用旋转，再应用平移
+        // 注意：变换顺序很重要！先旋转后平移和先平移后旋转结果不同
+        // matrix.makeRotationZ(Math.PI/2);  // 应用X轴旋转
+        // matrix.makeRotationFromQuaternion()
+        matrix.setPosition(translation);  // 应用平移
+        console.log("matrix--",matrix)
+        return matrix;
     }
 
 }
