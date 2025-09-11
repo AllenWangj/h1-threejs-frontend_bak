@@ -11,6 +11,7 @@ interface ITree {
 class ExportThree extends Three {
     public containterList: THREE.Object3D[] = []
     public cbk: ICallBack
+    private targetGrop:THREE.Object3D| null = null
     constructor(node: HTMLElement, cbk: ICallBack) {
         super(node)
         this.cbk = cbk
@@ -36,23 +37,21 @@ class ExportThree extends Three {
         const loader = new GLTFLoader();
         loader.load(url,
             (gltf) => {
-                gltf.scene.position.set(2802,2128,0)
+                gltf.scene.position.set(2802, 2128, 0)
                 this.scene.add(gltf.scene)
                 // console.log("gltf---",gltf)
             }
         )
     }
     public loadSceneData(url: string) {
-        const loader = new GLTFLoader();
-        loader.load(url,
-            (gltf) => {
-                const root = gltf.scene.getObjectByName("root")
-                const children = root.children
-                const group = new THREE.Group()
-                // const object3DList = children.filter(ele => ele.type === 'Object3D' && ele.children.length > 0)
-               
-                // if (object3DList.length > 0) {
-                //     const childrenList = object3DList[0].children
+        return new Promise((resolve) => {
+            const loader = new GLTFLoader();
+            loader.load(url,
+                (gltf) => {
+                    const root = gltf.scene.getObjectByName("root")
+                    const children = root.children
+                    const group = new THREE.Group()
+                    group.name ="wrapper"
                     this.containterList = [...children]
                     const objectList: ITree[] = []
                     for (let index = 0; index < this.containterList.length; index++) {
@@ -61,46 +60,77 @@ class ExportThree extends Three {
                     }
                     this.cbk.loadCbk(objectList)
                     group.add(...children)
-                // }
-                const size = this.calculateGroupDimensions(group)
-                this.scene.add(group)
-                // const object = gltf.scene.getObjectByName("Group_37")
-                // // object.visible = false
-                // const clone = object.clone(true)
-                // clone.position.set(0,0,0)
-                // clone.rotation.x = Math.PI/2
-                // // clone.position.copy(object.position)
-                // // clone.rotation.copy(object.rotation)
-                // clone.scale.set(0.025,0.025,0.025)
-                // clone.name = "1222222"
-                // this.scene.add(clone)
-                // const size1= this.calculateGroupDimensions(clone)
-                // console.log("soze", this.scene)
-                // console.log(":size1---",size1,object.scale)
-                //     const clone = object.clone()
-                //     this.scene.add(clone)
-                //    const size= this.calculateGroupDimensions(object)
-                //    console.log("soze",size)
+                    // }
+                    const size = this.calculateGroupDimensions(group)
+                    this.scene.add(group)
+                    const number = 2000
+                    this.camera!.position.set(size.center.x, size.center.y, size.center.z + number)
+                    this.controls.target.set(size.center.x, size.center.y, size.center.z)
+                    this.targetGrop = group
+                    setTimeout(() => {
+                        this.getChildModePostion()
+                    }, 1000);
+                    resolve(group)
+                }, (xhr) => {
+                    const progress = Math.round((xhr.loaded / xhr.total) * 100);
+                    console.log("progress", progress)
+                }, err => {
+                    console.log("err", err)
+                })
+        })
+    }
+    public getChildModePostion(){
+        const name = ["Group_37","Group_10","Group_6","Group_7","Group_8","Group_9",
+        "Group_45", "Group_46", "Group_47",
+        "Group_40", "Group_41", "Group_42",, "Group_43",
 
+        "Group_26", "Group_27", "Group_28",, "Group_29",
 
-                // const p1 = new THREE.Vector3(size.center.x, size.center.y, size.center.z); // 示例坐标
+        "Group_25",
 
-                // // 方法1: 使用旋转矩阵计算
-                // const rotationMatrix = new THREE.Matrix4();
-                // rotationMatrix.makeRotationX(-Math.PI / 2); // 90度对应的弧度是π/2
-                // const p2 = new THREE.Vector3().copy(p1).applyMatrix4(rotationMatrix);
-                // 方法2: 直接使用旋转方法
-                // const p2_alternative = new THREE.Vector3().copy(p1).applyAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-              console.log("size.center",size.center)
-                const number = 200
-                this.camera!.position.set(size.center.x, size.center.y, size.center.z + number)
-                this.controls.target.set(size.center.x, size.center.y, size.center.z)
-            }, (xhr) => {
-                const progress = Math.round((xhr.loaded / xhr.total) * 100);
-                console.log("progress", progress)
-            }, err => {
-                console.log("err", err)
-            })
+        "Group_19",
+        "Group_20", "Group_21", "Group_22",, "Group_23",
+
+        "Group_51",
+        "Group_53", "Group_54", "Group_55", "Group_56","Group_57",
+        "Group_36",
+
+        "Group_72","Group_73","Group_74","Group_75","Group_76",
+
+        "Group_82","Group_83","Group_84","Group_85",
+
+        "Group_80", "Group_70", "Group_77", "Group_79", "Group_78",
+
+         "Group_14", "Group_15", "Group_16", "Group_17",
+        "Group_32", "Group_33", "Group_34","Group_35", 
+
+        "Group_13", "Group_31",
+          "Group_1", "Group_2","Group_3",
+
+    ]
+        
+        name.forEach((key) =>{
+            const group =  this.targetGrop.getObjectByName(key)
+            if(group) {
+                let isTure = false
+                let whileGroup = group
+                let x = group.position.x
+                let y = group.position.y
+                while(!isTure) {
+                    const parent = whileGroup.parent
+                    if(parent.name =='wrapper') {
+                        isTure = true
+                    }else {
+                        x+=parent.position.x
+                        y+=parent.position.y
+                        isTure = false
+                    }
+                    whileGroup=  parent
+
+                }
+                console.log(key,"x---",x,y)
+            }
+        })
     }
 
 }
