@@ -1,7 +1,7 @@
 <template>
-  <div v-loading="loading" class="w-[100%] h-[100%]">
+  <div v-loading="loading" :element-loading-text="loadingText" class="w-[100%] h-[100%]">
     <div ref="threeContainer" class="three-container" />
-    <div class="toolbar-container">
+    <div v-if="!loading" class="toolbar-container">
       <el-button class="w-[120px]" :type="hideModel.includes(1) ? 'info' : 'primary'" @click="playStep1Animation(1)">
         窗
       </el-button>
@@ -17,6 +17,21 @@
       <el-button class="w-[120px]" :type="hideModel.includes(5) ? 'info' : 'primary'" @click="playStep5Animation(5)">
         墙壁
       </el-button>
+      <el-button class="w-[120px]" :type="hideModel.includes(6) ? 'info' : 'primary'" @click="playStep6Animation(6)">
+        地板
+      </el-button>
+      <el-button class="w-[120px]" :type="hideModel.includes(7) ? 'info' : 'primary'" @click="playStep7Animation(7)">
+        顶板
+      </el-button>
+      <el-button class="w-[120px]" :type="hideModel.includes(8) ? 'info' : 'primary'" @click="playStep8Animation(8)">
+        柱
+      </el-button>
+      <el-button class="w-[120px]" :type="hideModel.includes(9) ? 'info' : 'primary'" @click="playStep9Animation(9)">
+        梁
+      </el-button>
+      <el-button class="w-[120px]" :type="hideModel.includes(10) ? 'info' : 'primary'" @click="playStep10Animation(10)">
+        连接器
+      </el-button>
     </div>
   </div>
 </template>
@@ -27,6 +42,8 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 const loading = ref(false)
+const loadingText = ref('0%...')
+
 const hideModel = ref([])
 
 const threeContainer = ref(null)
@@ -46,7 +63,7 @@ onBeforeUnmount(() => {
 function initThree() {
   scene = new THREE.Scene()
   // 设置天空背景
-  scene.background = new THREE.Color(0x87ceeb); // 天空蓝颜色
+  scene.background = new THREE.Color(0x87ceeb) // 天空蓝颜色
 
   const width = threeContainer.value.clientWidth
   const height = threeContainer.value.clientHeight
@@ -102,7 +119,7 @@ function loadModel() {
   const loader = new GLTFLoader()
   loader.load(
     '/models/tool5/scene.gltf', // 替换成你自己的路径
-   async (gltf) =>  {
+    async (gltf) => {
       const root = gltf.scene
       console.log('模型根节点:', root)
       scene.add(root)
@@ -115,11 +132,15 @@ function loadModel() {
       root.position.sub(center)
 
 
-      await nextTick()
-      loading.value = false
+      setTimeout(() => {
+        loading.value = false
+      }, 1000)
     },
     (xhr) => {
-      if (xhr.total) console.log(`加载进度: ${((xhr.loaded / xhr.total) * 100).toFixed(2)}%`)
+      if (xhr.total) {
+        console.log(`加载进度: ${((xhr.loaded / xhr.total) * 100).toFixed(2)}%`)
+        loadingText.value = `${((xhr.loaded / xhr.total) * 100).toFixed(2)}%...`
+      }
     },
     (error) => {
       console.error('模型加载失败:', error)
@@ -128,32 +149,9 @@ function loadModel() {
 }
 
 async function playStep1Animation(value) {
-  const names = [
-    '<组件#66>',
-    '<组件#66>_1',
-    '<组件#66>_2',
-    '<组件#66>_3',
-    '<组件#66>_4',
-    '<组件#66>_5',
-    '<组件#66>_6',
-    '<组件#66>_7',
-    '<组件#66>_8',
-    '<组件#66>_9',
-    '<组件#66>_10',
-    '<组件#66>_11',
-    '<组件#66>_12',
-    '<组件#66>_13',
-    '<组件#66>_14',
-    '<组件#66>_15',
-    '<组件#66>_16',
-    '<组件#66>_17',
-    '<组件#66>_18',
-    '<组件#66>_19',
-    '<组件#66>_20',
-    '<组件#66>_21',
-    '<组件#66>_22'
-  ]
-  settingModelStatus(names, value)
+  const names = new Array(23).fill(0).map((_, i) => `<组件#66>${i !== 0 ? '_' + i : ''}`)
+  const names1 = ['Group_952', 'Group_927', 'Group_910', 'Group_986', 'Group_1023', 'Group_969']
+  settingModelStatus([...names, ...names1], value)
 }
 
 async function playStep2Animation(value) {
@@ -230,7 +228,12 @@ async function playStep3Animation(value) {
 }
 
 async function playStep4Animation(value) {
-  const names = ['Group_821']
+  const names = [
+    'Group_821',
+    'Group_1053', // 屋顶房梁
+    'Group_820',
+    'Group_650'
+  ]
   settingModelStatus(names, value)
 }
 
@@ -263,6 +266,200 @@ async function playStep5Animation(value) {
   const names = [...names1, ...names2, ...names3, ...names4, ...names5, ...names6]
 
   settingModelStatus(names, value)
+}
+
+async function playStep6Animation(value) {
+  // 地板
+  const names = [
+    'Group_119',
+    'Group_120',
+    'Group_69',
+    'Group_56',
+    'Group_49',
+    'Group_51',
+    'Group_246',
+    'Group_247',
+    'Group_197',
+    'Group_183',
+    'Group_176',
+    'Group_178',
+    'Group_600',
+    'Group_601',
+    'Group_648',
+    'Group_636',
+    'Group_631',
+    'Group_629',
+    'Group_496',
+    'Group_497',
+    'Group_447',
+    'Group_434',
+    'Group_427',
+    'Group_429',
+    'Group_527',
+    'Group_528',
+    'Group_575',
+    'Group_563',
+    'Group_556',
+    'Group_558',
+    'Group_372',
+    'Group_373',
+    'Group_323',
+    'Group_309',
+    'Group_302',
+    'Group_304',
+    'Group_678',
+    'Group_702',
+    'Group_774',
+    'Group_775',
+    'Group_815',
+    'Group_879',
+    'Group_654',
+    'Group_698',
+    'Group_1044',
+    'Group_1045',
+    'Group_905',
+    'Group_888',
+    'Group_944',
+    'Group_670',
+    'Group_851',
+    'Group_827',
+    'Group_812',
+    'Group_779'
+  ]
+  // 钢筋
+  const names1 = new Array(315).fill(0).map((_, i) => `<组件#15>${i !== 0 ? '_' + i : ''}`)
+  const names2 = new Array(522).fill(0).map((_, i) => `<组件#16>${i !== 0 ? '_' + i : ''}`)
+  const names3 = new Array(72).fill(0).map((_, i) => `<组件#31>${i !== 0 ? '_' + i : ''}`)
+  const names4 = new Array(216).fill(0).map((_, i) => `<组件#29>${i !== 0 ? '_' + i : ''}`)
+  const names5 = new Array(432).fill(0).map((_, i) => `<组件#35>${i !== 0 ? '_' + i : ''}`)
+  const names6 = new Array(432).fill(0).map((_, i) => `<tuojian#1>${i !== 0 ? '_' + i : ''}`)
+  const names7 = new Array(36).fill(0).map((_, i) => `<组件#33>${i !== 0 ? '_' + i : ''}`)
+  const names8 = new Array(36).fill(0).map((_, i) => `<组件#32>${i !== 0 ? '_' + i : ''}`)
+  const names9 = new Array(54).fill(0).map((_, i) => `<组件#61>${i !== 0 ? '_' + i : ''}`)
+  const names10 = new Array(36).fill(0).map((_, i) => `<组件#34>${i !== 0 ? '_' + i : ''}`)
+
+  const list = [
+    ...names,
+    ...names1,
+    ...names2,
+    ...names3,
+    ...names4,
+    ...names5,
+    ...names6,
+    ...names7,
+    ...names8,
+    ...names9,
+    ...names10
+  ]
+  settingModelStatus(list, value)
+}
+
+async function playStep7Animation(value) {
+  // 顶板
+  const names = [
+    'Group_109',
+    'Group_59',
+    'Group_40',
+    'Group_236',
+    'Group_186',
+    'Group_167',
+    'Group_590',
+    'Group_639',
+    'Group_620',
+    'Group_486',
+    'Group_437',
+    'Group_418',
+    'Group_517',
+    'Group_566',
+    'Group_547',
+    'Group_362',
+    'Group_312',
+    'Group_293',
+    'Group_656',
+    'Group_754',
+    'Group_783',
+    'Group_709',
+    'Group_1043',
+    'Group_903',
+    'Group_669',
+    'Group_848',
+    'Group_826'
+  ]
+
+  settingModelStatus([...names], value)
+}
+
+async function playStep8Animation(value) {
+  const names = new Array(48).fill(0).map((_, i) => `<组件#26>${i !== 0 ? '_' + i : ''}`)
+  const names1 = [
+    'Group_2',
+    'Group_14',
+    'Group_8',
+    'Group_20',
+    'Group_72',
+    'Group_78',
+    'Group_84',
+    'Group_90',
+    'Group_217',
+    'Group_205',
+    'Group_199',
+    'Group_211',
+    'Group_135',
+    'Group_147',
+    'Group_129',
+    'Group_141',
+    'Group_854',
+    'Group_866',
+    'Group_872',
+    'Group_860',
+    'Group_743',
+    'Group_731',
+    'Group_725',
+    'Group_737',
+    'Group_788',
+    'Group_800',
+    'Group_806',
+    'Group_794',
+    'Group_1016',
+    'Group_1009',
+    'Group_1003',
+    'Group_945',
+    'Group_325',
+    'Group_337',
+    'Group_343',
+    'Group_331',
+    'Group_467',
+    'Group_455',
+    'Group_449',
+    'Group_461',
+    'Group_256',
+    'Group_268',
+    'Group_274',
+    'Group_262',
+    'Group_399',
+    'Group_387',
+    'Group_381',
+    'Group_393'
+  ]
+  settingModelStatus([...names, ...names1], value)
+}
+
+async function playStep9Animation(value) {
+  const names = new Array(48).fill(0).map((_, i) => `<组件#27>${i !== 0 ? '_' + i : ''}`)
+  const names1 = new Array(95).fill(0).map((_, i) => `<组件#28>${i !== 0 ? '_' + i : ''}`)
+  const names2 = new Array(18).fill(0).map((_, i) => `<组件#30>${i !== 0 ? '_' + i : ''}`)
+  settingModelStatus([...names, ...names1, ...names2], value)
+}
+
+async function playStep10Animation(value) {
+  const names = new Array(24).fill(0).map((_, i) => `<组件#53>${i !== 0 ? '_' + i : ''}`)
+  const names1 = new Array(12).fill(0).map((_, i) => `<组件#57>${i !== 0 ? '_' + i : ''}`)
+  const names2 = new Array(36).fill(0).map((_, i) => `<组件#59>${i !== 0 ? '_' + i : ''}`)
+  const names3 = new Array(12).fill(0).map((_, i) => `<组件#54>${i !== 0 ? '_' + i : ''}`)
+  const names4 = new Array(12).fill(0).map((_, i) => `<组件#56>${i !== 0 ? '_' + i : ''}`)
+  const names5 = new Array(32).fill(0).map((_, i) => `<组件#63>${i !== 0 ? '_' + i : ''}`)
+  const names6 = new Array(432).fill(0).map((_, i) => `<tuojian#1>${i !== 0 ? '_' + i : ''}`)
+  settingModelStatus([...names, ...names1, ...names2, ...names3, ...names4, ...names5, ...names6], value)
 }
 
 function settingModelStatus(names = [], value) {
@@ -298,6 +495,7 @@ function showModel(names = []) {
     }
   })
 }
+
 // 渲染循环
 function animate() {
   animationId = requestAnimationFrame(animate)
