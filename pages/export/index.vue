@@ -43,8 +43,8 @@ onMounted(() => {
     }
   })
   obj = object
-  object.loadSceneData('/gltf/test/landmark.gltf')
-   object.loadExportMode("/gltf/test/75/75-test-Group_37.gltf")
+  object.loadSceneData('/gltf/75-test/75-test.skp.gltf')
+  //  object.loadExportMode("/gltf/test/75/75-test-Group_37.gltf")
 })
 // function exportToGLTF(){
 // }
@@ -170,7 +170,7 @@ const exportScene = (binary = false) => {
 
   // 导出选项配置
   const options = {
-    trs: false, // 导出位置、旋转、缩放为单独的属性
+    trs: true, // 导出位置、旋转、缩放为单独的属性
     onlyVisible: true, // 只导出可见对象
     truncateDrawRange: true, // 截断绘制范围
     binary: binary, // 是否导出为二进制格式(GLB)
