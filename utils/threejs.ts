@@ -203,6 +203,22 @@ class Three {
         console.log("matrix--",matrix)
         return matrix;
     }
+    protected convertDpToNdc(dpX: number, dpY: number) {
+        // 转换为标准化设备坐标
+       // 获取渲染器元素的边界矩形
+       const rect = this.renderer.domElement.getBoundingClientRect();
+       // 计算相对于渲染器的dp坐标
+       const relativeX = dpX - rect.left;
+       const relativeY = dpY - rect.top;
+       // 转换为0-1范围的坐标
+       const normalizedX = relativeX / rect.width;
+       const normalizedY = relativeY / rect.height;
+       // 转换为Three.js的标准化设备坐标(-1到1)
+       return {
+           x: normalizedX * 2 - 1,
+           y: -(normalizedY * 2 - 1)
+       };
+   }
 
 }
 export default Three
