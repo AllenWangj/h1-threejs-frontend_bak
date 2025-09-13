@@ -1,4 +1,4 @@
-import * as icons from '@ez-ui/icons'
+import * as icons from '@maxtan/ez-ui-icons'
 
 export default defineNuxtPlugin((nuxtApp) => {
   for (const [key, component] of Object.entries(icons)) {

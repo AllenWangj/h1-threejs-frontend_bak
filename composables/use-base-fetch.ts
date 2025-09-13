@@ -1,4 +1,4 @@
-import { Http } from '@sino/fetch'
+import { Http } from '@maxtan/fetch'
 import type { BaseFetchOptions } from '~/types/base'
 import { ElMessage } from 'element-plus'
 const instanceMap = new Map<string, Http>()

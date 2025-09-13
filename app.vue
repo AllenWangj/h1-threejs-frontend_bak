@@ -1,5 +1,5 @@
 <template>
-  <el-config-provider :locale="locale">
+  <el-config-provider :locale="zhCn">
     <nuxt-layout>
       <nuxt-page />
     </nuxt-layout>
@@ -7,7 +7,5 @@
 </template>
 <script lang="ts" setup>
 import '~/assets/css/style.css'
-import { zhCn as elZhCn } from 'element-plus/es/locale/index'
-import { zhCn as ezZhCn } from '@sino/i18n'
-const locale = { ...elZhCn, ...ezZhCn }
+import { zhCn } from 'element-plus/es/locale/index'
 </script>
