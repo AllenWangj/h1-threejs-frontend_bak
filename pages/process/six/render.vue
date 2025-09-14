@@ -1,329 +1,524 @@
 <template>
-  <div v-loading="loading" class="w-[100%] h-[100%]">
-    <div ref="threeContainer" class="three-container" />
+  <div v-loading="loading" class="w-[100%] h-[100%] relative">
+    <div ref="threeContainer" class="three-container"></div>
     <div class="toolbar-container">
-      <el-button class="w-[120px]" :type="hideModel.includes(1) ? 'info' : 'primary'" @click="playStep1Animation(1)">
-        窗
-      </el-button>
-      <el-button class="w-[120px]" :type="hideModel.includes(2) ? 'info' : 'primary'" @click="playStep2Animation(2)">
-        门
-      </el-button>
-      <el-button class="w-[120px]" :type="hideModel.includes(3) ? 'info' : 'primary'" @click="playStep3Animation(3)">
-        屋面板
-      </el-button>
-      <el-button class="w-[120px]" :type="hideModel.includes(4) ? 'info' : 'primary'" @click="playStep4Animation(4)">
-        屋顶
-      </el-button>
-      <el-button class="w-[120px]" :type="hideModel.includes(5) ? 'info' : 'primary'" @click="playStep5Animation(5)">
-        墙壁
+      <el-button class="w-[120px]" type="primary" @click="addCube">添加物体</el-button>
+      <el-button class="w-[120px]" type="primary" :plain="rotateEnabled" @click="toggleRotate">
+        {{ rotateEnabled ? "关闭场景旋转" : "开启场景旋转" }}
       </el-button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-const loading = ref(false)
-const hideModel = ref([])
+import { ref, onMounted, onUnmounted } from "vue";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { DragControls } from "three/examples/jsm/controls/DragControls.js";
 
-const threeContainer = ref(null)
-let scene, camera, renderer, controls, animationId
+const threeContainer = ref(null);
+let scene, containerScene, camera, renderer, orbitControls, dragControls;
+const containerSize = { x: 60, y: 20, z: 20 };
+let rotateEnabled = ref(true);
+let selectedObject = null; // 当前选中的物体
 
-onMounted(() => {
-  initThree()
-  loadModel()
-  animate()
-})
+// 选中物体的函数
+function selectObject(object) {
+  console.log("Object selected:", object);
+  // 如果之前有选中的物体，先取消其选中状态
+  if (selectedObject) {
+    selectedObject.material.emissive = new THREE.Color(0x000000);
+  }
 
-onBeforeUnmount(() => {
-  cancelAnimationFrame(animationId)
-  renderer.dispose()
-})
+  // 设置新的选中物体
+  selectedObject = object;
 
-function initThree() {
-  scene = new THREE.Scene()
-  // 设置天空背景
-  scene.background = new THREE.Color(0x87ceeb); // 天空蓝颜色
-
-  const width = threeContainer.value.clientWidth
-  const height = threeContainer.value.clientHeight
-  camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 2000)
-  camera.position.set(-10, 10, -30)
-
-  renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: true,
-    precision: 'highp',
-    powerPreference: 'high-performance' // 优先 GPU 性能
-  })
-  renderer.setSize(width, height)
-  renderer.setPixelRatio(window.devicePixelRatio * 1.5)
-  threeContainer.value.appendChild(renderer.domElement)
-
-  // 增强环境光
-  const ambient = new THREE.AmbientLight(0xffffff, 2.0)
-  scene.add(ambient)
-
-  // 添加主方向光
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0)
-  directionalLight.position.set(5, 10, 7)
-  directionalLight.castShadow = true
-  scene.add(directionalLight)
-
-  // 添加辅助方向光，减少阴影
-  const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1.0)
-  directionalLight2.position.set(-5, -5, -5)
-  scene.add(directionalLight2)
-
-  // 添加半球光作为补光
-  const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1.0)
-  scene.add(hemisphereLight)
-
-  // 创建一个坐标辅助器，长度为 5
-  // const axesHelper = new THREE.AxesHelper(350)
-  // 添加到场景
-  // scene.add(axesHelper)
-
-  controls = new OrbitControls(camera, renderer.domElement)
-  controls.enableDamping = true
-
-  // 限制相机视角，防止移动到地面以下
-  controls.maxPolarAngle = Math.PI / 2 - 0.1 // 限制垂直旋转角度，防止从下方看
-  controls.minDistance = 0 // 最小距离
-  controls.maxDistance = 100 // 最大距离
-}
-
-// 加载模型并创建自定义动画
-function loadModel() {
-  loading.value = true
-  const loader = new GLTFLoader()
-  loader.load(
-    '/models/tool5/scene.gltf', // 替换成你自己的路径
-   async (gltf) =>  {
-      const root = gltf.scene
-      console.log('模型根节点:', root)
-      scene.add(root)
-
-      // === 关键：把整体移到中心 ===
-      const box = new THREE.Box3().setFromObject(root) // 计算包围盒
-      const center = new THREE.Vector3()
-      box.getCenter(center)
-      // 把 root 整体往反方向平移，使模型中心对齐到 (0,0,0)
-      root.position.sub(center)
-
-
-      await nextTick()
-      loading.value = false
-    },
-    (xhr) => {
-      if (xhr.total) console.log(`加载进度: ${((xhr.loaded / xhr.total) * 100).toFixed(2)}%`)
-    },
-    (error) => {
-      console.error('模型加载失败:', error)
-    }
-  )
-}
-
-async function playStep1Animation(value) {
-  const names = [
-    '<组件#66>',
-    '<组件#66>_1',
-    '<组件#66>_2',
-    '<组件#66>_3',
-    '<组件#66>_4',
-    '<组件#66>_5',
-    '<组件#66>_6',
-    '<组件#66>_7',
-    '<组件#66>_8',
-    '<组件#66>_9',
-    '<组件#66>_10',
-    '<组件#66>_11',
-    '<组件#66>_12',
-    '<组件#66>_13',
-    '<组件#66>_14',
-    '<组件#66>_15',
-    '<组件#66>_16',
-    '<组件#66>_17',
-    '<组件#66>_18',
-    '<组件#66>_19',
-    '<组件#66>_20',
-    '<组件#66>_21',
-    '<组件#66>_22'
-  ]
-  settingModelStatus(names, value)
-}
-
-async function playStep2Animation(value) {
-  const names = new Array(19)
-    .fill(0)
-    .map((_, i) => `IfcDoor_-_单嵌板木门_14D-04455344<3ID151naX4SP9QZfy4vvW9#1>${i !== 0 ? '_' + i : ''}`)
-  settingModelStatus(names, value)
-}
-
-async function playStep3Animation(value) {
-  const names12 = new Array(32).fill(0).map((_, i) => `<组件#10>${i !== 0 ? '_' + i : ''}`)
-  const names1 = new Array(19).fill(0).map((_, i) => `<组件#12>${i !== 0 ? '_' + i : ''}`)
-  const names2 = [
-    '<组件#19>',
-    '<组件#8>',
-    '<组件#107>',
-    '<组件#107>_1',
-    '<组件#107>_2',
-    '<组件#77>',
-    '<组件#77>_1',
-    '<组件#77>_2',
-    '<组件#77>_3',
-    '<组件#79>',
-    '<组件#79>_1',
-    '<组件#79>_2',
-    '<组件#79>_3',
-    '<组件#105>',
-    '<组件#105>_1',
-    '<组件#109>',
-    '<组件#109>_1',
-    '<组件#111>',
-    '<组件#58>',
-    '<组件#45>',
-    '<组件#47>',
-    '<组件#21>',
-    '<组件#25>',
-    '<组件#75>',
-    '<组件#64>',
-    '<组件#67>',
-    '<组件#11>',
-    '<组件#69>',
-    '<组件#71>',
-    '<组件#73>'
-  ]
-  const names3 = new Array(12).fill(0).map((_, i) => `<组件#42>${i !== 0 ? '_' + i : ''}`)
-  const names4 = new Array(6).fill(0).map((_, i) => `<组件#95>${i !== 0 ? '_' + i : ''}`)
-  const names5 = new Array(9).fill(0).map((_, i) => `<组件#90>${i !== 0 ? '_' + i : ''}`)
-  const names6 = new Array(9).fill(0).map((_, i) => `<组件#92>${i !== 0 ? '_' + i : ''}`)
-  const names7 = new Array(9).fill(0).map((_, i) => `<组件#88>${i !== 0 ? '_' + i : ''}`)
-  // 柱子的面板
-  const names8 = ['<组件#113>', ...new Array(4).fill(0).map((_, i) => `<组件#83>${i !== 0 ? '_' + i : ''}`)]
-
-  // 内部
-  const names9 = new Array(19).fill(0).map((_, i) => `<组件#45>${i !== 0 ? '_' + i : ''}`)
-  const names10 = new Array(18).fill(0).map((_, i) => `<组件#46>${i !== 0 ? '_' + i : ''}`)
-  const names11 = new Array(19).fill(0).map((_, i) => `<组件#47>${i !== 0 ? '_' + i : ''}`)
-
-  const names = [
-    ...names1,
-    ...names2,
-    ...names3,
-    ...names4,
-    ...names5,
-    ...names6,
-    ...names7,
-    ...names8,
-    ...names9,
-    ...names10,
-    ...names11,
-    ...names12
-  ]
-
-  settingModelStatus(names, value)
-}
-
-async function playStep4Animation(value) {
-  const names = ['Group_821']
-  settingModelStatus(names, value)
-}
-
-async function playStep5Animation(value) {
-  const names1 = new Array(48).fill(0).map((_, i) => `<组件#40>${i !== 0 ? '_' + i : ''}`)
-  const names2 = new Array(10).fill(0).map((_, i) => `<组件#44>${i !== 0 ? '_' + i : ''}`)
-  const names3 = new Array(14).fill(0).map((_, i) => `<组件#41>${i !== 0 ? '_' + i : ''}`)
-  const names4 = new Array(144).fill(0).map((_, i) => `<组件#37>${i !== 0 ? '_' + i : ''}`)
-  const names5 = new Array(36).fill(0).map((_, i) => `<组件#39>${i !== 0 ? '_' + i : ''}`)
-  const names6 = [
-    'Group_110',
-    'Group_41',
-    'Group_621',
-    'Group_591',
-    'Group_168',
-    'Group_237',
-    'Group_487',
-    'Group_419',
-    'Group_548',
-    'Group_518',
-    'Group_294',
-    'Group_363',
-    'Group_694',
-    'Group_705',
-    'Group_768',
-    'Group_816',
-    'Group_883',
-    'Group_673'
-  ]
-  const names = [...names1, ...names2, ...names3, ...names4, ...names5, ...names6]
-
-  settingModelStatus(names, value)
-}
-
-function settingModelStatus(names = [], value) {
-  if (hideModel.value.includes(value)) {
-    hideModel.value = hideModel.value.filter((item) => item !== value)
-    showModel(names)
-  } else {
-    hideModel.value.push(value)
-    hiddenModel(names)
+  // 高亮新选中的物体
+  if (selectedObject) {
+    selectedObject.material.emissive = new THREE.Color(0x222222);
+    console.log("Object selected:", selectedObject);
   }
 }
 
-// 隐藏模型
-function hiddenModel(names = []) {
-  names.forEach((name) => {
-    const part = scene.getObjectByName(name)
-    if (part) {
-      part.visible = false
-    } else {
-      console.log(`模型不存在: ${name}`)
+const draggableObjects = []; // { mesh, size, prevPosition, enteredContainer }
+
+onMounted(() => {
+  initScene();
+  animate();
+
+  // 添加键盘事件监听
+  window.addEventListener("keydown", onKeyDown);
+});
+
+onUnmounted(() => {
+  // 组件卸载时移除事件监听器
+  window.removeEventListener("keydown", onKeyDown);
+});
+
+function initScene() {
+  scene = new THREE.Scene();
+  // 设置天空背景
+  scene.background = new THREE.Color(0x87ceeb); // 天空蓝颜色
+
+  // 创建独立的容器场景
+  containerScene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(
+    75,
+    threeContainer.value.clientWidth / threeContainer.value.clientHeight,
+    0.1,
+    1000
+  );
+  camera.position.set(-32, 18, 50);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(
+    threeContainer.value.clientWidth,
+    threeContainer.value.clientHeight
+  );
+  threeContainer.value.appendChild(renderer.domElement);
+
+  // 全局光照只影响外部场景
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  directionalLight.position.set(10, 20, 10);
+  directionalLight.castShadow = true;
+  scene.add(directionalLight);
+
+  // 容器边框可视化
+  const boxGeo = new THREE.BoxGeometry(
+    containerSize.x,
+    containerSize.y,
+    containerSize.z
+  );
+
+  // 创建带有单独底部颜色的材质
+  const boxMaterials = [
+    new THREE.MeshPhongMaterial({
+      // 右面
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.2,
+      side: THREE.BackSide,
+      depthWrite: false,
+    }),
+    new THREE.MeshPhongMaterial({
+      // 左面
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.2,
+      side: THREE.BackSide,
+      depthWrite: false,
+    }),
+    new THREE.MeshPhongMaterial({
+      // 上面
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.2,
+      side: THREE.BackSide,
+      depthWrite: false,
+    }),
+    new THREE.MeshPhongMaterial({
+      // 下面（底部）
+      color: 0x00ffff, // 单独设置底部颜色为青色
+      transparent: true,
+      opacity: 1,
+      side: THREE.BackSide,
+      depthWrite: false,
+    }),
+    new THREE.MeshPhongMaterial({
+      // 前面
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.2,
+      side: THREE.BackSide,
+      depthWrite: false,
+    }),
+    new THREE.MeshPhongMaterial({
+      // 后面
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.2,
+      side: THREE.BackSide,
+      depthWrite: false,
+    }),
+  ];
+
+  const containerMesh = new THREE.Mesh(boxGeo, boxMaterials);
+  scene.add(containerMesh);
+
+  // 添加底部地面 (比容器更大)
+  const groundSize = containerSize.x * 3; // 让地面比容器大300%
+  const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+
+  // 创建棋盘格纹理来模拟地面
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext("2d");
+
+  // 绘制棋盘格纹理
+  ctx.fillStyle = "#dddddd";
+  ctx.fillRect(0, 0, 512, 512);
+  ctx.fillStyle = "#aaaaaa";
+  for (let i = 0; i < 8; i++) {
+    for (let j = 0; j < 8; j++) {
+      if ((i + j) % 2 === 0) {
+        ctx.fillRect(i * 64, j * 64, 64, 64);
+      }
     }
-  })
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(4, 4); // 重复4次以适应更大的地面
+
+  const groundMaterial = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 1,
+  });
+  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  ground.rotation.x = Math.PI / 2; // 旋转至水平位置
+  ground.position.y = -containerSize.y / 2 - 1; // 定位在容器底部
+  scene.add(ground); // 将地面直接添加到场景中，而不是容器中
+
+  // 轮廓线
+  const edges = new THREE.EdgesGeometry(boxGeo);
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x000000 });
+  const lineMesh = new THREE.LineSegments(edges, lineMat);
+  containerMesh.add(lineMesh);
+
+  orbitControls = new OrbitControls(camera, renderer.domElement);
+
+  // 限制相机视角，防止移动到地面以下
+  orbitControls.maxPolarAngle = Math.PI / 2 - 0.1; // 限制垂直旋转角度，防止从下方看
+  orbitControls.minDistance = 10; // 最小距离
+  orbitControls.maxDistance = 200; // 最大距离
+
+  initDragControls();
 }
 
-// 显示模型
-function showModel(names = []) {
-  names.forEach((name) => {
-    const part = scene.getObjectByName(name)
-    if (part) {
-      part.visible = true
-    } else {
-      console.log(`模型不存在: ${name}`)
+function initDragControls() {
+  if (dragControls) dragControls.dispose();
+  const meshes = draggableObjects.map((o) => o.mesh);
+  dragControls = new DragControls(meshes, camera, renderer.domElement);
+
+  dragControls.addEventListener("dragstart", (event) => {
+    orbitControls.enabled = false;
+    const obj = draggableObjects.find((o) => o.mesh === event.object);
+    if (obj) obj.prevPosition = event.object.position.clone();
+  });
+
+  dragControls.addEventListener("drag", (event) => {
+    const obj = draggableObjects.find((o) => o.mesh === event.object);
+    if (!obj) return;
+
+    const halfSize = {
+      x: obj.size.x / 2,
+      y: obj.size.y / 2,
+      z: obj.size.z / 2,
+    };
+    let targetPos = event.object.position.clone();
+
+    // 限制物体不能低于地面
+    const groundLevel = -containerSize.y / 2 + halfSize.y;
+    targetPos.y = Math.max(groundLevel, targetPos.y);
+
+    // 判断是否已经进入容器
+    const insideContainer =
+      targetPos.x - halfSize.x >= -containerSize.x / 2 &&
+      targetPos.x + halfSize.x <= containerSize.x / 2 &&
+      targetPos.y - halfSize.y >= -containerSize.y / 2 &&
+      targetPos.y + halfSize.y <= containerSize.y / 2 &&
+      targetPos.z - halfSize.z >= -containerSize.z / 2 &&
+      targetPos.z + halfSize.z <= containerSize.z / 2;
+
+    if (insideContainer) obj.enteredContainer = true;
+
+    // 如果已经进入过容器，限制在容器内，否则允许在外面拖动
+    if (obj.enteredContainer) {
+      targetPos.x = Math.max(
+        -containerSize.x / 2 + halfSize.x,
+        Math.min(containerSize.x / 2 - halfSize.x, targetPos.x)
+      );
+      targetPos.y = Math.min(
+        containerSize.y / 2 - halfSize.y,
+        Math.max(-containerSize.y / 2 + halfSize.y, targetPos.y)
+      );
+      targetPos.z = Math.max(
+        -containerSize.z / 2 + halfSize.z,
+        Math.min(containerSize.z / 2 - halfSize.z, targetPos.z)
+      );
     }
-  })
+
+    // 碰撞检测
+    const minA = new THREE.Vector3(
+      targetPos.x - halfSize.x,
+      targetPos.y - halfSize.y,
+      targetPos.z - halfSize.z
+    );
+    const maxA = new THREE.Vector3(
+      targetPos.x + halfSize.x,
+      targetPos.y + halfSize.y,
+      targetPos.z + halfSize.z
+    );
+
+    let overlap = false;
+    for (let other of draggableObjects) {
+      if (other.mesh === obj.mesh) continue;
+      const halfOther = {
+        x: other.size.x / 2,
+        y: other.size.y / 2,
+        z: other.size.z / 2,
+      };
+      const minB = new THREE.Vector3(
+        other.mesh.position.x - halfOther.x,
+        other.mesh.position.y - halfOther.y,
+        other.mesh.position.z - halfOther.z
+      );
+      const maxB = new THREE.Vector3(
+        other.mesh.position.x + halfOther.x,
+        other.mesh.position.y + halfOther.y,
+        other.mesh.position.z + halfOther.z
+      );
+
+      if (
+        minA.x < maxB.x &&
+        maxA.x > minB.x &&
+        minA.y < maxB.y &&
+        maxA.y > minB.y &&
+        minA.z < maxB.z &&
+        maxA.z > minB.z
+      ) {
+        overlap = true;
+        break;
+      }
+    }
+
+    // 根据物体位置调整材质亮度
+    if (obj.enteredContainer) {
+      // 在容器内部，使用较暗的材质
+      obj.mesh.material.emissive = new THREE.Color(0x607897);
+    } else {
+      // 在容器外部，使用较亮的材质
+      obj.mesh.material.emissive = new THREE.Color(0x000000);
+    }
+
+    if (overlap) {
+      event.object.position.copy(obj.prevPosition);
+    } else {
+      obj.prevPosition.copy(targetPos);
+      event.object.position.copy(targetPos);
+    }
+  });
+
+  dragControls.addEventListener("dragend", () => {
+    orbitControls.enabled = rotateEnabled.value;
+  });
+
+  // 添加点击选择物体的功能
+  dragControls.addEventListener("hoveron", (event) => {
+    selectedObject = event.object;
+    // 高亮选中物体
+    selectedObject.material.emissive = new THREE.Color(0x999999);
+  });
+
+  dragControls.addEventListener("hoveroff", (event) => {
+    if (selectedObject === event.object) {
+      selectedObject.material.emissive = new THREE.Color(0x000000);
+      selectedObject = null;
+    }
+  });
 }
-// 渲染循环
+
+function addCube() {
+  const x = Math.floor(Math.random() * 6) + 3;
+  const y = Math.floor(Math.random() * 6) + 3;
+  const z = Math.floor(Math.random() * 6) + 3;
+
+  const size = { x, y, z };
+
+  // 立方体
+  let geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+
+  const material = new THREE.MeshPhongMaterial({
+    color: Math.random() * 0xffffff,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+
+  // 生成容器外位置
+  mesh.position.copy(getNonOverlappingPosition(size));
+
+  scene.add(mesh);
+  draggableObjects.push({
+    mesh,
+    size,
+    prevPosition: mesh.position.clone(),
+    enteredContainer: false, // 新增标记
+  });
+
+  if (dragControls) {
+    dragControls.objects.push(mesh);
+  } else {
+    initDragControls();
+  }
+}
+
+// 生成容器外随机位置
+function getNonOverlappingPosition(size) {
+  const distance = 15; // 容器外距离
+  let pos = new THREE.Vector3();
+  pos.z = containerSize.z / 2 + size.z / 2 + distance;
+  pos.x = Math.random() * containerSize.x - containerSize.x / 2;
+  pos.y = Math.random() * containerSize.y - containerSize.y / 2;
+
+  return pos;
+}
+
+function toggleRotate() {
+  rotateEnabled.value = !rotateEnabled.value;
+  orbitControls.enabled = rotateEnabled.value;
+}
+
 function animate() {
-  animationId = requestAnimationFrame(animate)
-  controls.update()
-  renderer.render(scene, camera)
+  requestAnimationFrame(animate);
+
+  // 渲染外部场景
+  renderer.render(scene, camera);
 }
 
-// 窗口变化刷新
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight
-  camera.updateProjectionMatrix()
-  renderer.setSize(window.innerWidth, window.innerHeight)
-})
+// 添加键盘事件监听
+function onKeyDown(event) {
+  if (!selectedObject) return;
+  const obj = draggableObjects.find((o) => o.mesh === selectedObject);
+  if (!obj) return;
+
+  const moveDistance = 1; // 基础步长
+  let direction = new THREE.Vector3();
+
+  switch (event.key) {
+    case "ArrowUp": direction.set(0, 0, -1); break;
+    case "ArrowDown": direction.set(0, 0, 1); break;
+    case "ArrowLeft": direction.set(-1, 0, 0); break;
+    case "ArrowRight": direction.set(1, 0, 0); break;
+    case "w": case "W": direction.set(0, 1, 0); break;
+    case "s": case "S": direction.set(0, -1, 0); break;
+    default: return;
+  }
+
+  const halfSize = {
+    x: obj.size.x / 2,
+    y: obj.size.y / 2,
+    z: obj.size.z / 2,
+  };
+
+  let allowedMove = moveDistance;
+
+  // === 1. 检查容器边界 ===
+  if (direction.x !== 0) {
+    if (direction.x > 0) {
+      const dist = containerSize.x / 2 - halfSize.x - selectedObject.position.x;
+      allowedMove = Math.min(allowedMove, dist);
+    } else {
+      const dist = -containerSize.x / 2 + halfSize.x - selectedObject.position.x;
+      allowedMove = Math.min(allowedMove, -dist);
+    }
+  }
+  if (direction.y !== 0) {
+    if (direction.y > 0) {
+      const dist = containerSize.y / 2 - halfSize.y - selectedObject.position.y;
+      allowedMove = Math.min(allowedMove, dist);
+    } else {
+      const dist = -containerSize.y / 2 + halfSize.y - selectedObject.position.y;
+      allowedMove = Math.min(allowedMove, -dist);
+    }
+  }
+  if (direction.z !== 0) {
+    if (direction.z > 0) {
+      const dist = containerSize.z / 2 - halfSize.z - selectedObject.position.z;
+      allowedMove = Math.min(allowedMove, dist);
+    } else {
+      const dist = -containerSize.z / 2 + halfSize.z - selectedObject.position.z;
+      allowedMove = Math.min(allowedMove, -dist);
+    }
+  }
+
+  // === 2. 检查与其他物体的距离 ===
+  for (let other of draggableObjects) {
+    if (other.mesh === obj.mesh) continue;
+    const halfOther = {
+      x: other.size.x / 2,
+      y: other.size.y / 2,
+      z: other.size.z / 2,
+    };
+
+    // 方向 x
+    if (direction.x !== 0 &&
+      Math.abs(selectedObject.position.y - other.mesh.position.y) < halfSize.y + halfOther.y &&
+      Math.abs(selectedObject.position.z - other.mesh.position.z) < halfSize.z + halfOther.z) {
+      if (direction.x > 0 && selectedObject.position.x < other.mesh.position.x) {
+        const dist = (other.mesh.position.x - halfOther.x) - (selectedObject.position.x + halfSize.x);
+        if (dist >= 0) allowedMove = Math.min(allowedMove, dist);
+      }
+      if (direction.x < 0 && selectedObject.position.x > other.mesh.position.x) {
+        const dist = (selectedObject.position.x - halfSize.x) - (other.mesh.position.x + halfOther.x);
+        if (dist >= 0) allowedMove = Math.min(allowedMove, dist);
+      }
+    }
+
+    // 方向 y
+    if (direction.y !== 0 &&
+      Math.abs(selectedObject.position.x - other.mesh.position.x) < halfSize.x + halfOther.x &&
+      Math.abs(selectedObject.position.z - other.mesh.position.z) < halfSize.z + halfOther.z) {
+      if (direction.y > 0 && selectedObject.position.y < other.mesh.position.y) {
+        const dist = (other.mesh.position.y - halfOther.y) - (selectedObject.position.y + halfSize.y);
+        if (dist >= 0) allowedMove = Math.min(allowedMove, dist);
+      }
+      if (direction.y < 0 && selectedObject.position.y > other.mesh.position.y) {
+        const dist = (selectedObject.position.y - halfSize.y) - (other.mesh.position.y + halfOther.y);
+        if (dist >= 0) allowedMove = Math.min(allowedMove, dist);
+      }
+    }
+
+    // 方向 z
+    if (direction.z !== 0 &&
+      Math.abs(selectedObject.position.x - other.mesh.position.x) < halfSize.x + halfOther.x &&
+      Math.abs(selectedObject.position.y - other.mesh.position.y) < halfSize.y + halfOther.y) {
+      if (direction.z > 0 && selectedObject.position.z < other.mesh.position.z) {
+        const dist = (other.mesh.position.z - halfOther.z) - (selectedObject.position.z + halfSize.z);
+        if (dist >= 0) allowedMove = Math.min(allowedMove, dist);
+      }
+      if (direction.z < 0 && selectedObject.position.z > other.mesh.position.z) {
+        const dist = (selectedObject.position.z - halfSize.z) - (other.mesh.position.z + halfOther.z);
+        if (dist >= 0) allowedMove = Math.min(allowedMove, dist);
+      }
+    }
+  }
+
+  // === 3. 应用移动 ===
+  if (allowedMove > 0) {
+    selectedObject.position.addScaledVector(direction, allowedMove);
+  }
+}
 </script>
 
-<style scoped>
+<style>
 .three-container {
   width: 100%;
   height: 100%;
-  display: block;
+  background: #000;
 }
 
 .toolbar-container {
-  position: fixed;
-  top: 60px;
+  position: absolute;
+  top: 20px;
   right: 20px;
+  z-index: 999;
   background: transparent;
   overflow-y: auto;
   display: flex;

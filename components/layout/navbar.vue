@@ -1,5 +1,5 @@
 <template>
-  <el-header class="flex justify-between items-center border-solid border-[#dcdfe6] pt-[5px]" height="48px">
+  <el-header class="flex justify-between items-center border-solid border-[#dcdfe6] pt-[5px]" height="60px">
     <!-- <div class="flex flex-1">
       <div class="flex items-center flex-1">
         <el-icon class="cursor-pointer mr-[20px]" :size="20" @click="triggerMenu()">
@@ -11,7 +11,7 @@
     <img
       src="../../assets/images/home/nameText.svg"
       alt=""
-      class="cursor-pointer h-[56%] ml-[10px]"
+      class="cursor-pointer h-[48%] ml-[10px]"
       @click="triggerHome()"
     />
     <div class="flex h-full">
