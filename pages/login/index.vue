@@ -1,8 +1,8 @@
 <template>
   <div class="h-screen login">
     <div class="flex pt-[33px] pl-[47px] items-center">
-      <img class="w-[50px] h-[50px]" src="@/assets/images/ican.png" alt="banner" />
-      <p class="ml-[13px] text-[#333] font-bold text-[28px]">SCRM管理平台</p>
+      <!-- <img class="w-[50px] h-[50px]" src="@/assets/images/ican.png" alt="banner" /> -->
+      <p class="ml-[13px] text-[#333] font-bold text-[48px]">典型区域全过程智能建造管理工具</p>
     </div>
     <div class="login-form">
       <login-form />
@@ -26,7 +26,7 @@ onMounted(() => {
 <style scoped>
 .login {
   background: url('@/assets/images/login.png');
-  background-size: auto 100%;
+  background-size: cover;
   background-repeat: no-repeat;
   position: relative;
 }

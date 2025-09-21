@@ -11,7 +11,7 @@
     <img
       src="../../assets/images/home/nameText.svg"
       alt=""
-      class="cursor-pointer h-[48%] ml-[10px]"
+      class="cursor-pointer ml-[30px] h-[26px]"
       @click="triggerHome()"
     />
     <div class="flex h-full">
