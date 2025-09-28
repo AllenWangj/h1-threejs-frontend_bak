@@ -62,6 +62,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   cancelAnimationFrame(animationId)
   renderer.dispose()
+  // 移除窗口监听
+  window.removeEventListener('resize', onResize)
 })
 
 function initThree() {
@@ -237,9 +239,9 @@ function animate() {
 
 // 窗口变化刷新
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight
+  camera.aspect = threeContainer.value.clientWidth / threeContainer.value.clientHeight
   camera.updateProjectionMatrix()
-  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.setSize(threeContainer.value.clientWidth, threeContainer.value.clientHeight)
 })
 </script>
 

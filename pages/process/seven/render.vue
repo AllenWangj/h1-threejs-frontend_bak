@@ -29,6 +29,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   cancelAnimationFrame(animationId)
   renderer.dispose()
+  // 移除窗口监听
+  window.removeEventListener('resize', onResize)
 })
 
 function initThree() {
@@ -370,6 +372,13 @@ function animate() {
   controls.update()
   renderer.render(scene, camera)
 }
+
+// 窗口变化刷新
+window.addEventListener('resize', () => {
+  camera.aspect = threeContainer.value.clientWidth / threeContainer.value.clientHeight
+  camera.updateProjectionMatrix()
+  renderer.setSize(threeContainer.value.clientWidth, threeContainer.value.clientHeight)
+})
 </script>
 
 <style scoped>
