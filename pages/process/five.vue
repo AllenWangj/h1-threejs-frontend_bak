@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-full w-full bg-white rounded-[4px]">
+  <div class="flex h-full w-full bg-white rounded-[4px] process-page-container">
     <SubMenuSidebar :active-tab="isActiveTab" @on-change="tabChange" />
     <div class="flex-1 mx-[20px] my-[20px]  border border-[1px] border-[#adcdf7]">
       <NuxtPage />
@@ -32,5 +32,3 @@ onMounted(() => {
   }
 })
 </script>
-
-<style lang="less" scoped></style>
