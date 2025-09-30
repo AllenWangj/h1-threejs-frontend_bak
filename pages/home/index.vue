@@ -9,7 +9,8 @@
       <div class="mt-[20px] w-[100%] px-[10px]">
         <el-input v-model="searchText" placeholder="Please input" class="w-[100%]">
           <template #append>
-            <el-button :icon="Search" class="!text-[#fff] !rounded-[0]" style="background: linear-gradient(#3a83fc 16%,#a0c6ff);" />
+            <el-button :icon="Search" class="!text-[#fff] !rounded-[0]"
+              style="background: linear-gradient(#3a83fc 16%,#a0c6ff);" />
           </template>
         </el-input>
       </div>
@@ -19,8 +20,10 @@
             <p class="list-wrap-item-header__title">wwwwwwwwwwwwwwwwwwwwwwww</p>
             <span class="flex-1"></span>
             <img class="list-wrap-item-header__edit" src="../../assets/images/home/edit.svg" alt="" />
-            <div v-if="n === 1" class="list-wrap-item-header__status status-ongoing" @click="handlepushLibarty">进行中</div>
-            <div v-else-if="n === 2" class="list-wrap-item-header__status status-done" @click="handlepushLibarty">已完成</div>
+            <div v-if="n === 1" class="list-wrap-item-header__status status-ongoing" @click="handlepushLibarty">进行中
+            </div>
+            <div v-else-if="n === 2" class="list-wrap-item-header__status status-done" @click="handlepushLibarty">已完成
+            </div>
             <div v-else class="list-wrap-item-header__status" @click="handlepushLibarty">进行中</div>
           </div>
           <div class="list-wrap-item-body">
@@ -156,7 +159,7 @@ function handlepushLibarty() {
     cursor: pointer;
     width: 100%;
     background: #fff;
-    box-shadow: 0 2px 4px 0 rgba(116,166,248,.2);
+    box-shadow: 0 2px 4px 0 rgba(116, 166, 248, .2);
     border-radius: 4px;
     border: 1px solid #fff;
     padding: 10px;
@@ -207,11 +210,12 @@ function handlepushLibarty() {
       }
 
       .list-wrap-item-header__status.status-ongoing {
-        background: linear-gradient(270deg,rgba(255,218,55,.4),#ffc118);
+        background: linear-gradient(270deg, rgba(255, 218, 55, .4), #ffc118);
         color: #ff8206;
       }
+
       .list-wrap-item-header__status.status-done {
-        background: linear-gradient(270deg,#e5eeff,#b3cfff);
+        background: linear-gradient(270deg, #e5eeff, #b3cfff);
         color: #3a83fc;
       }
     }
@@ -298,7 +302,7 @@ function handlepushLibarty() {
       }
 
       &>.status-ongoing {
-        background: linear-gradient(270deg,rgba(255,218,55,.4),#ffc118);
+        background: linear-gradient(270deg, rgba(255, 218, 55, .4), #ffc118);
         color: #ff8206;
       }
 
@@ -313,7 +317,10 @@ function handlepushLibarty() {
   .step-button-1 {
     top: 40%;
     left: 3.5%;
-    background-image: url('../../assets/images/home/1-1.svg');
+
+    &>div {
+      background-image: url('../../assets/images/home/1-1.svg');
+    }
 
     &:hover {
       &>div {
@@ -325,7 +332,10 @@ function handlepushLibarty() {
   .step-button-2 {
     top: 60%;
     left: 14.5%;
-    background-image: url('../../assets/images/home/2-1.svg');
+
+    &>div {
+      background-image: url('../../assets/images/home/2-1.svg');
+    }
 
     &:hover {
       &>div {
@@ -337,7 +347,10 @@ function handlepushLibarty() {
   .step-button-3 {
     top: 67%;
     left: 31.5%;
-    background-image: url('../../assets/images/home/3-1.svg');
+
+    &>div {
+      background-image: url('../../assets/images/home/3-1.svg');
+    }
 
     &:hover {
       &>div {
@@ -349,7 +362,10 @@ function handlepushLibarty() {
   .step-button-4 {
     top: 67%;
     left: 51.5%;
-    background-image: url('../../assets/images/home/4-1.svg');
+
+    &>div {
+      background-image: url('../../assets/images/home/4-1.svg');
+    }
 
     &:hover {
       &>div {
@@ -361,7 +377,10 @@ function handlepushLibarty() {
   .step-button-5 {
     top: 60%;
     left: 69.5%;
-    background-image: url('../../assets/images/home/5-1.svg');
+
+    &>div {
+      background-image: url('../../assets/images/home/5-1.svg');
+    }
 
     &:hover {
       &>div {
@@ -373,7 +392,11 @@ function handlepushLibarty() {
   .step-button-6 {
     top: 40%;
     left: 82.5%;
-    background-image: url('../../assets/images/home/6-1.svg');
+
+    &>div {
+      background-image: url('../../assets/images/home/6-1.svg');
+    }
+
 
     &:hover {
       &>div {
@@ -385,7 +408,10 @@ function handlepushLibarty() {
   .step-button-7 {
     top: 21%;
     left: 66.5%;
-    background-image: url('../../assets/images/home/7-1.svg');
+
+    &>div {
+      background-image: url('../../assets/images/home/7-1.svg');
+    }
 
     &:hover {
       &>div {
