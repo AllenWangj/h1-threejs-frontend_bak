@@ -8,7 +8,6 @@
            <el-descriptions-item label="长度" :span="1" width="140px">{{  boxReactive.width.toFixed(2) }}mm</el-descriptions-item>
            <el-descriptions-item label="宽度" :span="1" width="140px">{{  boxReactive.height .toFixed(2)}}mm</el-descriptions-item>
            <el-descriptions-item label="高度" :span="1" width="140px">{{  boxReactive.deepth.toFixed(2) }}mm</el-descriptions-item>
-
           </el-descriptions>
       </div>
     </div>

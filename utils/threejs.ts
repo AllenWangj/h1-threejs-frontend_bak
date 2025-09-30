@@ -143,6 +143,8 @@ class Three {
                     loadGltfCbk && loadGltfCbk(progress)
                 }, err => {
                     console.log("err--", err)
+                    console.log("url--", url)
+
                     reject(err || '加载出错')
                 }
             )

@@ -33,12 +33,14 @@ class FiveExport extends Three {
         clone.position.set(0, 0, 0)
         clone.rotation.set(0, 0, 0)
         clone.scale.set(1, 1, 1)
-        const group1 = 
         this.wrapper.add(clone)
-        this.wrapper.position.set(0, 0, 0)
-        this.wrapper.rotation.set(0, 0, 0)
         const size = this.calculateGroupDimensions(this.wrapper, true)
-        clone.position.sub(size.position)
+        // const group1 = 
+        // this.wrapper.add(clone)
+        // this.wrapper.position.set(0, 0, 0)
+        // this.wrapper.rotation.set(0, 0, 0)
+        // const size = this.calculateGroupDimensions(this.wrapper, true)
+        // clone.position.sub(size.position)
 
         const number = size.maxDim
         this.camera!.position.set(size.center.x, size.center.y - number, size.center.z + number)

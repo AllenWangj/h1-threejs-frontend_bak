@@ -218,11 +218,8 @@ class PlanAndLayout extends Three {
                     const yPos = ele.position.y
                     const group =res.scenes[0]
                     const size = this.calculateGroupDimensions(group)
-
-                    debugger
                     group.position.set(xPos, yPos, 0)
                     this.wrapper.add(group)
-
                 } else {
                     const group = res.scene.children[0] as THREE.Group
                     const size = this.calculateGroupDimensions(group)
@@ -240,7 +237,6 @@ class PlanAndLayout extends Three {
                     this.wrapper.add(pivot)
                     this.raycasterSaveData.push(pivot)
                 }
-
             })
         })
     }
