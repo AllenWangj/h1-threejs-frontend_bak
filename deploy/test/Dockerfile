@@ -1,4 +1,4 @@
-FROM registry.cn-hangzhou.aliyuncs.com/maxtan-frontend/node-nginx:99b9268d as builder
+FROM registry.cn-hangzhou.aliyuncs.com/maxtan-frontend/node:22.20.0 as builder
 
 RUN npm config set registry https://registry.npmmirror.com
  
@@ -10,7 +10,7 @@ RUN pnpm install --frozen-lockfile
 
 RUN pnpm build:test
 
-FROM registry.cn-hangzhou.aliyuncs.com/maxtan-frontend/nginx:99b9268d
+FROM registry.cn-hangzhou.aliyuncs.com/maxtan-frontend/nginx:1.29.1
 
 COPY deploy/nginx.conf /etc/nginx/nginx.conf
 
