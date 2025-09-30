@@ -1,5 +1,5 @@
 <template>
-  <el-header class="flex justify-between items-center border-solid border-[#dcdfe6] pt-[5px]" height="60px">
+  <el-header class="flex justify-between items-center nav-container" height="60px">
     <!-- <div class="flex flex-1">
       <div class="flex items-center flex-1">
         <el-icon class="cursor-pointer mr-[20px]" :size="20" @click="triggerMenu()">
@@ -8,13 +8,14 @@
         </el-icon>
       </div>
     </div> -->
-    <img
-      src="../../assets/images/home/nameText.svg"
-      alt=""
-      class="cursor-pointer ml-[30px] h-[26px]"
-      @click="triggerHome()"
-    />
-    <div class="flex h-full">
+    <img src="../../assets/images/home/nameText.svg" alt="" class="cursor-pointer h-[26px]" @click="triggerHome()" />
+    <div class="flex items-center h-[60px]">
+      <span class="current-date">{{ currentDate }}</span>
+      <span class="current-time">{{ currentDateTime.hh }}</span>
+      <span class="text-[#3a83fc] mx-[5px]">:</span>
+      <span class="current-time">{{ currentDateTime.mm }}</span>
+      <span class="text-[#3a83fc] mx-[5px]">:</span>
+      <span class="current-time mr-[20px]">{{ currentDateTime.ss }}</span>
       <el-dropdown placement="bottom-end" trigger="click" @command="selectMenu">
         <div class="flex items-center px-[12px] cursor-pointer">
           <!-- <el-avatar class="mr-[8px]" size="small" src="https://www.bsbnk.com/cdn/image/maxtan.png">
@@ -38,6 +39,26 @@
 <script setup lang="ts">
 const { logOut } = useAuth()
 const { updateExpand, expand } = useMenu()
+const { formatTime } = useUtils()
+
+
+// 获取当前时间
+const currentDate = ref(formatTime(new Date().getTime(), 'YYYY-MM-DD'))
+const currentDateTime = ref({
+  hh: formatTime(new Date().getTime(), 'HH'),
+  mm: formatTime(new Date().getTime(), 'mm'),
+  ss: formatTime(new Date().getTime(), 'ss')
+})
+
+setInterval(() => {
+  currentDateTime.value = {
+    hh: formatTime(new Date().getTime(), 'HH'),
+    mm: formatTime(new Date().getTime(), 'mm'),
+    ss: formatTime(new Date().getTime(), 'ss')
+  }
+}, 1000)
+
+
 const selectMenu = (value: string) => {
   console.log(value)
   switch (value) {
@@ -61,3 +82,38 @@ const triggerHome = () => {
   router.push('/')
 }
 </script>
+
+
+<style scoped lang="less">
+.nav-container {
+  border: 30px solid transparent;
+  border-image-source: url('../../assets/images/home/nav-bg.svg');
+  border-image-slice: 30 fill;
+  border-image-repeat: stretch;
+  margin: 0 32px;
+  padding: 0;
+
+  .current-date {
+    font-weight: 700;
+    font-size: 16px;
+    color: transparent;
+    background: linear-gradient(90deg, #78c0ff, #3a83fc 80%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    margin-right: 16px;
+    display: flex;
+    align-items: center;
+  }
+
+  .current-time {
+    width: 22px;
+    height: 25px;
+    line-height: 25px;
+    background: url(../../assets/images/home/icon-time-bg.svg) no-repeat;
+    background-size: 22px 25px;
+    text-align: center;
+    font-size: 14px;
+    color: #f2f7ff;
+  }
+}
+</style>
