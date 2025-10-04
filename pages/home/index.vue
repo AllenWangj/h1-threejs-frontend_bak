@@ -20,7 +20,13 @@
         </el-input>
       </div>
       <div class="list-wrap">
-        <div class="list-wrap-item" v-for="item in projectList" :key="item.id">
+        <div
+          class="list-wrap-item"
+          v-for="item in projectList"
+          :key="item.id"
+          :class="{ 'is-active': currentProject === item.id }"
+          @click="handleTapProject(item)"
+        >
           <div class="list-wrap-item-header w-[100%] flex items-center justify-between">
             <p class="list-wrap-item-header__title">{{ item.name }}</p>
             <span class="flex-1"></span>
@@ -97,7 +103,7 @@
         </div>
       </div>
     </div>
-    <div class="relative flex-1 ml-[15px] home-background">
+    <div class="relative flex-1 ml-[15px] home-background" v-loading="detailLoading">
       <RouterLink to="/process/one" class="text-[#007bff] mx-[10px] step-button step-button-1">
         <div>
           <span v-if="false" class="status-unselected">未选择</span>
@@ -202,9 +208,21 @@ const router = useRouter()
 const searchText = ref('')
 // 项目列表
 const projectList = ref([])
+// 当前选择的项目id
+const currentProject = ref(null)
+// 项目详情loading
+const detailLoading = ref(false)
 // 搜索项目
 const handleSearchProject = () => {
   fetchProjectList()
+}
+
+// 选择项目
+const handleTapProject = (item) => {
+  if (!item.id || item.id === currentProject.value) return
+  currentProject.value = item.id
+  // 当前项目详情
+  fetchProjectDetail(item.id)
 }
 
 function handlepushLibarty() {
@@ -327,6 +345,20 @@ const handleSelectType = (id: number) => {
   }
 }
 
+/**
+ * 获取项目详情
+ */
+async function fetchProjectDetail(id: number) {
+  try {
+    detailLoading.value = true
+    const res = await getProjectDetail({ id })
+    console.log('项目详情', res)
+  } catch (error) {
+    console.error('获取项目详情失败', error)
+  } finally {
+    detailLoading.value = false
+  }
+}
 /**
  * 获取项目列表
  */
@@ -455,6 +487,16 @@ onMounted(() => {
         .status-done {
           color: #3a83fc;
         }
+      }
+    }
+  }
+
+  .list-wrap-item.is-active {
+    border: 1px solid #3a83fc;
+
+    .list-wrap-item-header {
+      .list-wrap-item-header__title {
+        color: #3a83fc;
       }
     }
   }
