@@ -1,5 +1,6 @@
 <template>
   <div class="w-full h-full flex">
+    <!-- 项目列表 -->
     <div class="w-[280px] bg-[#f8f9fa] rounded-[4px] flex flex-col items-center">
       <div class="cursor-pointer flex flex-col justify-center items-center py-[30px]" @click="handleCreateProject">
         <img src="../../assets/images/home/addIcon.svg" alt="add" class="w-[44px] h-[44px]" />
@@ -7,40 +8,49 @@
       </div>
       <div class="w-[100%] h-[1px] bg-[#9CC6ED]"></div>
       <div class="mt-[20px] w-[100%] px-[10px]">
-        <el-input v-model="searchText" placeholder="Please input" class="w-[100%]">
+        <el-input v-model="searchText" placeholder="请输入项目名称" class="w-[100%]">
           <template #append>
             <el-button
               :icon="Search"
               class="!text-[#fff] !rounded-[0]"
               style="background: linear-gradient(#3a83fc 16%, #a0c6ff)"
+              @click="handleSearchProject"
             />
           </template>
         </el-input>
       </div>
       <div class="list-wrap">
-        <div class="list-wrap-item" v-for="n in 5" :key="n">
+        <div class="list-wrap-item" v-for="item in projectList" :key="item.id">
           <div class="list-wrap-item-header w-[100%] flex items-center justify-between">
-            <p class="list-wrap-item-header__title">wwwwwwwwwwwwwwwwwwwwwwww</p>
+            <p class="list-wrap-item-header__title">{{ item.name }}</p>
             <span class="flex-1"></span>
             <img
               class="list-wrap-item-header__edit !mr-0"
               src="../../assets/images/home/icon-delete.png"
               alt=""
-              @click="handleRemoveProject"
+              @click="handleRemoveProject(item)"
             />
             <img
               class="list-wrap-item-header__edit"
               src="../../assets/images/home/edit.svg"
               alt=""
-              @click="handleEditProject"
+              @click="handleEditProject(item)"
             />
-            <div v-if="n === 1" class="list-wrap-item-header__status status-ongoing" @click="handlepushLibarty">
+            <div
+              v-if="item.status === 1"
+              class="list-wrap-item-header__status status-ongoing"
+              @click="handlepushLibarty"
+            >
               进行中
             </div>
-            <div v-else-if="n === 2" class="list-wrap-item-header__status status-done" @click="handlepushLibarty">
+            <div
+              v-else-if="item.status === 2"
+              class="list-wrap-item-header__status status-done"
+              @click="handlepushLibarty"
+            >
               已完成
             </div>
-            <div v-else class="list-wrap-item-header__status" @click="handlepushLibarty">进行中</div>
+            <div v-else class="list-wrap-item-header__status" @click="handlepushLibarty">未选择</div>
           </div>
           <div class="list-wrap-item-body">
             <div class="body-item">
@@ -81,7 +91,7 @@
             <div class="body-item">
               <img class="w-[16px] h-[16px] icon" src="../../assets/images/home/timeIcon.svg" alt="" />
               <span class="title">创建时间</span>
-              <span class="status">2023-01-01 00:00:00</span>
+              <span class="status">{{ dayjs(item.createTime).format('YYYY-MM-DD HH:mm:ss') }}</span>
             </div>
           </div>
         </div>
@@ -141,6 +151,7 @@
     <!-- 新建项目 -->
     <ez-dialog
       v-model="dialogFlag"
+      :loading="submitLoading"
       title="新建项目"
       width="720px"
       class="project-dialog-container"
@@ -179,42 +190,57 @@ import ProjectStep5 from '../../assets/images/home/project-step-5.svg'
 import ProjectStep6 from '../../assets/images/home/project-step-6.svg'
 import ProjectStep7 from '../../assets/images/home/project-step-7.svg'
 
+import { getProjectList, createProject, removeProject, getProjectDetail, updateProject } from '~~/apis/project'
+import dayjs from 'dayjs'
+
 definePageMeta({
   permissions: 'home'
 })
 
 const router = useRouter()
-
+// 搜索条件
 const searchText = ref('')
+// 项目列表
+const projectList = ref([])
+// 搜索项目
+const handleSearchProject = () => {
+  fetchProjectList()
+}
 
 function handlepushLibarty() {
   router.push('/show-mode-libary')
 }
 
 // 删除项目
-const handleRemoveProject = async () => {
+const handleRemoveProject = async (item) => {
   console.log('删除项目')
   try {
     const confirm = await ElMessageBox.confirm('此操作将永久删除该项目, 是否继续?', '提示')
     if (confirm === 'confirm') {
       // 删除项目逻辑
+      await removeProject({ id: item.id })
       ElMessage.success('操作成功！')
+      // 刷新列表
+      handleSearchProject()
     }
   } catch (error) {}
 }
 // 编辑项目
-const handleEditProject = () => {
+const handleEditProject = async (item) => {
   console.log('编辑项目')
   dialogFlag.value = true
-  projectForm.name = '项目1'
+  projectForm.name = item.id
+  projectForm.name = item.name
   projectForm.types = [1, 2, 3]
 }
 
 // 新增弹窗
 const dialogFlag = ref(false)
+const submitLoading = ref(false)
 const projectFormRef = ref(null)
 // 项目数据
 const projectForm = reactive({
+  id: '',
   name: '',
   types: []
 })
@@ -263,15 +289,32 @@ const typesList = [
 // 打开新增弹窗
 const handleCreateProject = () => {
   dialogFlag.value = true
+  projectForm.id = ''
+  projectForm.name = ''
+  projectForm.types = []
 }
 
 // 新建项目数据提交
 const handleSubmitProject = async () => {
   try {
+    submitLoading.value = true
     await projectFormRef.value.validate()
     console.log('提交数据')
+    if (projectForm.id) {
+      // 编辑项目
+      await updateProject(projectForm)
+    } else {
+      // 新建项目
+      await createProject(projectForm)
+    }
+    ElMessage.success('操作成功！')
+    dialogFlag.value = false
+    // 刷新列表
+    fetchProjectList()
   } catch (error) {
     console.error('验证失败', error)
+  } finally {
+    submitLoading.value = false
   }
 }
 
@@ -283,6 +326,22 @@ const handleSelectType = (id: number) => {
     projectForm.types.push(id)
   }
 }
+
+/**
+ * 获取项目列表
+ */
+async function fetchProjectList() {
+  const res = await getProjectList({
+    name: searchText.value,
+    current: 1,
+    size: 1000
+  })
+  projectList.value = res.data.records || []
+}
+
+onMounted(() => {
+  fetchProjectList()
+})
 </script>
 
 <style lang="less" scoped>
