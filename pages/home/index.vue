@@ -247,7 +247,7 @@ const handleRemoveProject = async (item) => {
 const handleEditProject = async (item) => {
   console.log('编辑项目')
   dialogFlag.value = true
-  projectForm.name = item.id
+  projectForm.id = item.id
   projectForm.name = item.name
   projectForm.types = [1, 2, 3]
 }
@@ -312,12 +312,11 @@ const handleCreateProject = () => {
   projectForm.types = []
 }
 
-// 新建项目数据提交
+// 新建/编辑项目数据提交
 const handleSubmitProject = async () => {
   try {
     submitLoading.value = true
     await projectFormRef.value.validate()
-    console.log('提交数据')
     if (projectForm.id) {
       // 编辑项目
       await updateProject(projectForm)
