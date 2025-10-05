@@ -5,6 +5,7 @@
       <div class="flex items-center px-[14px] h-[54px] border-b-[1px] border-[#e4ecfd]">
         <img src="../../assets/images/icon-header.svg" alt="" width="20" height="20" />
         <span class="text-[16px] text-[#1e1e1e] ml-[10px]">地块列表</span>
+        <el-button class="ml-auto" type="primary" @click="handleAddPlot">新增地块</el-button>
       </div>
       <div class="plot-wrapper">
         <div
@@ -23,15 +24,11 @@
         </div>
       </div>
     </div>
+    <!-- 地块信息 -->
     <div v-else-if="pageState === 'detail'" class="flex h-full w-full bg-white rounded-[4px] process-page-container">
       <div class="flex flex-col">
         <div class="w-[100%] flex item-center justify-center pt-[20px] border-r border-[#adcdf7]">
-          <el-button
-          type="info"
-          text
-          :icon="ArrowLeftBold"
-          @click="pageState = 'list'"
-          >返回地块列表</el-button>
+          <el-button type="info" text :icon="ArrowLeftBold" @click="pageState = 'list'">返回地块列表</el-button>
         </div>
         <SubMenuSidebar class="flex-1" :active-tab="isActiveTab" @on-change="tabChange" />
       </div>
@@ -41,6 +38,14 @@
         </KeepAlive>
       </div>
     </div>
+    <!-- 新增地块 -->
+    <ez-dialog v-model="dialogVisible" title="新增地块" width="600px" @confirm="add">
+      <el-form ref="PlotFormRef" :model="plotForm" label-width="80px">
+        <el-form-item label="地块名称" prop="name" :rules="{ required: true, message: '请输入地块名称', trigger: 'blur' }">
+          <el-input v-model="plotForm.name" placeholder="请输入地块名称"></el-input>
+        </el-form-item>
+      </el-form>
+    </ez-dialog>
   </div>
 </template>
 
@@ -69,6 +74,25 @@ const tabChange = (tab: number) => {
     router.push('/process/one/form')
   } else if (tab === 3) {
     router.push('/process/one/render')
+  }
+}
+
+// 新增地块
+const dialogVisible = ref(false)
+const PlotFormRef = ref(null)
+const plotForm = ref({
+  name: ''
+})
+const handleAddPlot = () => {
+  dialogVisible.value = true
+}
+const add = async () => {
+  try {
+    await PlotFormRef.value.validate()
+    console.log('新增地块', plotForm.value)
+    dialogVisible.value = false
+  } catch (error) {
+    console.error('新增地块失败', error)
   }
 }
 </script>
