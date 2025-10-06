@@ -1,5 +1,5 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getOssAuth } from "~/apis/resource";
+import { createOssRecord, getOssAuth } from "~/apis/resource";
 
 export const useUpload = () => {
     const config = useState<any>('oss-auth', () => ({
@@ -38,8 +38,19 @@ export const useUpload = () => {
                 Body: new Uint8Array(fileArrayBuffer),
                 ContentType: file.type
             })
-            await s3Client.send(command)
-            return { url: `https://cdn.spic.cc/h1-static/uploads/${file.name}` }
+            const result = await s3Client.send(command)
+            const url = `https://cdn.spic.cc/h1-static/uploads/${file.name}`
+            const params = {
+                name: file.name,
+                url,
+                size: file.size,
+                mimeType: file.type,
+                timestamp: Date.now(),
+                hash: result.ETag.replaceAll('\"', ''),
+            }
+            // 提交创建记录
+            createOssRecord(params)
+            return { url }
         } catch (error) {
             throw new Error(error);
         }
