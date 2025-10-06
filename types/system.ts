@@ -1,6 +1,6 @@
 import type { BaseItem } from '~/types/base'
 export interface DictItem extends BaseItem {
-  pid: string
+  parentId: string
   id: string
   code: string
   label: string
