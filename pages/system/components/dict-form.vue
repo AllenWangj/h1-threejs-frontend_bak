@@ -3,7 +3,7 @@
     <el-form-item label="父节点">
       <div class="w-[220px]">
         <el-tree-select
-          v-model="formData.pid"
+          v-model="formData.parentId"
           :props="{ label: 'label' }"
           :data="props.data"
           :expand-on-click-node="false"
@@ -46,7 +46,7 @@ const props = withDefaults(defineProps<PropsType>(), {
   data: () => []
 })
 const formData = ref<Partial<DictItem>>({
-  pid: props.parentId || null,
+  parentId: props.parentId || null,
   code: '',
   intro: null,
   sort: 0
@@ -93,7 +93,7 @@ watch(
   { immediate: true }
 )
 watch(
-  () => formData.value.pid,
+  () => formData.value.parentId,
   (val) => {
     if (props.data && props.data.length) {
       const findNode = (nodes: DictTree[], matchFn): DictTree => {
