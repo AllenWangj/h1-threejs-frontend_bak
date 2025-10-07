@@ -36,7 +36,7 @@
 import { reactive } from "vue"
 // import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { BasicModal, useInnnerModal } from "~~/component/BaseModel/index"
-import { useUpload } from "~~/composables/use-upload"
+import { useOss } from "~~/composables/use-oss"
 import { getAddModel,updateModal } from '~/apis/model'
 import { genFileId } from 'element-plus'
 import { nextTick } from "vue"
@@ -61,7 +61,6 @@ const [register, { closeModal }] = useInnnerModal((data) => {
         })
          id = record.id
     } else {
-        debugger
         // 代表是新增
         formData.name = ""
         formData.length = ""
@@ -74,7 +73,7 @@ const [register, { closeModal }] = useInnnerModal((data) => {
 
 const fileList = ref([])
 const formRef = ref()
-const { loadFile, fetchOssAuth } = useUpload()
+const { putFile } = useOss()
 const formData = reactive({
     name: '',
     length: undefined,//高度
@@ -118,8 +117,8 @@ function createdUploadFile() {
      */
     const submitFile = async (file: any) => {
         try {
-            const res = await loadFile(file.raw)
-            formData.url = res.url
+            const { data } = await putFile(file.raw)
+            formData.url = data.url
         } catch (error) {
             formData.url = ''
         } finally {
