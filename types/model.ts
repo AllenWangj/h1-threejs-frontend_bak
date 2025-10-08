@@ -1,18 +1,17 @@
-export interface IBody<T> {
-    current: number
-    pages: number
-    records: T[]
-    size: number
-    total: number
-}
-export interface IRecord {
-    createBy:string
-    createTime:string
-    height:string
-    id:string
-    length:string
-    name:string
-    url:string
-    width:string
+import type { BaseItem } from './base'
 
+export interface ModelItem extends BaseItem {
+  id: string
+  height: string
+  length: string
+  name: string
+  url: string
+  sourceUrl: string
+  hash: string
+  sourceHash: string
+  material: string
+  effect: string
+  type: number
+  code: string
+  width: string
 }
