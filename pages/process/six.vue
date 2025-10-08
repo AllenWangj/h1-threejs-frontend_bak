@@ -16,20 +16,51 @@ console.log('route', route)
 
 const isActiveTab = ref(1)
 
+const projectId = ref('')
+
 const tabChange = (tab: number) => {
   isActiveTab.value = tab
   if (tab === 1) {
-    router.push('/process/six/file')
+    router.push({
+      path: '/process/six/file',
+      query: {
+        projectId: projectId.value
+      }
+    })
   } else if (tab === 2) {
-    router.push('/process/six/form')
+    router.push({
+      path: '/process/six/form',
+      query: {
+        projectId: projectId.value
+      }
+    })
   } else if (tab === 3) {
-    router.push('/process/six/render')
+    router.push({
+      path: '/process/six/render',
+      query: {
+        projectId: projectId.value
+      }
+    })
   }
 }
 
 onMounted(() => {
+  if (route.query.projectId) {
+    projectId.value = route.query.projectId as string
+  }
   if (route.path === '/process/six') {
-    router.replace('/process/six/file')
+    router.replace({
+      path: '/process/six/file',
+      query: {
+        projectId: projectId.value
+      }
+    })
+  } else if (route.path === '/process/six/file') {
+    isActiveTab.value = 1
+  } else if (route.path === '/process/six/form') {
+    isActiveTab.value = 2
+  } else if (route.path === '/process/six/render') {
+    isActiveTab.value = 3
   }
 })
 </script>

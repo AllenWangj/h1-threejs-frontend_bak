@@ -5,54 +5,59 @@
     </div>
     <div class="flex-1 flex flex-col px-[14px] py-[14px]">
       <el-form ref="ProjectFormRef" :model="projectForm" label-width="120px" class="w-full">
-        <el-form-item label="建筑功能">
+        <el-form-item label="典型目标区域">
           <ez-select
-            v-model="projectForm.functional"
-            placeholder="请选择建筑功能"
+            v-model="projectForm.climateRegion"
+            placeholder="请选择典型目标区域"
+            :clearable="true"
+            style="width: 100%"
+            :options="dictMap.get(ClimateRegion)"
+          />
+        </el-form-item>
+        <el-form-item label="土地规划">
+          <ez-select
+            v-model="projectForm.land"
+            placeholder="请选择土地规划"
+            :clearable="true"
+            style="width: 100%"
+            :options="LandOptions"
+          />
+        </el-form-item>
+        <el-form-item label="功能区划">
+          <ez-select
+            v-model="projectForm.functionalDivision"
+            placeholder="请选择功能区划"
+            :clearable="true"
+            style="width: 100%"
+            :options="dictMap.get(FunctionalDivision)"
+          />
+        </el-form-item>
+        <el-form-item label="模式类型">
+          <ez-select
+            v-model="projectForm.schemaType"
+            placeholder="请选择模式类型"
+            :clearable="true"
+            style="width: 100%"
+            :options="dictMap.get(SchemaType)"
+          />
+        </el-form-item>
+        <el-form-item label="建筑和设施布局">
+          <ez-select
+            v-model="projectForm.facilityLayout"
+            placeholder="请选择建筑和设施布局"
+            :clearable="true"
+            style="width: 100%"
+            :options="FacilityLayoutOptions"
+          />
+        </el-form-item>
+        <el-form-item label="功能模块建筑">
+          <ez-select
+            v-model="projectForm.functionalBuilding"
+            placeholder="请选择功能模块建筑"
             multiple
             :clearable="true"
             style="width: 100%"
             :options="dictMap.get(BuildingFunctional)"
-          />
-        </el-form-item>
-        <el-form-item label="建筑边界">
-          <ez-select
-            v-model="projectForm.boundary"
-            placeholder="请选择建筑边界"
-            multiple
-            :clearable="true"
-            style="width: 100%"
-            :options="dictMap.get(BuildingBoundary)"
-          />
-        </el-form-item>
-        <el-form-item label="建筑规模">
-          <ez-select
-            v-model="projectForm.scale"
-            placeholder="请选择建筑规模"
-            multiple
-            :clearable="true"
-            style="width: 100%"
-            :options="dictMap.get(BuildingScale)"
-          />
-        </el-form-item>
-        <el-form-item label="整体布局">
-          <ez-select
-            v-model="projectForm.layout"
-            placeholder="请选择整体布局"
-            multiple
-            :clearable="true"
-            style="width: 100%"
-            :options="layoutOptions"
-          />
-        </el-form-item>
-        <el-form-item label="标准化功能模块">
-          <ez-select
-            v-model="projectForm.moduleLibrary"
-            placeholder="请选择标准化功能模块"
-            multiple
-            :clearable="true"
-            style="width: 100%"
-            :options="dictMap.get(ModuleLibrary)"
           />
         </el-form-item>
         <el-form-item label="自定义参数">
@@ -77,7 +82,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getInternalLayoutDetail, updateInternalLayout } from '@/apis/project'
+import { getPlanLayout, updatePlanLayout } from '@/apis/project'
 
 const route = useRoute()
 
@@ -87,13 +92,18 @@ const saveLoading = ref(false)
 
 const pageLoading = ref(false)
 
-const BuildingFunctional = 'building_functional' // 建筑功能
-const BuildingBoundary = 'building_boundary' // 建筑边界
-const BuildingScale = 'building_scale' // 建筑规模
-const ModuleLibrary = 'module_library' // 标准化模块库
+const ClimateRegion = 'climate_region' // 区域目标规划
+const FunctionalDivision = 'functional_division' // 功能区划
+const SchemaType = 'schema_type' // 模式类型
+const BuildingFunctional = 'building_functional' // 功能模块建筑
 const { dictMap, getDictMap } = useDict()
-// 整体布局
-const layoutOptions = [{
+// 土地规划
+const LandOptions = [{
+  label: '默认',
+  value: '0'
+}]
+// 建筑和设施布局
+const FacilityLayoutOptions = [{
   label: '默认',
   value: '0'
 }]
@@ -101,27 +111,30 @@ const layoutOptions = [{
 const customOptions = []
 
 const projectForm = ref({
-  /** 建筑功能 */
-  functional: [],
-  /** 建筑边界 */
-  boundary: [],
-  /** 建筑规模  */
-  scale: [],
-  /** 整体布局 */
-  layout: [],
-  /** 标准化功能模块 */
-  moduleLibrary: [],
+  /** 区域目标规划 */
+  climateRegion: '',
+  /** 土地规划 */
+  land: '',
+  /** 功能区划 */
+  functionalDivision: '',
+  /** 模式类型  */
+  schemaType: '',
+  /** 建筑和设施布局 */
+  facilityLayout: '',
+  /** 功能模块建筑 */
+  functionalBuilding: [],
   /** 自定义参数 */
   custom: []
 })
 
 const handleReset = () => {
   projectForm.value = {
-    functional: [],
-    boundary: [],
-    scale: [],
-    layout: [],
-    moduleLibrary: [],
+    climateRegion: '',
+    land: '',
+    functionalDivision: '',
+    schemaType: '',
+    facilityLayout: '',
+    functionalBuilding: [],
     custom: []
   }
 }
@@ -130,13 +143,9 @@ const handleSave = async () => {
   try {
     saveLoading.value = true
     const params = JSON.parse(JSON.stringify(projectForm.value))
-    params.functional = params.functional.join(',')
-    params.boundary = params.boundary.join(',')
-    params.scale = params.scale.join(',')
-    params.layout = params.layout.join(',')
-    params.moduleLibrary = params.moduleLibrary.join(',')
+    params.functionalBuilding = params.functionalBuilding.join(',')
     params.custom = params.custom.join(',')
-    await updateInternalLayout({
+    await updatePlanLayout({
       projectId: projectId.value,
       params
     })
@@ -152,18 +161,19 @@ const handleSave = async () => {
 async function fetchDetail() {
   try {
     pageLoading.value = true
-    const { data } = await getInternalLayoutDetail({
+    const { data } = await getPlanLayout({
       projectId: projectId.value
     })
-    projectForm.value.functional = (data.params?.functional || '').split(',')
-    projectForm.value.boundary = (data.params?.boundary || '').split(',')
-    projectForm.value.scale = (data.params?.scale || '').split(',')
-    projectForm.value.layout = (data.params?.layout || '').split(',')
-    projectForm.value.moduleLibrary = (data.params?.moduleLibrary || '').split(',')
+    projectForm.value.climateRegion = data.params?.climateRegion || ''
+    projectForm.value.land = data.params?.land || ''
+    projectForm.value.functionalDivision = data.params?.functionalDivision || ''
+    projectForm.value.schemaType = data.params?.schemaType || ''
+    projectForm.value.facilityLayout = data.params?.facilityLayout || ''
+    projectForm.value.functionalBuilding = (data.params?.functionalBuilding || '').split(',')
     projectForm.value.custom = (data.params?.custom || '').split(',')
-    console.log('获取运输保障详情', data)
+    console.log('获取规划布局详情', data)
   } catch (error) {
-    console.error('获取运输保障详情失败', error)
+    console.error('获取规划布局详情失败', error)
   } finally {
     pageLoading.value = false
   }
@@ -174,7 +184,7 @@ onMounted(() => {
     projectId.value = route.query.projectId as string
     fetchDetail()
   }
-  getDictMap([BuildingFunctional, BuildingBoundary, BuildingScale, ModuleLibrary])
+  getDictMap([ClimateRegion, FunctionalDivision, SchemaType, BuildingFunctional])
 })
 </script>
 <style lang="less" scoped></style>

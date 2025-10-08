@@ -14,23 +14,52 @@ import SubMenuSidebar from '@/components/sub-mune-sidebar/index.vue'
 const router = useRouter()
 const route = useRoute()
 console.log('route', route)
-
+const projectId = ref('')
 const isActiveTab = ref(1)
 
 const tabChange = (tab: number) => {
   isActiveTab.value = tab
   if (tab === 1) {
-    router.push('/process/seven/file')
+    router.push({
+      path: '/process/seven/file',
+      query: {
+        projectId: projectId.value
+      }
+    })
   } else if (tab === 2) {
-    router.push('/process/seven/form')
+    router.push({
+      path: '/process/seven/form',
+      query: {
+        projectId: projectId.value
+      }
+    })
   } else if (tab === 3) {
-    router.push('/process/seven/render')
+    router.push({
+      path: '/process/seven/render',
+      query: {
+        projectId: projectId.value
+      }
+    })
   }
 }
 
 onMounted(() => {
+  if (route.query.projectId) {
+    projectId.value = route.query.projectId as string
+  }
   if (route.path === '/process/seven') {
-    router.replace('/process/seven/file')
+    router.replace({
+      path: '/process/seven/file',
+      query: {
+        projectId: projectId.value
+      }
+    })
+  } else if (route.path === '/process/seven/file') {
+    isActiveTab.value = 1
+  } else if (route.path === '/process/seven/form') {
+    isActiveTab.value = 2
+  } else if (route.path === '/process/seven/render') {
+    isActiveTab.value = 3
   }
 })
 </script>

@@ -1,41 +1,65 @@
 <template>
-    <div class="two-wrapper">
-        <ProcessMenu 
-        uploadFileUrl="/process/two/upload-file/file"
-        paramsSetUrl="/process/two/params-set/params"
-        createUrl="/process/two/generate-plan/generateplan"
-
-        
-        
-        />
-        <div class="next-page-connnntent">
-            <NuxtPage />
-             <!-- <PlanAndLayout/> -->
-        </div>
+  <div class="flex h-full w-full bg-white rounded-[4px] process-page-container">
+    <SubMenuSidebar :active-tab="isActiveTab" @on-change="tabChange" />
+    <div class="flex-1 mx-[20px] my-[20px]">
+      <NuxtPage />
     </div>
+  </div>
 </template>
-<script setup lang="ts">
-import ProcessMenu from "~~/component/process-menu/index.vue"
-// import PlanAndLayout from "~~/component/PlanAndLayout/index.vue"
-</script>
-<style lang="less" scoped>
-.two-wrapper {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-    // gap: 20px;
-    .next-page-connnntent {
-        flex: 1;
-        background: linear-gradient(180deg, #fff, #deecff);
-        border: 1px solid;
-        -o-border-image: linear-gradient(180deg, #adcdf7, #9fc8ff) 1 1;
-        border-image: linear-gradient(180deg, #adcdf7, #9fc8ff) 1 1;
-        border-left: 0;
-        margin: 20px;
-        height:calc(100% - 40px);
 
-        box-sizing: border-box;
-    }
+<script setup lang="ts">
+import SubMenuSidebar from '@/components/sub-mune-sidebar/index.vue'
+const router = useRouter()
+const route = useRoute()
+console.log('route', route)
+
+const projectId = ref('')
+
+const isActiveTab = ref(1)
+
+const tabChange = (tab: number) => {
+  isActiveTab.value = tab
+  if (tab === 1) {
+    router.push({
+      path: '/process/two/file',
+      query: {
+        projectId: projectId.value
+      }
+    })
+  } else if (tab === 2) {
+    router.push({
+      path: '/process/two/form',
+      query: {
+        projectId: projectId.value
+      }
+    })
+  } else if (tab === 3) {
+    router.push({
+      path: '/process/two/render',
+      query: {
+        projectId: projectId.value
+      }
+    })
+  }
 }
-</style>
+
+onMounted(() => {
+  if (route.query.projectId) {
+    projectId.value = route.query.projectId as string
+  }
+  if (route.path === '/process/two') {
+    router.replace({
+      path: '/process/two/file',
+      query: {
+        projectId: projectId.value
+      }
+    })
+  } else if (route.path === '/process/two/file') {
+    isActiveTab.value = 1
+  } else if (route.path === '/process/two/form') {
+    isActiveTab.value = 2
+  } else if (route.path === '/process/two/render') {
+    isActiveTab.value = 3
+  }
+})
+</script>

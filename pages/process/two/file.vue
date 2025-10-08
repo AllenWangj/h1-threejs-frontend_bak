@@ -65,7 +65,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getPartsProductionDetail, updatePartsProduction } from '@/apis/project'
+import { getPlanLayout, updatePlanLayout } from '@/apis/project'
 import { genFileId } from 'element-plus'
 
 const route = useRoute()
@@ -88,7 +88,7 @@ const handleRemoveFile = async (file) => {
       type: 'warning'
     })
     const fileIdList = fileList.value.filter((item) => item.id !== file.id).map((item) => item.id)
-    await updatePartsProduction({
+    await updatePlanLayout({
       projectId: projectId.value,
       fileIds: fileIdList
     })
@@ -103,13 +103,13 @@ const handleRemoveFile = async (file) => {
 async function fetchDetail() {
   try {
     pageLoading.value = true
-    const { data } = await getPartsProductionDetail({
+    const { data } = await getPlanLayout({
       projectId: projectId.value
     })
     fileList.value = data.files || []
-    console.log('获取部件生产详情', data)
+    console.log('获取规划布局详情', data)
   } catch (error) {
-    console.error('获取部件生产详情失败', error)
+    console.error('获取规划布局详情失败', error)
   } finally {
     pageLoading.value = false
   }
@@ -153,7 +153,7 @@ function createdUploadFile() {
       console.log('上传成功', data)
       const fileIdList = fileList.value.map((item) => item.id)
       fileIdList.push(data.id)
-      await updatePartsProduction({
+      await updatePlanLayout({
         projectId: projectId.value,
         fileIds: fileIdList
       })

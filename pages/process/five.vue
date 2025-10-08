@@ -53,6 +53,12 @@ onMounted(() => {
         projectId: projectId.value
       }
     })
+  } else if (route.path === '/process/five/file') {
+    isActiveTab.value = 1
+  } else if (route.path === '/process/five/form') {
+    isActiveTab.value = 2
+  } else if (route.path === '/process/five/render') {
+    isActiveTab.value = 3
   }
 })
 </script>
