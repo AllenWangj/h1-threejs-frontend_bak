@@ -376,10 +376,10 @@ const handleSubmitProject = async () => {
     params.types = params.types.join(',')
     if (projectForm.id) {
       // 编辑项目
-      await updateProject(projectForm)
+      await updateProject(params)
     } else {
       // 新建项目
-      await createProject(projectForm)
+      await createProject(params)
     }
     ElMessage.success('操作成功！')
     dialogFlag.value = false
