@@ -97,8 +97,8 @@ onMounted(() => {
 
 
   let z2 = 15.748031616210938
-  let xPos2 =-44.062992095947266
-  let yPos2 =-44.062992095947266
+  let xPos2 = -44.062992095947266
+  let yPos2 = -44.062992095947266
   let zPos2 = 221.65679950905394
 
   for (let i = 0; i < 12; i++) {
@@ -115,25 +115,25 @@ onMounted(() => {
     }
   }
 
-/*
-: 3.1496062278770296, y: 4.724409580230713, z: 110.23622131347656}
-*/ 
+  /*
+  : 3.1496062278770296, y: 4.724409580230713, z: 110.23622131347656}
+  */
 
   let x3 = 3.1496062278770296
-  let y3 =  4.724409580230713
+  let y3 = 4.724409580230713
 
   let z3 = 110.23622131347656
   let xPos3 = -46.425196886061485
-  let yPos3 =-21.842512493913432
+  let yPos3 = -21.842512493913432
   let zPos3 = 145.6196798877915
 
   for (let i = 0; i < 30; i++) {
     for (let j = 0; j < 1; j++) {
-      for (let k = 0; k <3; k++) {
+      for (let k = 0; k < 3; k++) {
         data.push({
           "x": xPos3 + i * x3,
           "y": yPos3 + k * y3,
-          "z": zPos3 + j*z3 ,
+          "z": zPos3 + j * z3,
           "code": "10629"
         },)
       }
@@ -143,15 +143,15 @@ onMounted(() => {
 
 
   let xPos4 = -46.425196886061485
-  let yPos4 =-6.0734851066986835
+  let yPos4 = -6.0734851066986835
   let zPos4 = -184.88188934326172
-   for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 15; i++) {
     for (let j = 0; j < 4; j++) {
-      for (let k = 0; k <3; k++) {
+      for (let k = 0; k < 3; k++) {
         data.push({
           "x": xPos4 + i * x3,
           "y": yPos4 + k * y3,
-          "z": zPos4 + j*z3 ,
+          "z": zPos4 + j * z3,
           "code": "10629"
         },)
       }
@@ -160,9 +160,9 @@ onMounted(() => {
   }
 
 
-    let xPos5 = 3.330709695783071
-  let yPos5 =  -3.3753340537627423
-  let zPos5 =  -185.17769140029236
+  let xPos5 = 3.330709695783071
+  let yPos5 = -3.3753340537627423
+  let zPos5 = -185.17769140029236
   for (let i = 0; i < 6; i++) {
     for (let j = 0; j < 3; j++) {
       for (let k = 0; k < 2; k++) {
@@ -343,6 +343,20 @@ function initDragControls() {
     .filter(o => o.mesh.userData?.isWrapper)
     .map(o => o.mesh)
   dragControls = new DragControls(wrapperMeshes, camera, renderer.domElement)
+
+  // 🔹 禁用 wrapper 内部模型 raycast（保留 wrapper 可拖拽）
+  wrapperMeshes.forEach(wrapper => {
+    wrapper.children.forEach(child => {
+      child.traverse(mesh => {
+        if (mesh.isMesh || mesh.isLine) {
+          // 禁止内部模型被射线检测
+          mesh.raycast = () => { };
+          // 可以标记为不可拖拽
+          mesh.userData.isDraggable = false;
+        }
+      });
+    });
+  });
   // drag start
   dragControls.addEventListener('dragstart', (event) => {
     const obj = draggableObjects.find((o) => o.mesh === event.object)
@@ -504,7 +518,7 @@ function initPreGeometries() {
       model.scale.setScalar(scale)
 
       model.traverse((child) => {
-        if (child.isMesh) {
+        if (child.isMesh || child.isLine) {
           // 禁止拾取
           child.raycast = () => null;
 
@@ -540,7 +554,7 @@ function createTransparentWrapper(model, size) {
     opacity: 0,
     depthTest: true
   })
-  const geometry = new THREE.BoxGeometry(size.x * 1.001, size.y * 1.001, size.z * 1.001)
+  const geometry = new THREE.BoxGeometry(size.x, size.y, size.z)
   const wrapper = new THREE.Mesh(geometry, material)
   wrapper.add(model) // 将模型作为子节点放入 wrapper
 
