@@ -42,4 +42,4 @@ export const removeModel = (params) => useBaseFetch().post(`${baseUrl}model/v1/r
 /**
  * 查询构件列表
  */
-export const getModelList = (params) => useBaseFetch().post(`${baseUrl}model/v1/list`, params)
+export const getModelList = (params) => useBaseFetch().post<ModelItem[]>(`${baseUrl}model/v1/list`, params)
