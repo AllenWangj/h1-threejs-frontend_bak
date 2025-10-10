@@ -42,23 +42,6 @@ class PlanAndLayout extends Three {
         this.scene.add(this.wrapper)
         this.handleLoadDefaultScene()
     }
-
-    private handleInitScene() {
-        // 初始化大的场景
-        this.loadGLTFResource("/gltf/test/75/landmark.gltf", (progress) => {
-            this.option.loadSceneCBK(progress)
-        }).then(res => {
-            this.wrapper.add(res.scene)
-            const size = this.calculateGroupDimensions(this.wrapper)
-            const number = 3000
-            this.camera!.position.set(size.center.x, size.center.y, size.center.z + number)
-            this.controls.target.set(size.center.x, size.center.y, size.center.z)
-            this.isCompleteLoadScene = true
-            this.option.loadCompleteSceneCBK()
-        }, (err) => {
-            this.option.loadSceneErrorCBK(err)
-        })
-    }
     private initRaycaster(): void {
         this.raycaster = new THREE.Raycaster();
         this.raycaster.far = 10000; // 根据场景大小调整
