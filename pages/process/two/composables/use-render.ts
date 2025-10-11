@@ -765,11 +765,11 @@ class RenderPlanLayout extends BaseThree {
       // 使用获取到的 URL 加载实际的 GLTF 模型文件
       const gltf = await this.loadGLTFResource(modelUrl)
       
-      if (index === 0) {
-        this.addBaseModel(gltf, config)
-      } else {
+      // if (index === 0) {
+      //   this.addBaseModel(gltf, config)
+      // } else {
         this.addInteractiveModel(gltf, config)
-      }
+      // }
       
       console.log(`✅ 模型加载成功: ${config.code} -> ${modelUrl}`)
     } catch (error) {

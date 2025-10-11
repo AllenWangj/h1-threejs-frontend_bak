@@ -52,128 +52,128 @@ onMounted(() => {
   initPreGeometries()
   window.addEventListener('keydown', onKeyDown)
   handleLoadInitModel()
-  const data = []
-  // for(let i = )
-  let x = 7.874015808105469
-  let y = 7.874015808105469
-  let z = 228.34645080566406
-  let xPos = -44.062992095947266
-  let yPos = -44.062992095947266
-  let zPos = -125.82677459716797
+  // const data = []
+  // // for(let i = )
+  // let x = 7.874015808105469
+  // let y = 7.874015808105469
+  // let z = 228.34645080566406
+  // let xPos = -44.062992095947266
+  // let yPos = -44.062992095947266
+  // let zPos = -125.82677459716797
 
-  for (let i = 0; i < 12; i++) {
-    for (let j = 0; j < 2; j++) {
-      for (let k = 0; k < 3; k++) {
-        data.push({
-          x: xPos + i * x,
-          y: yPos + k * y,
-          z: zPos + z * j,
-          code: '10664'
-        })
-      }
-    }
-  }
+//   for (let i = 0; i < 12; i++) {
+//     for (let j = 0; j < 2; j++) {
+//       for (let k = 0; k < 3; k++) {
+//         data.push({
+//           x: xPos + i * x,
+//           y: yPos + k * y,
+//           z: zPos + z * j,
+//           code: '10664'
+//         })
+//       }
+//     }
+//   }
 
-  let z1 = 110.23622131347656
-  let xPos1 = -44.062992095947266
-  let yPos1 = -20.25252802840201
-  let zPos1 = -185.17769140029236
-  for (let i = 0; i < 12; i++) {
-    for (let j = 0; j < 3; j++) {
-      for (let k = 0; k < 2; k++) {
-        data.push({
-          x: xPos1 + i * x,
-          y: yPos1 + k * y,
-          z: zPos1 + z1 * j,
-          code: '10675'
-        })
-      }
-    }
-  }
+//   let z1 = 110.23622131347656
+//   let xPos1 = -44.062992095947266
+//   let yPos1 = -20.25252802840201
+//   let zPos1 = -185.17769140029236
+//   for (let i = 0; i < 12; i++) {
+//     for (let j = 0; j < 3; j++) {
+//       for (let k = 0; k < 2; k++) {
+//         data.push({
+//           x: xPos1 + i * x,
+//           y: yPos1 + k * y,
+//           z: zPos1 + z1 * j,
+//           code: '10675'
+//         })
+//       }
+//     }
+//   }
 
-  let z2 = 15.748031616210938
-  let xPos2 = -44.062992095947266
-  let yPos2 = -44.062992095947266
-  let zPos2 = 221.65679950905394
+//   let z2 = 15.748031616210938
+//   let xPos2 = -44.062992095947266
+//   let yPos2 = -44.062992095947266
+//   let zPos2 = 221.65679950905394
 
-  for (let i = 0; i < 12; i++) {
-    for (let j = 0; j < 1; j++) {
-      for (let k = 0; k < 2; k++) {
-        data.push({
-          x: xPos2 + i * x,
-          y: yPos2 + k * y,
-          z: zPos2 + z2 * j,
-          code: '10662'
-        })
-      }
-    }
-  }
+//   for (let i = 0; i < 12; i++) {
+//     for (let j = 0; j < 1; j++) {
+//       for (let k = 0; k < 2; k++) {
+//         data.push({
+//           x: xPos2 + i * x,
+//           y: yPos2 + k * y,
+//           z: zPos2 + z2 * j,
+//           code: '10662'
+//         })
+//       }
+//     }
+//   }
 
-  /*
-  : 3.1496062278770296, y: 4.724409580230713, z: 110.23622131347656}
-  */
+//   /*
+//   : 3.1496062278770296, y: 4.724409580230713, z: 110.23622131347656}
+//   */
 
-  let x3 = 3.1496062278770296
-  let y3 = 4.724409580230713
+//   let x3 = 3.1496062278770296
+//   let y3 = 4.724409580230713
 
-  let z3 = 110.23622131347656
-  let xPos3 = -46.425196886061485
-  let yPos3 = -21.842512493913432
-  let zPos3 = 145.6196798877915
+//   let z3 = 110.23622131347656
+//   let xPos3 = -46.425196886061485
+//   let yPos3 = -21.842512493913432
+//   let zPos3 = 145.6196798877915
 
-  for (let i = 0; i < 30; i++) {
-    for (let j = 0; j < 1; j++) {
-      for (let k = 0; k < 3; k++) {
-        data.push({
-          x: xPos3 + i * x3,
-          y: yPos3 + k * y3,
-          z: zPos3 + j * z3,
-          code: '10629'
-        })
-      }
-    }
-  }
+//   for (let i = 0; i < 30; i++) {
+//     for (let j = 0; j < 1; j++) {
+//       for (let k = 0; k < 3; k++) {
+//         data.push({
+//           x: xPos3 + i * x3,
+//           y: yPos3 + k * y3,
+//           z: zPos3 + j * z3,
+//           code: '10629'
+//         })
+//       }
+//     }
+//   }
 
-  let xPos4 = -46.425196886061485
-  let yPos4 = -6.0734851066986835
-  let zPos4 = -184.88188934326172
-  for (let i = 0; i < 15; i++) {
-    for (let j = 0; j < 4; j++) {
-      for (let k = 0; k < 3; k++) {
-        data.push({
-          x: xPos4 + i * x3,
-          y: yPos4 + k * y3,
-          z: zPos4 + j * z3,
-          code: '10629'
-        })
-      }
-    }
-  }
+//   let xPos4 = -46.425196886061485
+//   let yPos4 = -6.0734851066986835
+//   let zPos4 = -184.88188934326172
+//   for (let i = 0; i < 15; i++) {
+//     for (let j = 0; j < 4; j++) {
+//       for (let k = 0; k < 3; k++) {
+//         data.push({
+//           x: xPos4 + i * x3,
+//           y: yPos4 + k * y3,
+//           z: zPos4 + j * z3,
+//           code: '10629'
+//         })
+//       }
+//     }
+//   }
 
-  let xPos5 = 3.330709695783071
-  let yPos5 = -3.3753340537627423
-  let zPos5 = -185.17769140029236
-  for (let i = 0; i < 6; i++) {
-    for (let j = 0; j < 3; j++) {
-      for (let k = 0; k < 2; k++) {
-        data.push({
-          x: xPos5 + i * x,
-          y: yPos5 + k * y,
-          z: zPos5 + z1 * j,
-          code: '10675'
-        })
-      }
-    }
-  }
+//   let xPos5 = 3.330709695783071
+//   let yPos5 = -3.3753340537627423
+//   let zPos5 = -185.17769140029236
+//   for (let i = 0; i < 6; i++) {
+//     for (let j = 0; j < 3; j++) {
+//       for (let k = 0; k < 2; k++) {
+//         data.push({
+//           x: xPos5 + i * x,
+//           y: yPos5 + k * y,
+//           z: zPos5 + z1 * j,
+//           code: '10675'
+//         })
+//       }
+//     }
+//   }
 
-  /**
-   * {
-  "x": 7.874015808105469,
-  "y": 7.874015808105469,
-  "z": 110.23622131347656
-}
-   * */
-  console.log('data', data)
+//   /**
+//    * {
+//   "x": 7.874015808105469,
+//   "y": 7.874015808105469,
+//   "z": 110.23622131347656
+// }
+//    * */
+//   console.log('data', data)
 })
 function handleLoadInitModel() {
   position.forEach((ele) => {
@@ -531,9 +531,9 @@ function initDragControls() {
     if (isRotating && rotatingWrapper) {
       const deltaX = e.clientX - lastMouseX
       lastMouseX = e.clientX
-      rotatingWrapper.rotation.y += deltaX * 0.0005 // 控制旋转灵敏度
+      rotatingWrapper.rotation.y += 0 // 控制旋转灵敏度
       // 保持 X、Z 不变
-      rotatingWrapper.rotation.x = 0
+      rotatingWrapper.rotation.x += deltaX * 0.0005 
       rotatingWrapper.rotation.z = 0
     }
   })
@@ -559,6 +559,10 @@ function initDragControls() {
   // Y 轴旋转修正 size
   // =====================
   function fixSizeAfterRotation(obj) {
+    if(!obj.mesh){
+
+      debugger
+    }
     const yRotDeg = THREE.MathUtils.radToDeg(obj.mesh.rotation.y) % 360
     if (Math.abs(yRotDeg) === 90 || Math.abs(yRotDeg) === 270) {
       // X、Z 互换
@@ -568,7 +572,11 @@ function initDragControls() {
       obj.size.y = obj.originalSize.y
     } else {
       // 恢复原始尺寸
+      console.log("obj.originalSize",obj.originalSize)
+      if(obj.originalSize) {
       obj.size = obj.originalSize.clone()
+
+      }
     }
   }
 }
