@@ -33,7 +33,7 @@ export const materialInfoService = (): any[] => {
         }
     ]
 
-    // 屋顶板
+    // 屋顶
     const roofPanelData = [
         {
             no: 'LT1',
@@ -185,7 +185,7 @@ export const materialInfoService = (): any[] => {
         infoList: housePanelData
     },
     {
-        name: '屋顶板',
+        name: '屋顶',
         value: 4,
         infoList: roofPanelData
     },
