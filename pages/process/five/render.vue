@@ -5,39 +5,12 @@
       class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div ref="threeContainer" class="three-container" />
       <div v-if="!loading" class="toolbar-container">
-        <el-button class="w-[120px]" :type="hideModel.includes(1) ? 'info' : 'primary'" @click="playStepAnimation(1)">
-          窗
-        </el-button>
-        <el-button class="w-[120px]" :type="hideModel.includes(2) ? 'info' : 'primary'" @click="playStepAnimation(2)">
-          门
-        </el-button>
-        <el-button class="w-[120px]" :type="hideModel.includes(3) ? 'info' : 'primary'" @click="playStepAnimation(3)">
-          屋面板
-        </el-button>
-        <el-button class="w-[120px]" :type="hideModel.includes(4) ? 'info' : 'primary'" @click="playStepAnimation(4)">
-          屋顶
-        </el-button>
-        <el-button class="w-[120px]" :type="hideModel.includes(5) ? 'info' : 'primary'" @click="playStepAnimation(5)">
-          墙壁
-        </el-button>
-        <el-button class="w-[120px]" :type="hideModel.includes(6) ? 'info' : 'primary'" @click="playStepAnimation(6)">
-          地板
-        </el-button>
-        <el-button class="w-[120px]" :type="hideModel.includes(7) ? 'info' : 'primary'" @click="playStepAnimation(7)">
-          顶板
-        </el-button>
-        <el-button class="w-[120px]" :type="hideModel.includes(8) ? 'info' : 'primary'" @click="playStepAnimation(8)">
-          柱
-        </el-button>
-        <el-button class="w-[120px]" :type="hideModel.includes(9) ? 'info' : 'primary'" @click="playStepAnimation(9)">
-          梁
-        </el-button>
-        <el-button class="w-[120px]" :type="hideModel.includes(10) ? 'info' : 'primary'" @click="playStepAnimation(10)">
-          连接器
+        <el-button v-for="item in materialDataList" :key="item.value" :type="hideModel.includes(item.value) ? 'info' : 'primary'" @click="playStepAnimation(item.value)">
+          {{item.name}}
         </el-button>
       </div>
       <div v-if="!loading" class="toolbar-content">
-        <BuildInfo v-for="n in 5" :key="n"></BuildInfo>
+        <BuildInfo v-for="item in materialDataList" :key="item.value" :name="item.name" :list="item.infoList"></BuildInfo>
       </div>
     </div>
   </div>
@@ -51,6 +24,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { modeService } from './composables/mode-service'
+import { materialInfoService } from './composables/material-info-service'
 import { getPartsProductionDetail } from '@/apis/project'
 
 const route = useRoute()
@@ -81,6 +55,7 @@ async function fetchDetail() {
 }
 
 // 模型数据服务
+const materialDataList = ref(materialInfoService())
 const serviceData = modeService()
 
 const loading = ref(false)
@@ -96,7 +71,7 @@ onMounted(() => {
     projectId.value = route.query.projectId as string
   }
   fetchDetail();
-  
+
   initThree()
   loadModel()
   animate()
@@ -297,33 +272,34 @@ function onResize() {
   position: absolute;
   top: 20px;
   right: 20px;
-  width: 270px;
+  width: 380px;
+  max-height: 250px;
   overflow-y: auto;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
   background: rgba(0, 0, 0, 0.1);
-  padding: 10px 10px 0;
+  padding: 20px 10px 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
 
   .el-button {
     margin: 0;
-    width: 120px;
-    margin-bottom: 10px;
+    width: 150px;
+    margin: 0 10px 10px;
   }
 }
 
 .toolbar-content {
   position: absolute;
-  top: 250px;
+  top: 280px;
   right: 20px;
   bottom: 20px;
-  width: 270px;
+  width: 380px;
   overflow-y: auto;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  flex-direction: column;
   background: rgba(0, 0, 0, 0.3);
   padding: 10px 10px 0;
   border: 1px solid #ccc;

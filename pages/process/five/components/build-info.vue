@@ -1,19 +1,19 @@
 <template>
-  <div>
-    <div class="text-[10px] text-[#fff] text-center mb-[4px]">梁</div>
+  <div class="mb-[10px]">
+    <div class="text-[14px] text-[#fff] text-center mb-[4px]">{{props.name}}</div>
     <table>
       <thead>
         <tr>
-          <th class="w-[38px]">编号</th>
-          <th class="w-[44px]">规格(mm)</th>
-          <th class="w-[44px]">长度(mm)</th>
-          <th class="w-[44px]">数量(个)</th>
-          <th class="w-[44px]">材质</th>
-          <th class="w-[44px]">重量(kg)</th>
+          <th class="w-[50px]">编号</th>
+          <th class="w-[64px]">规格(mm)</th>
+          <th class="w-[64px]">长度(mm)</th>
+          <th class="w-[60px]">数量(个)</th>
+          <th class="w-[60px]">材质</th>
+          <th class="w-[60px]">重量(kg)</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in tableData" :key="item.no">
+        <tr v-for="item in props.list" :key="item.no">
           <td>{{ item.no }}</td>
           <td>{{ item.spec }}</td>
           <td>{{ item.length }}</td>
@@ -27,24 +27,10 @@
 </template>
 
 <script setup lang="ts">
-const tableData = [
-  {
-    no: 'GKL-01',
-    spec: '刚框梁1',
-    length: 3800,
-    quantity: 10,
-    material: 'Q255B',
-    weight: 107.882
-  },
-  {
-    no: 'GKL-02',
-    spec: '刚框梁2',
-    length: 4200,
-    quantity: 8,
-    material: 'Q255B',
-    weight: 107.882
-  },
-]
+const props = defineProps<{
+  name: string
+  list: any[]
+}>()
 </script>
 
 <style lang="less" scoped>
@@ -58,7 +44,7 @@ table {
   th,
   td {
     padding: 0;
-    font-size: 8px;
+    font-size: 12px;
     font-weight: normal;
     color: #fff;
     text-align: center;
