@@ -165,9 +165,9 @@ async function fetchDetail() {
     projectForm.value.material = (data.params?.material || '').split(',')
     projectForm.value.targetWeight = (data.params?.targetWeight || '').split(',')
     projectForm.value.custom = (data.params?.custom || '').split(',')
-    console.log('获取运输保障详情', data)
+    console.log('获取结构设计详情', data)
   } catch (error) {
-    console.error('获取运输保障详情失败', error)
+    console.error('获取结构设计详情失败', error)
   } finally {
     pageLoading.value = false
   }
