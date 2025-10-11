@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-shrink-0 w-[100%] h-[100%] relative">
-    <schemes-list></schemes-list>
+    <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list>
     <div class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div class="plan-and-plan_tree" ref="renderRef"></div>
     </div>
@@ -10,11 +10,46 @@
 <script setup lang="ts">
 import SchemesList from '@/components/schemes-list/index.vue'
 import { useRender } from './composables/use-render'
+import { getPlanLayout } from '@/apis/project'
+
+const route = useRoute()
+const projectId = ref('')
+const schemeList = ref<any[]>([])
+// 当前激活得方案id
+const currentAcviteScheme = ref('')
 
 const renderRef = ref<HTMLDivElement | null>(null)
 const { RenderPlanLayout } = useRender()
 let renderPlanLayout: InstanceType<typeof RenderPlanLayout> | null = null
+
+
+const tapScheme = (item) => {
+  console.log('点击了规划方案', item)
+}
+
+// 获取详情
+async function fetchDetail() {
+  try {
+    const { data } = await getPlanLayout({
+      projectId: projectId.value
+    })
+    schemeList.value = data.plans || []
+    if (schemeList.value.length) {
+      currentAcviteScheme.value = schemeList.value[0].id
+    }
+    console.log('获取规划布局详情', data)
+  } catch (error) {
+    console.error('获取规划布局详情失败', error)
+  } finally {
+  }
+}
+
+
 onMounted(() => {
+  if (route.query.projectId) {
+    projectId.value = route.query.projectId as string
+  }
+  fetchDetail();
   renderPlanLayout = new RenderPlanLayout(renderRef.value)
 })
 </script>

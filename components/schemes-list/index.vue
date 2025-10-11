@@ -6,17 +6,18 @@
       <span class="flex-1"></span>
       <span class="text-[12px] text-[#94a3c0]">
         已生成
-        <span class="text-[#3a83fc]">69</span>
+        <span class="text-[#3a83fc]">{{props.list.length}}</span>
         个方案
       </span>
     </div>
     <div class="schemes-list-wrapper">
-      <div class="scheme-item" v-for="i in 20" :key="i" :class="i === 1 ? 'is-active' : ''">
+      <div class="scheme-item" v-for="item in props.list" :key="item.id" :class="item.id === current ? 'is-active' : ''"
+        @click="handleTapScheme(item)">
         <div class="flex-1 mr-[20px]">
-          <span class="text-[14px] text-[#1e1e1e]">方案1</span>
+          <span class="text-[14px] text-[#1e1e1e]">{{ item.name }}</span>
           <div class="flex items-center justify-between mt-[8px]">
-            <span class="text-[12px] text-[#8999b8]">评分：84分</span>
-            <span class="text-[12px] text-[#8999b8]">2025-10-01 12:00:00</span>
+            <span class="text-[12px] text-[#8999b8]">评分：{{ Number(item.score) }}分</span>
+            <span class="text-[12px] text-[#8999b8]">{{ formatTime(item.updateTime, 'YYYY-MM-DD HH:mm:ss') }}</span>
           </div>
         </div>
         <img src="../../assets/images/home/xiala.svg" alt="" width="20px" height="20px" />
@@ -25,7 +26,33 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+
+const { formatTime } = useUtils()
+
+const emits = defineEmits<{
+  (e: 'tapScheme', item: any): void
+}>()
+
+const props = defineProps<{
+  list: any[],
+  current: string
+}>()
+
+const activeScheme = ref('')
+
+watchEffect(() => {
+  if (props.current !== activeScheme.value) {
+    activeScheme.value = props.current
+  }
+})
+
+const handleTapScheme = (item: any) => {
+  if (item.id === activeScheme.value) return
+  activeScheme.value = item.id
+  emits('tapScheme', item)
+}
+</script>
 
 <style lang="less" scoped>
 .schemes-list-container {
