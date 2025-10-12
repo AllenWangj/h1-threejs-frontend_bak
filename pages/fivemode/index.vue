@@ -4,12 +4,12 @@
     <div style="position: absolute;left: 0px;top:0px;z-index: 900;">
       <div style="display: grid;grid-template-columns:360px;gap: 20px;overflow-y: auto;">
 
-         <el-button  @click="handleExportFile('Group_1')">Group_1</el-button>
-      <el-button   @click="handleLoadShowMode('Group_1')">Group_1</el-button>
+         <el-button  @click="handleExportFile('Group_330')">Group_1</el-button>
+      <el-button   @click="handleLoadShowMode('Group_330')">Group_1</el-button>
 
 
 
-       <el-button  @click="handleExportFile('IfcBuildingElementProxy_-_8mm钢板-006<2Q_NGBswqpI9xb7oSV4NH8>_2')">1</el-button>
+       <!-- <el-button  @click="handleExportFile('IfcBuildingElementProxy_-_8mm钢板-006<2Q_NGBswqpI9xb7oSV4NH8>_2')">1</el-button>
       <el-button   @click="handleLoadShowMode('IfcBuildingElementProxy_-_8mm钢板-006<2Q_NGBswqpI9xb7oSV4NH8>_2')">2</el-button>
 
 
@@ -19,7 +19,7 @@
 
 
            <el-button  @click="handleExportFile('Group_271')">Group_271</el-button>
-      <el-button   @click="handleLoadShowMode('Group_271')">Group_271</el-button>
+      <el-button   @click="handleLoadShowMode('Group_271')">Group_271</el-button> -->
 
 
         
@@ -461,7 +461,7 @@ onMounted(() =>{
   //  fiveObject.handleLoadMode("/a.glb")
 
   //  fiveObject.handleLoadMode("/gltf/5/three.skp.gltf")
-   fiveObject.handleLoadMode("/gltf/originsix/six.gltf")
+   fiveObject.handleLoadMode("/four/four.gltf")
 
 
    opt = fiveObject
