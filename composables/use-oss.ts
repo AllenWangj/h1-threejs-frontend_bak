@@ -21,16 +21,20 @@ export const useOss = () => {
   const getOssToken = async () => {
     try {
       const { expired, config } = ossConfig.value
-      if (expired > Date.now() || !config.credentials.sessionToken) {
-        const { data } = await getOssAuth()
-        ossConfig.value.config.endpoint = data.endpoint || ossConfig.value.config.endpoint
-        ossConfig.value.config.credentials = {
-          accessKeyId: data.accessKeyId,
-          secretAccessKey: data.secretAccessKey,
-          sessionToken: data.sessionToken
-        }
-        ossConfig.value.expired = Date.now() + 3500 * 1000
+      // 修复: token未过期且存在时,直接返回,不重复获取
+      if (expired > Date.now() && config.credentials.sessionToken) {
+        return ossConfig.value
       }
+      
+      // token过期或不存在时,重新获取
+      const { data } = await getOssAuth()
+      ossConfig.value.config.endpoint = data.endpoint || ossConfig.value.config.endpoint
+      ossConfig.value.config.credentials = {
+        accessKeyId: data.accessKeyId,
+        secretAccessKey: data.secretAccessKey,
+        sessionToken: data.sessionToken
+      }
+      ossConfig.value.expired = Date.now() + 3500 * 1000
       return ossConfig.value
     } catch (error) {
       console.log(error)
