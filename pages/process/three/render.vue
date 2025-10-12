@@ -10,10 +10,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
 import SchemesList from '@/components/schemes-list/index.vue'
-import Threeobject from "@/threejs/three/index"
-import { getInternalLayoutDetail } from '@/apis/project'
+// import Threeobject from "@/threejs/three/index"
+import { getInternalLayoutDetail,planDetail } from '@/apis/project'
+import {useRender} from "./composables/use-render"
 const three = ref()
-let processTwo: Threeobject | null = null
+const { ProcessThree } = useRender()
+let processThree: InstanceType<typeof ProcessThree> | null = null
+
+// let processTwo: Threeobject | null = null
 
 const route = useRoute()
 const projectId = ref('')
@@ -22,7 +26,11 @@ const schemeList = ref<any[]>([])
 const currentAcviteScheme = ref('')
 
 const tapScheme = (item) => {
-  console.log('点击了内部布局方案', item)
+    planDetail({ planId: currentAcviteScheme.value }).then(res => {
+        const { data: { layouts } } = res
+        processThree!.handleOriginModel(layouts)
+      })
+  // console.log('点击了内部布局方案', item)
 }
 
 // 获取详情
@@ -35,7 +43,11 @@ async function fetchDetail() {
     if (schemeList.value.length) {
       currentAcviteScheme.value = schemeList.value[0].id
     }
-    console.log('获取内部布局详情', data)
+    // console.log('获取内部布局详情', data)
+     planDetail({ planId: currentAcviteScheme.value }).then(res => {
+        const { data: { layouts } } = res
+        processThree!.handleOriginModel(layouts)
+      })
   } catch (error) {
     console.error('获取内部布局详情失败', error)
   } finally {
@@ -47,8 +59,9 @@ onMounted(() => {
     projectId.value = route.query.projectId as string
   }
   fetchDetail();
-  processTwo = new Threeobject(three.value, {
-    progress: () => { }
+  processThree = new ProcessThree(three.value,{
+    progress:() =>{
+    }
   })
 })
 </script>

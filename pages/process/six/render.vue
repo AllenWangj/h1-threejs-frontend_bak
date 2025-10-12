@@ -39,7 +39,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { position } from './source'
-import { getPackingDetail } from '@/apis/project'
+import { getPackingDetail ,planDetail} from '@/apis/project'
+const { getModelUrl, getModelMap } = useModelMap()
 
 const route = useRoute()
 const projectId = ref('')
@@ -49,6 +50,11 @@ const currentAcviteScheme = ref('')
 
 const tapScheme = (item) => {
   console.log('点击了运输保障方案', item)
+  planDetail({ planId:  item.id }).then(res => {
+    const { data: { layouts } } = res
+    handleLoadInitModel(layouts)
+    // renderPlanLayout!.loadSceneModels(layouts)
+  })
 }
 
 // 获取详情
@@ -60,6 +66,11 @@ async function fetchDetail() {
     schemeList.value = data.plans || []
     if (schemeList.value.length) {
       currentAcviteScheme.value = schemeList.value[0].id
+      planDetail({ planId:  currentAcviteScheme.value }).then(res => {
+    const { data: { layouts } } = res
+    handleLoadInitModel(layouts)
+    // renderPlanLayout!.loadSceneModels(layouts)
+  })
     }
     console.log('获取运输保障详情', data)
   } catch (error) {
@@ -71,7 +82,7 @@ async function fetchDetail() {
 
 const threeContainer = ref(null)
 let scene, containerScene, camera, renderer, orbitControls, dragControls
-const containerSize = { x: 96, y: 96, z: 480 }
+const containerSize = { x: 96*1, y: 96*1, z: 480*1 }
 let rotateEnabled = ref(true)
 let selectedObject = null // 当前选中的 mesh（wrapper）
 const draggableObjects = [] // { mesh, size: THREE.Vector3, prevPosition, enteredContainer, initialPosition }
@@ -86,7 +97,7 @@ onMounted(() => {
   animate()
   initPreGeometries()
   window.addEventListener('keydown', onKeyDown)
-  handleLoadInitModel()
+  // handleLoadInitModel()
   // const data = []
   // // for(let i = )
   // let x = 7.874015808105469
@@ -210,10 +221,23 @@ onMounted(() => {
 //    * */
 //   console.log('data', data)
 })
-function handleLoadInitModel() {
+let gltfModels:any[] = []
+
+async function handleLoadInitModel(position:any) {
+  for (let index = 0; index < gltfModels.length; index++) {
+    const element = gltfModels[index];
+    handleClearnJunk(element)
+    element.parent.remove(element)
+  }
+     const modelCodes = position.map(config => config.code)
+  await getModelMap(modelCodes)
+
+  gltfModels = []
   position.forEach((ele) => {
     const loader = new GLTFLoader()
-    loader.load(`/gltf/six/${ele.code}.gltf`, (gltf) => {
+      // 2. 获取场景模型 URL
+      const scenePath = getModelUrl(ele.code)
+    loader.load(scenePath, (gltf) => {
       let originalModel = gltf.scene
       if (gltf.scene) originalModel = gltf.scene
       const model = SkeletonUtils.clone(originalModel)
@@ -236,6 +260,7 @@ function handleLoadInitModel() {
       wrappedModel.position.copy(getNonOverlappingPosition(size.clone()))
       wrappedModel.position.set(ele.x, ele.y, ele.z)
       scene.add(wrappedModel)
+      gltfModels.push(wrappedModel)
       draggableObjects.push({
         code: ele.code,
         mesh: wrappedModel,
@@ -246,7 +271,9 @@ function handleLoadInitModel() {
         initialPosition: wrappedModel.position.clone()
       })
       initDragControls()
-    })
+    },(err)=>{
+    console.log("err---",`《${ele.code}》`)
+  })
   })
 }
 onUnmounted(() => {
@@ -283,7 +310,7 @@ function initScene() {
     0.1,
     2000
   )
-  camera.position.set(-57, 20, 15)
+  camera.position.set(-157, 120, 115)
 
   renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setSize(threeContainer.value.clientWidth, threeContainer.value.clientHeight)
@@ -393,6 +420,23 @@ function initScene() {
   initDragControls()
 }
 
+function handleClearnJunk(group: any): void {
+      if (!group || !group.parent) {
+        console.warn('⚠️ 尝试释放无效的组')
+        return
+      }
+      // 递归释放所有资源
+      group.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          // 释放几何体
+          object.geometry?.dispose()
+        }
+      })
+  
+      // 清空引用
+      group.clear()
+      // group.parent = null
+    }
 function initDragControls() {
   // 重新创建 DragControls（会解绑旧事件）
   if (dragControls) {
@@ -513,7 +557,6 @@ function initDragControls() {
         code: ele.code
       })
     })
-    console.log('data---', data)
     const allInside = draggableObjects.every((obj) => obj.enteredContainer)
     if (!allInside) {
       draggableObjects.forEach((obj) => {
@@ -661,7 +704,6 @@ function initPreGeometries() {
       const box = new THREE.Box3().setFromObject(model)
       const size = new THREE.Vector3()
       box.getSize(size)
-      console.log('size:', size.clone(), item.code)
       // 保存 model 原型（我们在 addCube 时再 clone）
       preGeometries.push({ name: item.name, modelPrototype: model, size: size.clone(), code: item.code })
     })
@@ -724,7 +766,7 @@ function addCube(name = 'cube1') {
   wrappedModel.position.copy(getNonOverlappingPosition(modelData.size))
 
   scene.add(wrappedModel)
-
+    gltfModels.push(wrappedModel)
   // 注册 wrapper 到 draggableObjects —— 使用 size 的 clone，确保数据不被共享修改
   draggableObjects.push({
     code: modelData.code,

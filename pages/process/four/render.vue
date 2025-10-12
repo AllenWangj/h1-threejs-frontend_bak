@@ -10,12 +10,13 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import SchemesList from '@/components/schemes-list/index.vue'
-import FourObject from "~~/threejs/four/index"
-import { getStructuralDesignDetail } from '@/apis/project'
-
+// import FourObject from "~~/threejs/four/index"
+import { getStructuralDesignDetail,planDetail } from '@/apis/project'
+import {useRender} from "./composables/use-render"
 
 const four = ref()
-let processFour: FourObject | null = null
+const {ProcessFour}  = useRender()
+let processFour:  InstanceType<typeof ProcessFour> | null = null
 
 const route = useRoute()
 const projectId = ref('')
@@ -36,6 +37,10 @@ async function fetchDetail() {
     schemeList.value = data.plans || []
     if (schemeList.value.length) {
       currentAcviteScheme.value = schemeList.value[0].id
+        planDetail({ planId: currentAcviteScheme.value }).then(res => {
+        const { data: { layouts } } = res
+        processFour!.handleOriginModel(layouts)
+      })
     }
     console.log('获取结构设计详情', data)
   } catch (error) {
@@ -48,8 +53,8 @@ onMounted(() => {
   if (route.query.projectId) {
     projectId.value = route.query.projectId as string
   }
-  fetchDetail();
-  processFour = new FourObject(four.value, {
+  fetchDetail()
+  processFour = new ProcessFour(four.value, {
     progress: () => { }
   })
 })

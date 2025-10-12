@@ -336,7 +336,7 @@ class BaseThree {
       return gltf
     } catch (error) {
       const err = error instanceof Error ? error : new Error('未知错误')
-      console.error(`❌ GLTF模型加载失败: ${url}`, err)
+      console.error(`❌ GLTF模型加载失败: url：《${url}》`, err)
       onError?.(err)
       throw new Error(`加载模型失败: ${err.message}`)
     }

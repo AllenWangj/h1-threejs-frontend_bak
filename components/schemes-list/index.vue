@@ -48,7 +48,7 @@ watchEffect(() => {
 })
 
 const handleTapScheme = (item: any) => {
-  if (item.id === activeScheme.value) return
+  // if (item.id === activeScheme.value) return
   activeScheme.value = item.id
   emits('tapScheme', item)
 }

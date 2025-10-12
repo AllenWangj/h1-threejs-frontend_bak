@@ -147,7 +147,7 @@ let previewInstance: InstanceType<typeof LibaryModal> | null = null
 const formData = ref<Partial<ModelItem>>({
   name: '',
   code: '',
-  type: 1,
+  type: 2,
   length: null,
   width: null,
   height: null,
