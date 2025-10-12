@@ -130,43 +130,74 @@ function geoToWorld(lon, lat, elevation, demBounds, terrainSize, minElevation, m
   const x = (lon - demBounds.lonMin) / (demBounds.lonMax - demBounds.lonMin)
   const y = (lat - demBounds.latMin) / (demBounds.latMax - demBounds.latMin)
   
-  // 不使用 elevation 参数,而是根据经纬度查询 DEM 数据获取实际地形高度
-  // 这里先用简化版本,让标记贴在地形表面附近
-    // 转换到世界坐标 (考虑地形旋转)
+  // 转换到世界坐标 (考虑地形旋转)
   return {
     x: (x - 0.5) * terrainSize,
-    y: 0.5, // 提高高度,让标记更明显
+    y: 0.5, // 初始高度,后续会通过射线检测调整到地形表面
     z: -(y - 0.5) * terrainSize // 负号因为地形旋转了
   }
 }
 
-// 创建点位标记
+// 创建点位标记 - 改为地图标记样式
 function createPointMarker(pointData, worldPos) {
-  // 创建标记几何体 (圆柱体) - 增大尺寸,更明显
-  const geometry = new THREE.CylinderGeometry(0.15, 0.15, 0.5, 16)
-  const material = new THREE.MeshStandardMaterial({
+  const group = new THREE.Group()
+  
+  // 创建标记底座 (圆锥形,尖端朝下)
+  const coneGeometry = new THREE.ConeGeometry(0.08, 0.25, 8)
+  const coneMaterial = new THREE.MeshStandardMaterial({
     color: 0xff4444,
     emissive: 0xff0000,
-    emissiveIntensity: 0.8
+    emissiveIntensity: 0.3,
+    metalness: 0.3,
+    roughness: 0.7
   })
-  const marker = new THREE.Mesh(geometry, material)
-  marker.position.set(worldPos.x, worldPos.y, worldPos.z)
+  const cone = new THREE.Mesh(coneGeometry, coneMaterial)
+  cone.rotation.x = Math.PI // 翻转使尖端朝下
+  cone.position.y = 0.125 // 调整位置
+  group.add(cone)
   
-  // 添加顶部球体 - 增大尺寸
-  const sphereGeometry = new THREE.SphereGeometry(0.2, 16, 16)
+  // 创建顶部圆球 (标记点)
+  const sphereGeometry = new THREE.SphereGeometry(0.1, 16, 16)
   const sphereMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffff00,
-    emissive: 0xffaa00,
-    emissiveIntensity: 1.0
+    color: 0xff5555,
+    emissive: 0xff3333,
+    emissiveIntensity: 0.5,
+    metalness: 0.1,
+    roughness: 0.4
   })
   const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
-  sphere.position.y = 0.35
-  marker.add(sphere)
+  sphere.position.y = 0.25
+  group.add(sphere)
+  
+  // 添加内部白色圆点
+  const dotGeometry = new THREE.SphereGeometry(0.04, 12, 12)
+  const dotMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff
+  })
+  const dot = new THREE.Mesh(dotGeometry, dotMaterial)
+  dot.position.y = 0.25
+  group.add(dot)
+  
+  // 添加光晕效果 (可选)
+  const glowGeometry = new THREE.RingGeometry(0.08, 0.12, 16)
+  const glowMaterial = new THREE.MeshBasicMaterial({
+    color: 0xff4444,
+    transparent: true,
+    opacity: 0.3,
+    side: THREE.DoubleSide
+  })
+  const glow = new THREE.Mesh(glowGeometry, glowMaterial)
+  glow.rotation.x = -Math.PI / 2
+  glow.position.y = 0.01
+  group.add(glow)
+  
+  // 设置整体位置
+  group.position.set(worldPos.x, worldPos.y, worldPos.z)
   
   // 保存点位数据
-  marker.userData = pointData
+  group.userData = pointData
   
-  return marker
+  return group
 }
 
 // 处理鼠标点击事件
@@ -250,11 +281,11 @@ async function init() {
       return
     }
     
-    renderer.setSize(container.value.clientWidth, container.value.clientHeight)    
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)) // 降低像素比,减少渲染负担
-    renderer.shadowMap.enabled = false // 关闭阴影以避免 Shader Error
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.2
+    renderer.setSize(container.value.clientWidth, container.value.clientHeight)      
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1)) // 降低像素比到 1,大幅减少渲染负担
+    renderer.shadowMap.enabled = false // 关闭阴影
+    renderer.toneMapping = THREE.NoToneMapping // 关闭色调映射,减少计算
+    renderer.toneMappingExposure = 1.0
     
     loadingProgress.value = 20
     loadingText.value = '设置光照和控制器...'
@@ -276,7 +307,6 @@ async function init() {
     })
     
     container.value.appendChild(renderer.domElement)
-
   // 添加轨道控制器
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
@@ -285,6 +315,9 @@ async function init() {
   controls.minDistance = 0.5
   controls.maxDistance = 50
   controls.maxPolarAngle = Math.PI / 2
+  controls.enableRotate = true
+  controls.enableZoom = true
+  controls.enablePan = true
 
   // 改进的光照系统
   const ambientLight = new THREE.AmbientLight(0x404040, 0.3) // 降低环境光
@@ -304,15 +337,25 @@ async function init() {
     'https://geoserver.spic.cc/geoserver/h1/wcs?' +
       'service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:my3dlayer' +
       '&format=image/tiff&subset=Long(106,107)&subset=Lat(26,27)&resx=0.001&resy=0.001'
-  )
-  // 降采样（减少降采样步长获得更高分辨率）
-  const step = 4 // 增加降采样步长,减少顶点数量 (原来是 2)
+  )  // 降采样（减少降采样步长获得更高分辨率）
+  const step = 8 // 大幅增加降采样,减少顶点数量避免 CPU 过载 (原来是 4)
   const width = Math.floor(dem.width / step)
   const height = Math.floor(dem.height / step)
-  const raster = new Float32Array(width * height)
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      raster[y * width + x] = dem.raster[y * step * dem.width + x * step]
+  
+  // 限制最大网格尺寸,防止 CPU 过载
+  const maxGridSize = 150 // 降低到 150x150 网格
+  if (width > maxGridSize || height > maxGridSize) {
+    console.warn(`网格过大 (${width}x${height}),强制限制`)
+    alert(`为优化性能,自动调整网格尺寸`)
+  }
+  
+  const raster = new Float32Array(Math.min(width, maxGridSize) * Math.min(height, maxGridSize))
+  const finalWidth = Math.min(width, maxGridSize)
+  const finalHeight = Math.min(height, maxGridSize)
+  
+  for (let y = 0; y < finalHeight; y++) {
+    for (let x = 0; x < finalWidth; x++) {
+      raster[y * finalWidth + x] = dem.raster[y * step * dem.width + x * step]
     }
   }
   const { min, max } = getMinMax(raster)
@@ -320,27 +363,30 @@ async function init() {
 
   loadingProgress.value = 50
   loadingText.value = '生成地形网格...'
-
   // 添加高度数据统计信息
   console.log(`DEM 数据统计:`)
   console.log(`最小高度: ${min}m`)
   console.log(`最大高度: ${max}m`)
   console.log(`高度差: ${max - min}m`)
-  console.log(`网格大小: ${width} x ${height}`)
+  console.log(`网格大小: ${finalWidth} x ${finalHeight}`)
+  console.log(`总顶点数: ${(finalWidth * finalHeight).toLocaleString()}`)
 
   // 创建PlaneGeometry并设置高度
-  const geometry = new THREE.PlaneGeometry(8, 8, width - 1, height - 1) // 增加地形尺寸
+  const geometry = new THREE.PlaneGeometry(8, 8, finalWidth - 1, finalHeight - 1)
   const positions = geometry.attributes.position.array
 
-  // 优化高度映射算法
-  for (let i = 0; i < width; i++) {
-    for (let j = 0; j < height; j++) {
-      const index = j * width + i
+  // 优化高度映射算法 - 简化计算
+  for (let i = 0; i < finalWidth; i++) {
+    for (let j = 0; j < finalHeight; j++) {
+      const index = j * finalWidth + i
       const normalizedHeight = (raster[index] - min) / (max - min)
-      // 使用平滑曲线增强地形起伏
-      const heightValue = Math.pow(normalizedHeight, 0.8) * scale
+      // 简化高度计算,减少 CPU 负担
+      const heightValue = normalizedHeight * scale
       positions[index * 3 + 2] = heightValue
-    }  }  geometry.attributes.position.needsUpdate = true
+    }
+  }
+  
+  geometry.attributes.position.needsUpdate = true
   geometry.computeVertexNormals()
 
   loadingProgress.value = 70
@@ -392,8 +438,7 @@ async function init() {
   // 初始化射线投射器用于点击检测
   raycaster = new THREE.Raycaster()
   mouse = new THREE.Vector2()
-  
-  // 添加点位标记
+    // 添加点位标记
   const demBounds = {
     lonMin: 106,
     lonMax: 107,
@@ -411,7 +456,20 @@ async function init() {
       min,
       max
     )
-      const marker = createPointMarker(point, worldPos)
+    
+    // 使用射线检测获取地形实际高度
+    const raycasterDown = new THREE.Raycaster()
+    const origin = new THREE.Vector3(worldPos.x, 10, worldPos.z) // 从上方发射射线
+    const direction = new THREE.Vector3(0, -1, 0) // 向下
+    raycasterDown.set(origin, direction)
+    
+    const intersects = raycasterDown.intersectObject(terrainMesh)
+    if (intersects.length > 0) {
+      // 使用地形实际高度 + 0.1 的偏移
+      worldPos.y = intersects[0].point.y + 0.1
+    }
+    
+    const marker = createPointMarker(point, worldPos)
     scene.add(marker)
     pointMarkers.push(marker)
     
@@ -427,20 +485,34 @@ async function init() {
   setTimeout(() => {
     loading.value = false
   }, 500)
+    // 渲染循环 - 优化性能,按需渲染
+  let needsRender = true
   
-  // 渲染循环 - 优化性能
+  function render() {
+    if (needsRender && renderer && scene && camera) {
+      renderer.render(scene, camera)
+      needsRender = false
+    }
+  }
+  
   function animate() {
     if (!renderer || !scene || !camera) return
     
     animationId = requestAnimationFrame(animate)
     
     // 只在控制器有变化时才渲染
-    if (controls.enabled) {
-      controls.update()
+    if (controls.enabled && controls.update()) {
+      needsRender = true
     }
     
-    renderer.render(scene, camera)
+    render()
   }
+  
+  // 监听控制器变化
+  controls.addEventListener('change', () => {
+    needsRender = true
+  })
+  
   animate()
   
   window.addEventListener('resize', onWindowResize)
