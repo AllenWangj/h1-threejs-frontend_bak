@@ -43,3 +43,23 @@ export const removeModel = (params) => useBaseFetch().post(`${baseUrl}model/v1/r
  * 查询构件列表
  */
 export const getModelList = (params) => useBaseFetch().post<ModelItem[]>(`${baseUrl}model/v1/list`, params)
+
+/**
+ * 地块列表
+*/
+export const getResourceList = (params) => useBaseFetch().get(`${baseUrl}gis/v1/page`, params)
+
+/**
+ * 新增地块
+*/
+export const createResource = (data) => useBaseFetch().post(`${baseUrl}gis/v1/create`, data)
+
+/**
+ * 更新地块
+*/
+export const updateResource = (params) => useBaseFetch().post(`${baseUrl}gis/v1/update`, params)
+
+/**
+ * 删除地块
+*/
+export const removeResource = (params) => useBaseFetch().post(`${baseUrl}gis/v1/remove`, params)

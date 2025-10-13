@@ -10,17 +10,29 @@
       <div class="plot-wrapper">
         <div
           class="plot-item cursor-pointer flex px-[14px] py-[10px] bg-[#f8f9fd] border border-[#e8e9ef] rounded-[2px] mb-[10px]"
-          v-for="(item, index) in 8"
+          v-for="(item, index) in plotList"
           :key="index"
-          :class="{ 'is-active': currentPlot === item }"
+          :class="{ 'is-active': currentPlot === item.id }"
           @click="handlePlotClick(item)"
         >
           <div class="flex flex-col flex-1">
-            <span class="text-[14px] text-[#1e1e1e]">地块{{ item }}</span>
-            <span class="text-[12px] text-[#a7aebb] mt-[5px]">2025/10/05 12:00:00</span>
+            <span class="text-[14px] text-[#1e1e1e]">{{ item.name }}</span>
+            <span class="text-[12px] text-[#a7aebb] mt-[5px]">
+              {{ formatTime(item.updateTime, 'YYYY-MM-DD HH:mm:ss') }}
+            </span>
           </div>
-          <img class="ml-[15px] w-[20px] h-[20px]" src="../../assets/images/icon-plot-edit.svg" alt="" />
-          <img class="ml-[15px] w-[20px] h-[20px]" src="../../assets/images/icon-plot-delete.svg" alt="" />
+          <img
+            class="ml-[15px] w-[20px] h-[20px]"
+            src="../../assets/images/icon-plot-edit.svg"
+            alt=""
+            @click.stop="handleEditPlot(item)"
+          />
+          <img
+            class="ml-[15px] w-[20px] h-[20px]"
+            src="../../assets/images/icon-plot-delete.svg"
+            alt=""
+            @click.stop="handleDeletePlot(item)"
+          />
         </div>
       </div>
     </div>
@@ -39,10 +51,48 @@
       </div>
     </div>
     <!-- 新增地块 -->
-    <ez-dialog v-model="dialogVisible" title="新增地块" width="600px" @confirm="add">
-      <el-form ref="PlotFormRef" :model="plotForm" label-width="80px">
-        <el-form-item label="地块名称" prop="name" :rules="{ required: true, message: '请输入地块名称', trigger: 'blur' }">
+    <ez-dialog
+      v-model="dialogVisible"
+      :title="`${plotForm.id ? '编辑' : '新增'}地块`"
+      width="600px"
+      :loading="submitLoading"
+      @confirm="add"
+    >
+      <el-form ref="PlotFormRef" :model="plotForm" label-width="120px">
+        <el-form-item
+          label="地块名称"
+          prop="name"
+          :rules="{ required: true, message: '请输入地块名称', trigger: 'blur' }"
+        >
           <el-input v-model="plotForm.name" placeholder="请输入地块名称"></el-input>
+        </el-form-item>
+        <el-form-item
+          v-if="!plotForm.id"
+          label="dem文件"
+          prop="demUrl"
+          :rules="{ required: true, message: '请选择dem文件', trigger: 'blur' }"
+        >
+          <el-upload
+            ref="uploadRef"
+            action=""
+            accept=".tif"
+            :limit="1"
+            :on-exceed="handleExceed"
+            :on-change="uploadFile"
+            :auto-upload="false"
+          >
+            <template #trigger>
+              <el-button type="primary" :loading="uploadLoading">上传dem文件</el-button>
+            </template>
+          </el-upload>
+        </el-form-item>
+        <el-form-item
+          v-if="!plotForm.id"
+          label="纹理底图"
+          prop="satelliteUrl"
+          :rules="{ required: true, message: '请选择纹理底图', trigger: 'blur' }"
+        >
+          <ez-image-upload v-model="plotForm.satelliteUrl" :api="uploadApi"></ez-image-upload>
         </el-form-item>
       </el-form>
     </ez-dialog>
@@ -51,15 +101,25 @@
 
 <script setup lang="ts">
 import { ArrowLeftBold } from '@maxtan/ez-ui-icons'
+import { genFileId } from 'element-plus'
+import { getResourceList, createResource, updateResource, removeResource } from '@/apis/resource'
+import { id } from 'element-plus/es/locales.mjs'
+
+const { formatTime } = useUtils()
+const { putFile } = useOss()
+
 const router = useRouter()
 const route = useRoute()
-console.log('route', route)
+
+const projectId = ref('')
 
 const pageState = ref('list') // list | detail
-
+// 地块列表
+const plotList = ref([])
 const currentPlot = ref(null)
-const handlePlotClick = (item: number) => {
-  currentPlot.value = item
+const handlePlotClick = (item) => {
+  currentPlot.value = item.id
+  // 跳转到地块详情页
   pageState.value = 'detail'
   tabChange(1)
 }
@@ -68,30 +128,169 @@ const isActiveTab = ref(1)
 const tabChange = (tab: number) => {
   isActiveTab.value = tab
   if (tab === 1) {
-    router.push('/process/one/file')
+    router.push({
+      path: '/process/one/file',
+      query: {
+        projectId: projectId.value
+      }
+    })
   } else if (tab === 2) {
-    router.push('/process/one/form')
+    router.push({
+      path: '/process/one/form',
+      query: {
+        projectId: projectId.value
+      }
+    })
   } else if (tab === 3) {
-    router.push('/process/one/render')
+    router.push({
+      path: '/process/one/render',
+      query: {
+        projectId: projectId.value
+      }
+    })
   }
 }
 
+const { fileUrl, uploadRef, uploadLoading, uploadFile, handleExceed } = createdUploadFile()
 // 新增地块
+const submitLoading = ref(false)
 const dialogVisible = ref(false)
 const PlotFormRef = ref(null)
 const plotForm = ref({
-  name: ''
+  id: '',
+  name: '',
+  demUrl: '',
+  satelliteUrl: ''
+})
+watchEffect(() => {
+  plotForm.value.demUrl = fileUrl.value || plotForm.value.demUrl
 })
 const handleAddPlot = () => {
+  plotForm.value = {
+    id: '',
+    name: '',
+    demUrl: '',
+    satelliteUrl: ''
+  }
   dialogVisible.value = true
 }
+
+// 编辑地块
+const handleEditPlot = (item) => {
+  plotForm.value = JSON.parse(JSON.stringify(item))
+  dialogVisible.value = true
+}
+
+// 删除地块
+const handleDeletePlot = async (item) => {
+  try {
+    await ElMessageBox.confirm('确定删除该地块吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await removeResource({
+      id: item.id
+    })
+    ElMessage.success('删除成功')
+    loadData()
+  } catch (error) {
+    console.error('删除失败', error)
+  }
+}
+
+// 新增/编辑地块数据提交方法
 const add = async () => {
   try {
     await PlotFormRef.value.validate()
+    submitLoading.value = true
     console.log('新增地块', plotForm.value)
+    const params = JSON.parse(JSON.stringify(plotForm.value))
+    if (plotForm.value.id) {
+      await updateResource(params)
+      ElMessage.success('编辑成功')
+    } else {
+      await createResource(params)
+      ElMessage.success('新增成功')
+    }
+
+    // 刷新地块列表
+    loadData()
     dialogVisible.value = false
   } catch (error) {
     console.error('新增地块失败', error)
+  } finally {
+    submitLoading.value = false
+  }
+}
+
+// 获取地块列表
+async function loadData() {
+  try {
+    const { data } = await getResourceList({
+      current: 1,
+      size: 1000
+    })
+    console.log('地块列表', data)
+    plotList.value = data.records
+  } catch (error) {
+    console.error('获取地块列表失败', error)
+  }
+}
+
+onMounted(() => {
+  if (route.query.projectId) {
+    projectId.value = route.query.projectId as string
+  }
+  loadData()
+})
+
+const uploadApi = async (file) => {
+  const { data } = await putFile(file)
+  return Promise.resolve({ url: data.url })
+}
+
+function createdUploadFile() {
+  const uploadRef = ref(null)
+  const uploadLoading = ref(false)
+  const fileUrl = ref('')
+  /**
+   * 处理文件上传
+   * @param {File} file - 上传的文件对象
+   */
+  const uploadFile = (file: any) => {
+    submitFile(file)
+  }
+
+  const handleExceed = (files) => {
+    uploadRef.value!.clearFiles()
+    const file = files[0]
+    file.uid = genFileId()
+    uploadRef.value!.handleStart(file)
+  }
+  /**
+   * 提交文件到服务器
+   * @param {File} file - 要上传的文件
+   */
+  const submitFile = async (file: any) => {
+    try {
+      uploadLoading.value = true
+      const { data } = await putFile(file.raw)
+      console.log('上传成功', data)
+      fileUrl.value = data.url
+    } catch (error) {
+      console.error('上传失败', error)
+      fileUrl.value = ''
+    } finally {
+      uploadLoading.value = false
+    }
+  }
+  return {
+    fileUrl,
+    uploadRef,
+    uploadLoading,
+    uploadFile,
+    handleExceed
   }
 }
 </script>

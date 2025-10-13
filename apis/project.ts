@@ -28,6 +28,16 @@ export const getProjectDetail = (params) => useBaseFetch().get(`${baseUrl}record
 export const updateProject = (params) => useBaseFetch().post(`${baseUrl}record/v1/update`, params)
 
 
+
+/**
+ * 更新工具1（选址决策）的数据
+*/
+export const updateProjectSite = (params) => useBaseFetch().post(`${baseUrl}site/v1/update`, params)
+
+/**
+ * 获取工具1（选址决策）的数据
+*/
+export const getProjectSiteDetail = (params) => useBaseFetch().get(`${baseUrl}site/v1/detail`, params)
 /**
  * 更新工具2（规划布局）的数据
 */
