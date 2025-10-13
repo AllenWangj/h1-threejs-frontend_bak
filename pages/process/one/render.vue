@@ -483,8 +483,8 @@ async function init() {
 
     // 加载 DEM 小片
     const dem = await loadDEM(gis.value.url ||
-      'https://geoserver.spic.cc/geoserver/h1/wcs?' +
-      'service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:my3dlayer' +
+      'https://support.maxtan.cn/geoserver/h1/wcs?' +
+      'service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:dem_103651411094409222' +
       '&format=image/tiff&subset=Long(106,107)&subset=Lat(26,27)&resx=0.001&resy=0.001'
     )  // 降采样（减少降采样步长获得更高分辨率）
     const step = 8 // 大幅增加降采样,减少顶点数量避免 CPU 过载 (原来是 4)
@@ -565,7 +565,7 @@ async function init() {
       })
     }
     // 加载离线卫星纹理
-    satelliteTexture = await loadOfflineSatelliteTexture(gis.value.satelliteUrl || 'https://cdn.spic.cc/h1-static/uploads/20251012/5e292ebca0acff28bde92611.jpg')
+    satelliteTexture = await loadOfflineSatelliteTexture(gis.value.satelliteUrl || 'https://static.maxtan.cn/h1-static/uploads/20251014/486dbfda30c535f25d8404c0.jpg')
 
     loadingProgress.value = 80
     loadingText.value = '创建地形模型...'
