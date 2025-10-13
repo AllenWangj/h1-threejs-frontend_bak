@@ -118,7 +118,7 @@ const pageState = ref('list') // list | detail
 const plotList = ref([])
 const currentPlot = ref(null)
 const handlePlotClick = (item) => {
-  currentPlot.value = item.id
+  currentPlot.value = item.index
   // 跳转到地块详情页
   pageState.value = 'detail'
   tabChange(1)

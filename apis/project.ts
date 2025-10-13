@@ -39,6 +39,11 @@ export const updateProjectSite = (params) => useBaseFetch().post(`${baseUrl}site
 */
 export const getProjectSiteDetail = (params) => useBaseFetch().get(`${baseUrl}site/v1/detail`, params)
 /**
+ * 获取工具1（选址决策）中的规划布局数据方案详情
+*/
+export const getProjectSitePlanDetail = (params) => useBaseFetch().get(`${baseUrl}site/v1/plan/detail`, params)
+
+/**
  * 更新工具2（规划布局）的数据
 */
 export const updatePlanLayout = (params) => useBaseFetch().post(`${baseUrl}plan-layout/v1/update`, params)
