@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-shrink-0 w-[100%] h-[100%] relative">
     <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list>
-    <div class="flex-1 relative border border-[1px] border-[#adcdf7]">
+    <div ref="fullscreenContainer" class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div ref="threeContainer" class="three-container"></div>
       <div class="toolbar-container">
         <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep1Animation">步骤1</el-button>
@@ -21,6 +21,11 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { getAssembleDetail } from '@/apis/project'
+
+// 全屏相关
+const fullscreenContainer = ref<HTMLElement | null>(null)
+useFullScreenResize(fullscreenContainer, onResize)
+
 
 const route = useRoute()
 const projectId = ref('')
@@ -62,6 +67,9 @@ onMounted(() => {
   initThree()
   loadModel()
   animate()
+
+  // 窗口变化刷新
+  window.addEventListener('resize', onResize)
 })
 
 onBeforeUnmount(() => {
@@ -411,8 +419,6 @@ function animate() {
   renderer.render(scene, camera)
 }
 
-// 窗口变化刷新
-window.addEventListener('resize', onResize)
 function onResize() {
   camera.aspect = threeContainer.value.clientWidth / threeContainer.value.clientHeight
   camera.updateProjectionMatrix()

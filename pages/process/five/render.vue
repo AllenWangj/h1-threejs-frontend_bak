@@ -1,16 +1,18 @@
 <template>
   <div class="flex flex-shrink-0 w-[100%] h-[100%] relative">
     <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list>
-    <div v-loading="loading" :element-loading-text="loadingText"
+    <div ref="fullscreenContainer" v-loading="loading" :element-loading-text="loadingText"
       class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div ref="threeContainer" class="three-container" />
       <div v-if="!loading" class="toolbar-container">
-        <el-button v-for="item in materialDataList" :key="item.value" :type="hideModel.includes(item.value) ? 'info' : 'primary'" @click="playStepAnimation(item.value)">
-          {{item.name}}
+        <el-button v-for="item in materialDataList" :key="item.value"
+          :type="hideModel.includes(item.value) ? 'info' : 'primary'" @click="playStepAnimation(item.value)">
+          {{ item.name }}
         </el-button>
       </div>
       <div v-if="!loading" class="toolbar-content">
-        <BuildInfo v-for="item in materialDataList" :key="item.value" :name="item.name" :list="item.infoList"></BuildInfo>
+        <BuildInfo v-for="item in materialDataList" :key="item.value" :name="item.name" :list="item.infoList">
+        </BuildInfo>
       </div>
     </div>
   </div>
@@ -27,9 +29,14 @@ import { modeService } from './composables/mode-service'
 import { materialInfoService } from './composables/material-info-service'
 import { getPartsProductionDetail } from '@/apis/project'
 
+
+// 全屏相关
+const fullscreenContainer = ref<HTMLElement | null>(null)
+useFullScreenResize(fullscreenContainer, onResize)
+
 const route = useRoute()
 const projectId = ref('')
-const schemeList = ref < any[] > ([])
+const schemeList = ref<any[]>([])
 // 当前激活得方案id
 const currentAcviteScheme = ref('')
 
@@ -75,6 +82,9 @@ onMounted(() => {
   initThree()
   loadModel()
   animate()
+
+  // 窗口变化刷新
+  window.addEventListener('resize', onResize)
 })
 
 onBeforeUnmount(() => {
@@ -251,14 +261,15 @@ function animate() {
   controls.update()
   renderer.render(scene, camera)
 }
-
-// 窗口变化刷新
-window.addEventListener('resize', onResize)
 function onResize() {
-  camera.aspect = threeContainer.value.clientWidth / threeContainer.value.clientHeight
+  const el = threeContainer.value
+  console.log('窗口变化刷新', threeContainer.value.clientWidth, threeContainer.value.clientHeight)
+  camera.aspect = el.clientWidth / el.clientHeight
   camera.updateProjectionMatrix()
-  renderer.setSize(threeContainer.value.clientWidth, threeContainer.value.clientHeight)
+  renderer.setSize(el.clientWidth, el.clientHeight)
 }
+
+
 </script>
 
 <style scoped>

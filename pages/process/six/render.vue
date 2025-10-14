@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-shrink-0 w-[100%] h-[100%] relative">
     <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list>
-    <div class="flex-1 relative border border-[1px] border-[#adcdf7]">
+    <div ref="fullscreenContainer" class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div ref="threeContainer" class="three-container"></div>
       <div class="toolbar-container">
         <!-- <el-button class="w-[120px]" type="primary" @click="addCube('cube1')">物体1</el-button> -->
@@ -41,6 +41,11 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { position } from './source'
 import { getPackingDetail ,planDetail} from '@/apis/project'
 const { getModelUrl, getModelMap } = useModelMap()
+
+// 全屏相关
+const fullscreenContainer = ref<HTMLElement | null>(null)
+useFullScreenResize(fullscreenContainer, onResize)
+
 
 const route = useRoute()
 const projectId = ref('')
@@ -96,6 +101,10 @@ onMounted(() => {
   initScene()
   animate()
   initPreGeometries()
+  
+  // 窗口尺寸变化
+  window.addEventListener('resize', onResize)
+
   window.addEventListener('keydown', onKeyDown)
   // handleLoadInitModel()
   // const data = []
@@ -880,8 +889,6 @@ function onKeyDown(event) {
   }
 }
 
-// 窗口尺寸变化
-window.addEventListener('resize', onResize)
 function onResize() {
   camera.aspect = threeContainer.value.clientWidth / threeContainer.value.clientHeight
   camera.updateProjectionMatrix()
