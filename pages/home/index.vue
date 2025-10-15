@@ -24,7 +24,7 @@
           class="list-wrap-item"
           v-for="item in projectList"
           :key="item.id"
-          :class="{ 'is-active': currentProject === item.id }"
+          :class="{ 'is-active': currentProject.id === item.id }"
           @click="handleTapProject(item)"
         >
           <div class="list-wrap-item-header w-[100%] flex items-center justify-between">
@@ -243,8 +243,8 @@ const router = useRouter()
 const searchText = ref('')
 // 项目列表
 const projectList = ref([])
-// 当前选择的项目id
-const currentProject = ref(null)
+// 当前选择的项目
+const currentProject = ref<any>({})
 // 项目详情loading
 const detailLoading = ref(false)
 // 当前查看详情的项目
@@ -264,7 +264,7 @@ const handleStepClick = (path, status) => {
     ElMessage.warning('当前状态不能操作')
     return
   }
-  router.push({ path, query: { projectId: currentProject.value } })
+  router.push({ path, query: { projectId: currentProject.value.id } })
 }
 
 // 搜索项目
@@ -274,8 +274,10 @@ const handleSearchProject = () => {
 
 // 选择项目
 const handleTapProject = (item) => {
-  if (!item.id || item.id === currentProject.value) return
-  currentProject.value = item.id
+  if (!item.id || item.id === currentProject.value.id) return
+  currentProject.value = item
+  // 本地缓存
+  sessionStorage.setItem('currentProject', JSON.stringify(item))
   // 当前项目详情
   fetchProjectDetail(item.id)
 }
@@ -427,8 +429,10 @@ async function fetchProjectList() {
   })
   projectList.value = res.data.records || []
   if (projectList.value.length) {
+    const currentProjectCache = JSON.parse(sessionStorage.getItem('currentProject') || '{}')
+    const item = projectList.value.find((p) => p.id === currentProjectCache.id)
     // 默认选择第一个项目
-    handleTapProject(projectList.value[0])
+    handleTapProject(item ? item : projectList.value[0])
   }
 }
 
