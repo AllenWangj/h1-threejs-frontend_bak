@@ -52,12 +52,12 @@ export const getProjectSitePlanDetail = (params) => useBaseFetch().get(`${baseUr
 /**
  * 更新工具2（规划布局）的数据
 */
-export const updatePlanLayoutFiles = (params) => useBaseFetch().post(`${baseUrl}plan-layout/v1/update-files`, params)
+export const updatePlanLayoutFiles = (params) => useBaseFetch().post(`${baseUrl}record/v1/file/add`, params)
 export const updatePlanLayoutParams = (params) => useBaseFetch().post(`${baseUrl}plan-layout/v1/update-params`, params)
 /**
  * 获取工具2（规划布局）的数据
 */
-export const getPlanLayout = (params) => useBaseFetch().get(`${baseUrl}plan-layout/v1/detail`, params)
+export const getPlanLayout = (params) => useBaseFetch().get(`${baseUrl}record/v1/file/list`, params)
 /**
  * 工具2（规划布局）方案生成
 */
@@ -153,4 +153,13 @@ export const updatePlan = (data) => useBaseFetch().post(`${baseUrl}/plan/v1/upda
 export const planList = (params) => useBaseFetch().get(`${baseUrl}plan/v1/list`, params)
 export const planDetailInfo = (params) => useBaseFetch().get(`${baseUrl}plan/v1/detail`, params)
 
-// /project/plan/v1/detail
+
+export const updateParams = (data) => useBaseFetch().post(`${baseUrl}structural-design/v1/update-params`, data)
+
+export const updateParamsDetail = (params) => useBaseFetch().get(`${baseUrl}structural-design/v1/detail`, params)
+
+// { 
+//     /** 荷载工况 字典 load_cases / loadCases: string /* 建筑布局 默认 0*/ 
+//     buildingLayout: string /** 构建类型 字典 build_type / buildType: string /* 材料参数 字典 material / material: string /* 目标权重 默认0 / targetWeight: string /* 自定义参数 */ 
+//     custom: string}
+

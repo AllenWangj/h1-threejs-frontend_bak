@@ -4,7 +4,86 @@
       <span class="text-[16px] text-[#333] ml-[8px]">结构设计</span>
     </div>
     <div class="flex-1 flex flex-col px-[14px] py-[14px]">
-      <el-form ref="ProjectFormRef" :model="projectForm" label-width="120px" class="w-full">
+        <p>
+        <el-checkbox @change="handleAllChangeEvt" v-model="all" label="全部" size="large" />
+      </p>
+      <div style="padding: 10px;">
+        <el-collapse>
+          <el-collapse-item name="1">
+            <template #title>
+              <div style="padding: 5px;">
+                <el-checkbox @click.stop v-model="functional" label="建筑功能" size="small" />
+              </div>
+            </template>
+            <div style="padding: 5px;">
+              <el-radio-group v-model="functionalRadio" class="radio-block">
+                <el-radio style="display: block;" :value="item.value" v-for="
+(item) in functionalList" :key="item.value">{{ item.label }}</el-radio>
+              </el-radio-group>
+            </div>
+          </el-collapse-item>
+
+          <el-collapse-item name="2">
+            <template #title>
+              <div style="padding: 5px;">
+                <el-checkbox @click.stop v-model="boundary" label="建筑边界" size="small" />
+              </div>
+            </template>
+            <div style="padding: 5px;">
+              <el-radio-group v-model="boundaryRadio" class="radio-block">
+                <el-radio style="display: block;" :value="item.value" v-for="
+(item) in boundaryList" :key="item.value">{{ item.label }}</el-radio>
+              </el-radio-group>
+            </div>
+          </el-collapse-item>
+
+          <el-collapse-item name="3">
+            <template #title>
+              <div style="padding: 5px;">
+                <el-checkbox @click.stop v-model="scale" label="建筑规模" size="small" />
+              </div>
+            </template>
+            <div style="padding: 5px;">
+              <el-radio-group v-model="scaleRadio" class="radio-block">
+                <el-radio style="display: block;" :value="item.value" v-for="
+(item) in scaleList" :key="item.value">{{ item.label }}</el-radio>
+              </el-radio-group>
+            </div>
+          </el-collapse-item>
+
+
+          <el-collapse-item name="4">
+            <template #title>
+              <div style="padding: 5px;">
+                <el-checkbox @click.stop v-model="layout" label="整体布局" size="small" />
+              </div>
+            </template>
+            <div style="padding: 5px;">
+              <el-radio-group v-model="layoutRadio" class="radio-block">
+                <el-radio style="display: block;" :value="item.value" v-for="
+(item) in layoutList" :key="item.value">{{ item.label }}</el-radio>
+              </el-radio-group>
+            </div>
+          </el-collapse-item>
+          <el-collapse-item name="5">
+            <template #title>
+              <div style="padding: 5px;">
+                <el-checkbox @click.stop v-model="moduleLibrary" label="标准化功能模块" size="small" />
+              </div>
+            </template>
+            <div style="padding: 5px;">
+              <el-radio-group v-model="moduleLibraryRadio" class="radio-block">
+                <el-radio style="display: block;" :value="item.value" v-for="
+(item) in moduleLibraryList" :key="item.value">{{ item.label }}</el-radio>
+              </el-radio-group>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
+      <p style="padding: 5px;">自定义参数</p>
+      <ez-select v-model="projectForm.custom" placeholder="请选择自定义参数" multiple filterable allow-create
+        default-first-option :clearable="true" style="width: 100%" :options="customOptions" />
+      <!-- <el-form ref="ProjectFormRef" :model="projectForm" label-width="120px" class="w-full">
         <el-form-item label="建筑功能">
           <ez-select
             v-model="projectForm.functional"
@@ -68,7 +147,7 @@
             :options="customOptions"
           />
         </el-form-item>
-      </el-form>
+      </el-form> -->
       <div class="flex items-center justify-center mt-[14px]">
         <el-button type="primary" :disabled="saveLoading" plain @click="handleReset">重置</el-button>
         <el-button type="primary" :loading="saveLoading" @click="handleSave">保存</el-button>
@@ -78,8 +157,8 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getInternalLayoutDetail, updateInternalLayoutParams, generateInternalLayoutPlan } from '@/apis/project'
-
+import { getInternalLayoutDetail, updateInternalLayoutParams, generateInternalLayoutPlan,updateParamsDetail,updateParams } from '@/apis/project'
+import {watch} from "vue"
 const route = useRoute()
 
 const projectId = ref('')
@@ -124,16 +203,74 @@ const handleReset = () => {
 const handleSave = async () => {
   try {
     saveLoading.value = true
-    const params = JSON.parse(JSON.stringify(projectForm.value))
-    params.functional = params.functional.join(',')
-    params.boundary = params.boundary.join(',')
-    params.scale = params.scale.join(',')
-    params.layout = params.layout.join(',')
-    params.moduleLibrary = params.moduleLibrary.join(',')
-    params.custom = params.custom.join(',')
-    await updateInternalLayoutParams({
-      projectId: projectId.value,
-      params
+    // const params = JSON.parse(JSON.stringify(projectForm.value))
+    // params.functional = params.functional.join(',')
+    // params.boundary = params.boundary.join(',')
+    // params.scale = params.scale.join(',')
+    // params.layout = params.layout.join(',')
+    // params.moduleLibrary = params.moduleLibrary.join(',')
+    // params.custom = params.custom.join(',')
+    // await updateInternalLayoutParams({
+    //   projectId: projectId.value,
+    //   params
+    // })
+     const params = []
+     if (functional.value) {
+      params.push({
+        "field": functionalField,
+        "type": "radio",
+        "value": functionalRadio.value,
+        "valueConfig": null
+      })
+    }
+
+      if (boundary.value) {
+      params.push({
+        "field": boundaryField,
+        "type": "radio",
+        "value": boundaryRadio.value,
+        "valueConfig": null
+      })
+    }
+
+    if (scale.value) {
+      params.push({
+        "field": scaleField,
+        "type": "radio",
+        "value": scaleRadio.value,
+        "valueConfig": null
+      })
+    }
+
+     if (layout.value) {
+      params.push({
+        "field": layoutField,
+        "type": "radio",
+        "value": scaleRadio.value,
+        "valueConfig": null
+      })
+    }
+
+     if (moduleLibrary.value) {
+      params.push({
+        "field": moduleLibraryField,
+        "type": "radio",
+        "value": moduleLibraryRadio.value,
+        "valueConfig": null
+      })
+    }
+
+ if (projectForm.value.custom.length > 0) {
+      params.push({
+        "field": customField,
+        "type": "radio",
+        "value": projectForm.value.custom.join(","),
+        "valueConfig": null
+      })
+    }
+    await updateParams({
+      params,
+      projectId: projectId.value
     })
     ElMessage.success('保存成功')
   } catch (error) {
@@ -189,12 +326,137 @@ async function fetchDetail() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (route.query.projectId) {
     projectId.value = route.query.projectId as string
     fetchDetail()
   }
-  getDictMap([BuildingFunctional, BuildingBoundary, BuildingScale, ModuleLibrary])
+await getDictMap([BuildingFunctional, BuildingBoundary, BuildingScale, ModuleLibrary])
+functionalList.value = dictMap.value.get(BuildingFunctional)
+boundaryList.value = dictMap.value.get(BuildingBoundary)
+scaleList.value = dictMap.value.get(BuildingScale)
+moduleLibraryList.value = dictMap.value.get(ModuleLibrary)
+  updateParamsDetail({
+    projectId: projectId.value
+  }).then(res=>{
+    const { data: {
+      params
+    } } = res
+     const functionalFieldRes = params.find(ele => ele.field === functionalField)
+    if (functionalFieldRes) {
+      functional.value = true
+      functionalRadio.value = functionalFieldRes.value
+    } else {
+      functional.value = false
+      functionalRadio.value = ""
+    }
+
+     const boundaryFieldRes = params.find(ele => ele.field === boundaryField)
+    if (boundaryFieldRes) {
+      boundary.value = true
+      boundaryRadio.value = functionalFieldRes.value
+    } else {
+      boundary.value = false
+      boundaryRadio.value = ""
+    }
+
+
+     const scaleFielddRes = params.find(ele => ele.field === scaleField)
+    if (scaleFielddRes) {
+      scale.value = true
+      scaleRadio.value = functionalFieldRes.value
+    } else {
+      scale.value = false
+      scaleRadio.value = ""
+    }
+
+      const layoutFieldRes = params.find(ele => ele.field === layoutField)
+    if (layoutFieldRes) {
+      layout.value = true
+      layoutRadio.value = functionalFieldRes.value
+    } else {
+      layout.value = false
+      layoutRadio.value = ""
+    }
+
+       const moduleLibraryFieldRes = params.find(ele => ele.field === moduleLibraryField)
+    if (moduleLibraryFieldRes) {
+      moduleLibrary.value = true
+      moduleLibraryRadio.value = functionalFieldRes.value
+    } else {
+      moduleLibrary.value = false
+      moduleLibraryRadio.value = ""
+    }
+
+     const customFieldRes = params.find(ele => ele.field === customField)
+    if (customFieldRes) {
+      const value = customFieldRes.value.split(",")
+      projectForm.value.custom = value
+    } 
+  })
 })
+
+
+const all = ref(true)
+const functionalField = "functional"
+const boundaryField = "boundary"
+const scaleField = "scale"
+const layoutField = "layout"
+const moduleLibraryField = "moduleLibrary"
+const customField = "custom"
+
+
+const functional = ref(true)
+const functionalRadio = ref("")
+const functionalList = ref<any[]>([])
+
+
+const boundary = ref(true)
+const boundaryRadio = ref("")
+const boundaryList = ref<any[]>([])
+
+const scale = ref(true)
+const scaleRadio = ref("")
+const scaleList = ref<any[]>([])
+
+const layout = ref(true)
+const layoutRadio = ref("")
+const layoutList = ref<any[]>([{
+  label: '默认',
+  value: '0'
+}])
+
+const moduleLibrary = ref(true)
+const moduleLibraryRadio = ref("")
+const moduleLibraryList = ref<any[]>([])
+
+watch(() => [
+  functional.value,
+  boundary.value,
+  scale.value,
+  layout.value,
+  moduleLibrary.value,
+], (newValue) => {
+  const result = newValue.every(ele => ele)
+  all.value = result
+})
+function handleAllChangeEvt() {
+  functional.value=true
+  boundary.value=true
+  scale.value=true
+  layout.value=true
+  moduleLibrary.value=true
+}
 </script>
 <style lang="less" scoped></style>
+<style>
+.radio-block {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  font-size: 0 !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: start !important;
+  flex-direction: column;
+}
+</style>
