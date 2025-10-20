@@ -65,7 +65,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getPlanLayout, updatePlanLayoutFiles } from '@/apis/project'
+import { getPlanLayout, updatePlanLayoutFiles,remove} from '@/apis/project'
 import { genFileId } from 'element-plus'
 
 const route = useRoute()
@@ -87,10 +87,9 @@ const handleRemoveFile = async (file) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    const fileIdList = fileList.value.filter((item) => item.id !== file.id).map((item) => item.id)
-    await updatePlanLayoutFiles({
+    await remove({
       id: projectId.value,
-      fileId: fileIdList
+      fileId: file.id
     })
     ElMessage.success('删除成功')
     fetchDetail()
@@ -149,8 +148,6 @@ function createdUploadFile() {
   const submitFile = async (file: any) => {
     try {
       uploadLoading.value = true
-
-      debugger
       const { data } = await putFile(file.raw)
       console.log('上传成功', data)
       const fileIdList = fileList.value.map((item) => item.id)

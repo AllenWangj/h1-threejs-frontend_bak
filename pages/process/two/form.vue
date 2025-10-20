@@ -164,7 +164,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getPlanLayout, updatePlanLayoutParams, generatePlanLayoutPlan, updateParams, updateParamsDetail } from '@/apis/project'
+import { getPlanLayout, updatePlanLayoutParams, generatePlanLayoutPlan, planLayoutDetail, planLayoutDetailInfo } from '@/apis/project'
 import { watch } from "vue"
 const route = useRoute()
 // { /** 荷载工况 字典 load_cases / loadCases: string /* 建筑布局 默认 0*/ buildingLayout: string /** 构建类型 字典 build_type / buildType: string /* 材料参数 字典 material / material: string /* 目标权重 默认0 / targetWeight: string /* 自定义参数 */ custom: string}
@@ -279,7 +279,7 @@ const handleSave = async () => {
         "valueConfig": null
       })
     }
-    await updateParams({
+    await planLayoutDetail({
       params,
       projectId: projectId.value
     })
@@ -344,7 +344,7 @@ onMounted(async () => {
   regionList.value = dictMap.value.get(ClimateRegion)
   functionalDivisionList.value = dictMap.value.get(FunctionalDivision)
   functionalBuildingList.value = dictMap.value.get(BuildingFunctional)
-  updateParamsDetail({
+  planLayoutDetailInfo({
     projectId: projectId.value
   }).then(res => {
     const { data: {

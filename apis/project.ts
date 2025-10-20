@@ -98,6 +98,9 @@ export const generateStructuralDesignPlan = (params) => useBaseFetch().post(`${b
 */
 export const updatePartsProductionFile = (params) => useBaseFetch().post(`${baseUrl}parts-production/v1/update-files`, params)
 export const updatePartsProductionParams = (params) => useBaseFetch().post(`${baseUrl}parts-production/v1/update-params`, params)
+export const updatePartsProductionParamsDetail = (params) => useBaseFetch().get(`${baseUrl}parts-production/v1/detail`, params)
+
+// /project
 /**
  * 获取工具5（部件生产）的详情
 */
@@ -114,6 +117,8 @@ export const generatePartsProductionPlan = (params) => useBaseFetch().post(`${ba
 */
 export const updatePackingFiles = (params) => useBaseFetch().post(`${baseUrl}packing/v1/update-files`, params)
 export const updatePackingParams = (params) => useBaseFetch().post(`${baseUrl}packing/v1/update-params`, params)
+export const packingParamsDetail = (params) => useBaseFetch().get(`${baseUrl}/packing/v1/detail`, params)
+
 /**
  * 获取工具6（运输保障）的详情
 */
@@ -158,6 +163,47 @@ export const updateParams = (data) => useBaseFetch().post(`${baseUrl}structural-
 
 export const updateParamsDetail = (params) => useBaseFetch().get(`${baseUrl}structural-design/v1/detail`, params)
 
+export const remove = (params) => useBaseFetch().post(`${baseUrl}record/v1/file/remove`, params)
+
+
+
+
+// 部件生产
+
+export const partsProduction = (data) => useBaseFetch().post(`${baseUrl}parts-production/v1/update-params`, data)
+export const siteDetail = (data) => useBaseFetch().get(`${baseUrl}site/v1/detail`, data)
+
+
+
+export const planLayoutDetail = (data) => useBaseFetch().post(`${baseUrl}plan-layout/v1/update-params`, data)
+export const planLayoutDetailInfo = (params) => useBaseFetch().get(`${baseUrl}plan-layout/v1/detail`, params)
+export const internalLayout = (data) => useBaseFetch().post(`${baseUrl}internal-layout/v1/update-params`, data)
+export const internalLayoutDetail = (params) => useBaseFetch().get(`${baseUrl}internal-layout/v1/detail`, params)
+
+
+export const partsProductionDetail = (params) => useBaseFetch().get(`${baseUrl}parts-production/v1/detail`, params)
+
+
+export const packingDetail = (params) => useBaseFetch().get(`${baseUrl}packing/v1/detail`, params)
+
+
+
+export const assembleUpdateParams = (data) => useBaseFetch().post(`${baseUrl}assemble/v1/update-params`, data)
+
+export const assembleDetail = (params) => useBaseFetch().get(`${baseUrl}assemble/v1/detail`, params)
+
+// /project/packing/v1/detail
+
+// /project/
+
+
+
+
+// /project/site/v1/detail
+
+// /project/parts-production/v1/update-params
+
+// /project/
 // { 
 //     /** 荷载工况 字典 load_cases / loadCases: string /* 建筑布局 默认 0*/ 
 //     buildingLayout: string /** 构建类型 字典 build_type / buildType: string /* 材料参数 字典 material / material: string /* 目标权重 默认0 / targetWeight: string /* 自定义参数 */ 

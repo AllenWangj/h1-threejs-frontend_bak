@@ -137,7 +137,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getAssembleDetail, updateAssembleParams, generateAssemblePlan,updateParams,updateParamsDetail } from '@/apis/project'
+import { getAssembleDetail, updateAssembleParams, generateAssemblePlan,assembleUpdateParams,assembleDetail } from '@/apis/project'
 import { watch } from "vue"
 
 const route = useRoute()
@@ -257,7 +257,7 @@ const handleSave = async () => {
         "valueConfig": null
       })
     }
-   await updateParams({
+   await assembleUpdateParams({
       params,
       projectId: projectId.value
     })
@@ -325,7 +325,7 @@ async function fetchDetail() {
 onMounted(async () => {
   if (route.query.projectId) {
     projectId.value = route.query.projectId as string
-    fetchDetail()
+    // fetchDetail()
   }
   await getDictMap([AssembleScale, Time, Workers, Machinery])
   overallSizeList.value = dictMap.value.get(AssembleScale)
@@ -353,7 +353,7 @@ machineryList.value = dictMap.value.get(Machinery)
       number:""
     }
    })
-    updateParamsDetail({
+    assembleDetail({
     projectId: projectId.value
   }).then(res => {
     const { data: {
@@ -452,6 +452,11 @@ machineryList.value = dictMap.value.get(Machinery)
     } else {
       overallSize.value = false
       overallSizeRadio.value = ""
+    }
+      const customFieldRes = params.find(ele => ele.field === customField)
+    if (customFieldRes) {
+      const value = customFieldRes.value.split(",")
+      projectForm.value.custom = value
     }
   
   })

@@ -157,7 +157,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getInternalLayoutDetail, updateInternalLayoutParams, generateInternalLayoutPlan,updateParamsDetail,updateParams } from '@/apis/project'
+import { getInternalLayoutDetail, updateInternalLayoutParams, generateInternalLayoutPlan,internalLayoutDetail,internalLayout } from '@/apis/project'
 import {watch} from "vue"
 const route = useRoute()
 
@@ -246,7 +246,7 @@ const handleSave = async () => {
       params.push({
         "field": layoutField,
         "type": "radio",
-        "value": scaleRadio.value,
+        "value": layoutRadio.value,
         "valueConfig": null
       })
     }
@@ -268,7 +268,7 @@ const handleSave = async () => {
         "valueConfig": null
       })
     }
-    await updateParams({
+    await internalLayout({
       params,
       projectId: projectId.value
     })
@@ -336,7 +336,7 @@ functionalList.value = dictMap.value.get(BuildingFunctional)
 boundaryList.value = dictMap.value.get(BuildingBoundary)
 scaleList.value = dictMap.value.get(BuildingScale)
 moduleLibraryList.value = dictMap.value.get(ModuleLibrary)
-  updateParamsDetail({
+  internalLayoutDetail({
     projectId: projectId.value
   }).then(res=>{
     const { data: {
@@ -354,7 +354,7 @@ moduleLibraryList.value = dictMap.value.get(ModuleLibrary)
      const boundaryFieldRes = params.find(ele => ele.field === boundaryField)
     if (boundaryFieldRes) {
       boundary.value = true
-      boundaryRadio.value = functionalFieldRes.value
+      boundaryRadio.value = boundaryFieldRes.value
     } else {
       boundary.value = false
       boundaryRadio.value = ""
@@ -364,16 +364,16 @@ moduleLibraryList.value = dictMap.value.get(ModuleLibrary)
      const scaleFielddRes = params.find(ele => ele.field === scaleField)
     if (scaleFielddRes) {
       scale.value = true
-      scaleRadio.value = functionalFieldRes.value
+      scaleRadio.value = scaleFielddRes.value
     } else {
       scale.value = false
       scaleRadio.value = ""
     }
 
-      const layoutFieldRes = params.find(ele => ele.field === layoutField)
+      const layoutFieldRes = params.find(ele => ele.field === layoutField)      
     if (layoutFieldRes) {
       layout.value = true
-      layoutRadio.value = functionalFieldRes.value
+      layoutRadio.value = layoutFieldRes.value
     } else {
       layout.value = false
       layoutRadio.value = ""
@@ -382,7 +382,7 @@ moduleLibraryList.value = dictMap.value.get(ModuleLibrary)
        const moduleLibraryFieldRes = params.find(ele => ele.field === moduleLibraryField)
     if (moduleLibraryFieldRes) {
       moduleLibrary.value = true
-      moduleLibraryRadio.value = functionalFieldRes.value
+      moduleLibraryRadio.value = moduleLibraryFieldRes.value
     } else {
       moduleLibrary.value = false
       moduleLibraryRadio.value = ""
