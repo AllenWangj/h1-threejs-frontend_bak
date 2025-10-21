@@ -350,6 +350,9 @@ onMounted(async () => {
     const { data: {
       params
     } } = res
+      if(!params || params.length ==0){
+      return 
+    }
     const climateRegionRes = params.find(ele => ele.field === climateRegionField)
     if (climateRegionRes) {
       climateRegion.value = true

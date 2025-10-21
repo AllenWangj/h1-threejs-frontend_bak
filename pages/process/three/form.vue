@@ -342,6 +342,9 @@ moduleLibraryList.value = dictMap.value.get(ModuleLibrary)
     const { data: {
       params
     } } = res
+      if(!params || params.length ==0){
+      return 
+    }
      const functionalFieldRes = params.find(ele => ele.field === functionalField)
     if (functionalFieldRes) {
       functional.value = true

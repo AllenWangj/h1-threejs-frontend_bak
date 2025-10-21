@@ -278,6 +278,9 @@ onMounted(async () => {
      const { data: {
       params
     } } = res
+      if(!params || params.length ==0){
+      return 
+    }
      const loadCasesFieldRes = params.find(ele => ele.field === loadCasesField)
    if (loadCasesFieldRes) {
       loadCases.value = true

@@ -359,6 +359,10 @@ machineryList.value = dictMap.value.get(Machinery)
     const { data: {
       params
     } } = res
+
+    if(!params || params.length ==0){
+      return 
+    }
    const overallSizeFieldRes = params.find(ele => ele.field === overallSizeField)
    if (overallSizeFieldRes) {
       overallSize.value = true
