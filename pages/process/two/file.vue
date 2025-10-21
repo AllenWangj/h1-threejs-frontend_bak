@@ -65,7 +65,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getPlanLayout, updatePlanLayoutFiles } from '@/apis/project'
+import { getPlanLayout, updatePlanLayoutFiles,remove} from '@/apis/project'
 import { genFileId } from 'element-plus'
 
 const route = useRoute()
@@ -87,10 +87,9 @@ const handleRemoveFile = async (file) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    const fileIdList = fileList.value.filter((item) => item.id !== file.id).map((item) => item.id)
-    await updatePlanLayoutFiles({
-      projectId: projectId.value,
-      fileIds: fileIdList
+    await remove({
+      id: projectId.value,
+      fileId: file.id
     })
     ElMessage.success('删除成功')
     fetchDetail()
@@ -104,9 +103,9 @@ async function fetchDetail() {
   try {
     pageLoading.value = true
     const { data } = await getPlanLayout({
-      projectId: projectId.value
+      id: projectId.value
     })
-    fileList.value = data.files || []
+    fileList.value = data || []
     console.log('获取规划布局详情', data)
   } catch (error) {
     console.error('获取规划布局详情失败', error)
@@ -154,8 +153,8 @@ function createdUploadFile() {
       const fileIdList = fileList.value.map((item) => item.id)
       fileIdList.push(data.id)
       await updatePlanLayoutFiles({
-        projectId: projectId.value,
-        fileIds: fileIdList
+        id: projectId.value,
+        fileId: data.id
       })
       // 更新列表
       fetchDetail()

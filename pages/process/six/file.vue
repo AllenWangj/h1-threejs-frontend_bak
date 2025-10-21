@@ -65,7 +65,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { getPackingDetail, updatePackingFiles } from '@/apis/project'
+import { getPlanLayout, updatePlanLayoutFiles,remove } from '@/apis/project'
 import { genFileId } from 'element-plus'
 
 const route = useRoute()
@@ -88,9 +88,9 @@ const handleRemoveFile = async (file) => {
       type: 'warning'
     })
     const fileIdList = fileList.value.filter((item) => item.id !== file.id).map((item) => item.id)
-    await updatePackingFiles({
-      projectId: projectId.value,
-      fileIds: fileIdList
+    await remove({
+      id: projectId.value,
+      fileId: file.id
     })
     ElMessage.success('删除成功')
     fetchDetail()
@@ -103,10 +103,10 @@ const handleRemoveFile = async (file) => {
 async function fetchDetail() {
   try {
     pageLoading.value = true
-    const { data } = await getPackingDetail({
-      projectId: projectId.value
+    const { data } = await getPlanLayout({
+      id: projectId.value
     })
-    fileList.value = data.files || []
+    fileList.value = data || []
     console.log('获取运输保障详情', data)
   } catch (error) {
     console.error('获取运输保障详情失败', error)
@@ -153,9 +153,9 @@ function createdUploadFile() {
       console.log('上传成功', data)
       const fileIdList = fileList.value.map((item) => item.id)
       fileIdList.push(data.id)
-      await updatePackingFiles({
-        projectId: projectId.value,
-        fileIds: fileIdList
+      await updatePlanLayoutFiles({
+        id: projectId.value,
+        fileId: data.id
       })
       // 更新列表
       fetchDetail()
@@ -174,6 +174,8 @@ function createdUploadFile() {
     handleExceed
   }
 }
+
+
 </script>
 <style lang="less" scoped>
 ::v-deep(.el-upload) {
