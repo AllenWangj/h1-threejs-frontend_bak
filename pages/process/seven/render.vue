@@ -45,20 +45,24 @@ const projectId = ref('')
 const schemeList = ref<any[]>([])
 // 当前激活得方案id
 const currentAcviteScheme = ref('')
-
 const tapScheme = (item) => {
   console.log('点击了现场组装方案', item)
+  currentAcviteScheme.value = item.id
+  loadModel()
 }
 
 // 获取详情
 async function fetchDetail() {
   try {
     const { data } = await getAssembleDetail({
-      projectId: projectId.value
+      projectId: projectId.value,
+      type:7
     })
-    schemeList.value = data.plans || []
+    schemeList.value = data || []
     if (schemeList.value.length) {
       currentAcviteScheme.value = schemeList.value[0].id
+  loadModel()
+
     }
     console.log('获取现场组装详情', data)
   } catch (error) {
@@ -78,7 +82,6 @@ onMounted(() => {
   fetchDetail();
 
   initThree()
-  loadModel()
   animate()
 
   // 窗口变化刷新
@@ -166,7 +169,7 @@ function fixMaterial(child) {
     child.renderOrder = 999 // 优先渲染线条，避免Z-fighting
   }
 }
-
+let lastMesh :any =null
 // 加载模型并创建自定义动画
 function loadModel() {
   btnLoading.value = true
@@ -174,6 +177,14 @@ function loadModel() {
   loader.load(
     '/models/tool7/scene.gltf', // 替换成你自己的路径
     (gltf) => {
+       if(lastMesh) {
+           lastMesh.traverse((object) => {
+               object.geometry?.dispose()
+               object.material?.dispose()
+           })
+        lastMesh.parent.remove(lastMesh)
+
+      }
       const root = gltf.scene
       console.log('模型根节点:', root)
       btnLoading.value = false

@@ -13,8 +13,9 @@ import SchemesList from '@/components/schemes-list/index.vue'
 // import Threeobject from "@/threejs/three/index"
 import { getInternalLayoutDetail,planDetailInfo,planList ,createPlan} from '@/apis/project'
 import {useRender} from "./composables/use-render"
-import {plan} from "./composables/plan1.ts"
+// import {plan} from "./composables/plan1.ts"
 // import {plan} from "./composables/plan2"
+// import {plan} from "./composables/a"
 
 const three = ref()
 const { ProcessThree } = useRender()
@@ -58,7 +59,7 @@ async function fetchDetail() {
     //   layouts:JSON.stringify(plan)
     // })
 
-
+    
     // console.log('获取内部布局详情', data)
      planDetailInfo({ id: currentAcviteScheme.value }).then(async (res) => {
         const { data: { layouts } } = res

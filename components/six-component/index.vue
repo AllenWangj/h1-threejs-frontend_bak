@@ -131,7 +131,6 @@ const schemeList = ref<any[]>([])
 // 当前激活得方案id
 // const currentAcviteScheme = ref('')
 watch(() => props.planId, (newValue) => {
-  console.log("newValue", newValue)
   planDetail({ planId: newValue }).then(res => {
     const { data: { layouts } } = res
     handleLoadInitModel(layouts)

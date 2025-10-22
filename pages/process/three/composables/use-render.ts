@@ -1,6 +1,7 @@
 import { type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import * as THREE from 'three';
 import {a} from "./a"
+import { plan } from "./plan1"
 const { BaseThree } = useThree()
 const { getModelUrl, getModelMap } = useModelMap()
 enum EGroupType {
@@ -17,10 +18,9 @@ class ProcessThree extends BaseThree {
     private topGroup: THREE.Group[] = []
     private gltfCodes: string[] = []
 
-
-     // 射线投射
-      private raycaster: THREE.Raycaster
-      private mouse: THREE.Vector2
+    // 射线投射
+    private raycaster: THREE.Raycaster
+    private mouse: THREE.Vector2
     public promiseFactories: (() => Promise<{
         wrapper: THREE.Group,
         object: GLTF,
@@ -36,32 +36,33 @@ class ProcessThree extends BaseThree {
 
         })
         this.scene.add(this.wrapper)
-           this.initRaycaster()
-    this.addEventListeners()
-        // this.handleOriginModel(a)
+        this.initRaycaster()
+        this.addEventListeners()
+        // this.handleOriginModel(plan)
     }
-      private initRaycaster(): void {
+    
+    private initRaycaster(): void {
         this.raycaster = new THREE.Raycaster()
         this.raycaster.far = 10000
         this.raycaster.ray.direction.normalize()
         this.mouse = new THREE.Vector2()
-      }
-       private addEventListeners(): void {
-    const element = this.renderer.domElement
-
-    element.addEventListener('mousedown', (event:MouseEvent) =>{
-        const ndc = this.convertToNDC(event.clientX, event.clientY)
-    this.mouse.set(ndc.x, ndc.y)
-
-    this.raycaster.setFromCamera(this.mouse, this.camera)
-    const intersects = this.raycaster.intersectObjects(this.wrapper.children, true)
-
-    if (intersects.length > 0) {
-        console.log("intersects",intersects)
     }
-    })
+    private addEventListeners(): void {
+        const element = this.renderer.domElement
 
-  }
+        element.addEventListener('mousedown', (event: MouseEvent) => {
+            const ndc = this.convertToNDC(event.clientX, event.clientY)
+            this.mouse.set(ndc.x, ndc.y)
+
+            this.raycaster.setFromCamera(this.mouse, this.camera)
+            const intersects = this.raycaster.intersectObjects(this.wrapper.children, true)
+
+            if (intersects.length > 0) {
+                console.log("intersects", intersects)
+            }
+        })
+
+    }
 
     private setGroupOpacity(group, opacity) {
         // 遍历组内所有子对象
@@ -86,63 +87,62 @@ class ProcessThree extends BaseThree {
         });
     }
     public async handleOriginModel(data: any) {
-        
         this.handleClearnJunk(this.wrapper)
-            const base = new THREE.Group()
-            if( data.scale){
-                 base.scale.set(
+        const base = new THREE.Group()
+        if (data.scale) {
+            base.scale.set(
                 data.scale.x,
                 data.scale.y,
                 data.scale.z,
             )
+        }
+        this.wrapper.add(base)
+
+        this.gltfCodes = []
+        this.handleLoadUrl(data, base)
+        await getModelMap(this.gltfCodes)
+        const results = await this.runWithConcurrency(this.promiseFactories, 200)
+        results.forEach(ele => {
+            const { object, wrapper, position, roation, scale, name } = ele
+            object.scene.position.set(
+                position.x,
+                position.y,
+                position.z,
+            )
+            object.scene.rotation.set(
+                roation.x,
+                roation.y,
+                roation.z,
+            )
+            object.scene.scale.set(
+                scale.x,
+                scale.y,
+                scale.z,
+            )
+            wrapper.add(object.scene)
+            if (this.handleGroupType(name) == EGroupType.OUT_GROUP) {
+                this.outLineGroup.push(object.scene)
+            } else if (this.handleGroupType(name) == EGroupType.INNER_WALL) {
+                this.innerGroup.push(object.scene)
+            } else if (this.handleGroupType(name) === EGroupType.TOP_GRoup) {
+                this.topGroup.push(object.scene)
             }
-            this.wrapper.add(base)
-           
-            this.gltfCodes = []
-            this.handleLoadUrl(data, base)
-            await getModelMap(this.gltfCodes)
-            const results = await this.runWithConcurrency(this.promiseFactories, 500)
-            results.forEach(ele => {
-                const { object, wrapper, position, roation, scale, name } = ele
-                object.scene.position.set(
-                    position.x,
-                    position.y,
-                    position.z,
-                )
-                object.scene.rotation.set(
-                    roation.x,
-                    roation.y,
-                    roation.z,
-                )
-                object.scene.scale.set(
-                    scale.x,
-                    scale.y,
-                    scale.z,
-                )
-                wrapper.add(object.scene)
-                if (this.handleGroupType(name) == EGroupType.OUT_GROUP) {
-                    this.outLineGroup.push(object.scene)
-                } else if (this.handleGroupType(name) == EGroupType.INNER_WALL) {
-                    this.innerGroup.push(object.scene)
-                } else if (this.handleGroupType(name) === EGroupType.TOP_GRoup) {
-                    this.topGroup.push(object.scene)
-                }
-            })
-            const size = this.calculateGroupDimensions(this.wrapper)
-            const number = 600
-            this.camera!.position.set(size.center.x, size.center.y , size.center.z- number)
-            this.controls.target.set(size.center.x, size.center.y, size.center.z)
-            this.outLineGroup.forEach(ele => {
-                ele.visible = false
-            })
-            this.topGroup.forEach(ele => {
-                this.setGroupOpacity(ele, 0.3)
-            })
-            this.innerGroup.forEach(ele => this.setGroupOpacity(ele, 0.8))
+        })
+        const size = this.calculateGroupDimensions(this.wrapper)
+        const number = 600
+        this.camera!.position.set(size.center.x, size.center.y, size.center.z - number)
+        this.controls.target.set(size.center.x, size.center.y, size.center.z)
+        this.outLineGroup.forEach(ele => {
+            ele.visible = false
+        })
+        this.topGroup.forEach(ele => {
+            this.setGroupOpacity(ele, 0.3)
+        })
+        this.innerGroup.forEach(ele => this.setGroupOpacity(ele, 0.8))
     }
     private handleLoadUrl(object: any, parent: any) {
         if (object.code) {
-            let code = object.code 
+            let code = object.code
             this.gltfCodes.push(code)
             this.promiseFactories.push(() => {
                 const modelUrl = getModelUrl(code)
@@ -160,57 +160,57 @@ class ProcessThree extends BaseThree {
                 })
             })
         }
-        else if (object.name.indexOf("<组件#") != -1) {
-            let name = ""
-            if (object.children && object.children.length > 0) {
-                const children = object.children[0]
-                name = children.name
-            }
-            if (name && name.indexOf("<组件#") != -1) {
-                const group = new THREE.Group()
-                group.name = object.name
-                group.position.set(
-                    object.position.x,
-                    object.position.y,
-                    object.position.z,
-                )
-                group.rotation.set(
-                    object.roation.x,
-                    object.roation.y,
-                    object.roation.z,
-                )
-                group.scale.set(
-                    object.scale.x,
-                    object.scale.y,
-                    object.scale.z,
-                )
-                parent.add(group)
-                object.children.forEach(ele => {
-                    this.handleLoadUrl(ele, group)
-                })
-            } else {
-                // 说明需要加载组件
-                const result = object.name.replace(/<组件#(\d+)>.*/, "model$1");
-                // const name = (result as string).split("model")
-                // object.code = "102"+name[name.length -1]
-                // this.promiseFactories.push(() =>this.loadGLTFResource(`/gltf/5/libary/${result}.gltf`))
-                this.promiseFactories.push(() => {
-                    return new Promise((reslove) => {
-                        const modelUrl = getModelUrl(object.code)
-                        this.loadGLTFResource(modelUrl).then(res => {
-                            reslove({
-                                wrapper: parent,
-                                object: res,
-                                position: object.position,
-                                roation: object.roation,
-                                scale: object.scale,
-                                name: object.name
-                            })
-                        })
-                    })
-                })
-            }
-        }
+        // else if (object.name.indexOf("<组件#") != -1) {
+        //     let name = ""
+        //     if (object.children && object.children.length > 0) {
+        //         const children = object.children[0]
+        //         name = children.name
+        //     }
+        //     if (name && name.indexOf("<组件#") != -1) {
+        //         const group = new THREE.Group()
+        //         group.name = object.name
+        //         group.position.set(
+        //             object.position.x,
+        //             object.position.y,
+        //             object.position.z,
+        //         )
+        //         group.rotation.set(
+        //             object.roation.x,
+        //             object.roation.y,
+        //             object.roation.z,
+        //         )
+        //         group.scale.set(
+        //             object.scale.x,
+        //             object.scale.y,
+        //             object.scale.z,
+        //         )
+        //         parent.add(group)
+        //         object.children.forEach(ele => {
+        //             this.handleLoadUrl(ele, group)
+        //         })
+        //     } else {
+        //         // 说明需要加载组件
+        //         const result = object.name.replace(/<组件#(\d+)>.*/, "model$1");
+        //         // const name = (result as string).split("model")
+        //         // object.code = "102"+name[name.length -1]
+        //         // this.promiseFactories.push(() =>this.loadGLTFResource(`/gltf/5/libary/${result}.gltf`))
+        //         this.promiseFactories.push(() => {
+        //             return new Promise((reslove) => {
+        //                 const modelUrl = getModelUrl(object.code)
+        //                 this.loadGLTFResource(modelUrl).then(res => {
+        //                     reslove({
+        //                         wrapper: parent,
+        //                         object: res,
+        //                         position: object.position,
+        //                         roation: object.roation,
+        //                         scale: object.scale,
+        //                         name: object.name
+        //                     })
+        //                 })
+        //             })
+        //         })
+        //     }
+        // }
         else if (object.children && object.children.length > 0) {
             const group = new THREE.Group()
             group.name = object.name

@@ -43,9 +43,10 @@ onMounted(() => {
 async function fetchDetail() {
   try {
     const { data } = await getPackingDetail({
-      projectId: projectId.value
+      projectId: projectId.value,
+      type:6
     })
-    schemeList.value = data.plans || []
+    schemeList.value = data || []
     if (schemeList.value.length) {
       currentAcviteScheme.value = schemeList.value[0].id
       // planDetail({ planId: currentAcviteScheme.value }).then(res => {
