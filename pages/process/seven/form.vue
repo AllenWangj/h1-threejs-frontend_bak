@@ -59,7 +59,7 @@
                   <div class="text-[#666] text-[14px] min-w-[120px] text-right mr-[15px]">
                     {{ getArrayLabel(options.field, item.options) }}
                   </div>
-                  <el-input v-model="options.value" class="w-[200px]"></el-input>
+                  <el-input v-model="options.value" oninput="value=value.replace(/[^\d]/g,'')" class="w-[200px]"></el-input>
                 </div>
               </div>
             </div>
