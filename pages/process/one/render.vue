@@ -167,6 +167,28 @@ const pointsData = [
   }
 ]
 
+// 示例区域数据 (EPSG:4326 坐标系统)
+const areasData = [
+  {
+    id: 1,
+    name: '选址1',
+    lon: 106.3,
+    lat: 26.5,
+    radius: 0.5, // 单位: 世界坐标
+    description: '主要观测温度、湿度、降雨量',
+    elevation: 0
+  },
+  {
+    id: 2,
+    name: '选址2',
+    lon: 106.7,
+    lat: 26.3,
+    radius: 0.4,
+    description: '监测河流水位和流量',
+    elevation: 0
+  },
+]
+
 // 加载小范围 DEM
 async function loadDEM(url) {
   const resp = await fetch(url)
@@ -286,6 +308,61 @@ function createPointMarker(pointData, worldPos) {
   // 保存点位数据
   group.userData = pointData
 
+  return group
+}
+
+// 创建区域标记 - 半透明圆盘+名称
+function createAreaMarker(areaData, worldPos) {
+  const group = new THREE.Group()
+
+  // 区域底部圆盘
+  const circleGeometry = new THREE.CircleGeometry(areaData.radius, 48)
+  const circleMaterial = new THREE.MeshBasicMaterial({
+    color: 0x4caf50,
+    transparent: true,
+    opacity: 0.25,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  })
+  const circle = new THREE.Mesh(circleGeometry, circleMaterial)
+  circle.rotation.x = -Math.PI / 2
+  group.add(circle)
+
+  // 区域边界线
+  const edgeGeometry = new THREE.RingGeometry(areaData.radius * 0.98, areaData.radius, 64)
+  const edgeMaterial = new THREE.MeshBasicMaterial({
+    color: 0x388e3c,
+    transparent: true,
+    opacity: 0.7,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  })
+  const edge = new THREE.Mesh(edgeGeometry, edgeMaterial)
+  edge.rotation.x = -Math.PI / 2
+  group.add(edge)
+
+  // 区域名称文字 (使用 CanvasTexture)
+  const canvas = document.createElement('canvas')
+  canvas.width = 256
+  canvas.height = 64
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = 'rgba(255,255,255,0.8)'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.font = 'bold 32px Arial'
+  ctx.fillStyle = '#388e3c'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(areaData.name, canvas.width / 2, canvas.height / 2)
+  const textTexture = new THREE.CanvasTexture(canvas)
+  const spriteMaterial = new THREE.SpriteMaterial({ map: textTexture, transparent: true })
+  const sprite = new THREE.Sprite(spriteMaterial)
+  sprite.scale.set(0.8, 0.2, 1)
+  sprite.position.set(0, 0.15, 0)
+  group.add(sprite)
+
+  // 设置整体位置
+  group.position.set(worldPos.x, worldPos.y, worldPos.z)
+  group.userData = areaData
   return group
 }
 
@@ -579,15 +656,15 @@ async function init() {
     scene.add(terrainMesh)
 
     loadingProgress.value = 90
-    loadingText.value = '添加点位标记...'
+    loadingText.value = '添加区域标记...'
     // 初始化射线投射器用于点击检测
     raycaster = new THREE.Raycaster()
     mouse = new THREE.Vector2()
-    // 添加点位标记
-    pointsData.forEach((point: any) => {
+    // 添加区域标记
+    areasData.forEach((area) => {
       const worldPos = geoToWorld(
-        point.lon,
-        point.lat,
+        area.lon,
+        area.lat,
         DEM_BOUNDS,
         TERRAIN_SIZE,
         raster, // DEM 栅格数据
@@ -596,29 +673,19 @@ async function init() {
         min,
         max
       )
-
-      // 计算该点的实际海拔高度(米)
-      const x = (point.lon - DEM_BOUNDS.lonMin) / (DEM_BOUNDS.lonMax - DEM_BOUNDS.lonMin)
-      const y = (point.lat - DEM_BOUNDS.latMin) / (DEM_BOUNDS.latMax - DEM_BOUNDS.latMin)
+      // 计算该区域中心的实际海拔高度(米)
+      const x = (area.lon - DEM_BOUNDS.lonMin) / (DEM_BOUNDS.lonMax - DEM_BOUNDS.lonMin)
+      const y = (area.lat - DEM_BOUNDS.latMin) / (DEM_BOUNDS.latMax - DEM_BOUNDS.latMin)
       const rasterX = Math.floor(x * (finalWidth - 1))
       const rasterY = Math.floor(y * (finalHeight - 1))
       const rasterIndex = rasterY * finalWidth + rasterX
-      const elevation = Math.round(raster[rasterIndex] || min) // 实际海拔(米)
-
-      // 将海拔数据保存到点位信息中
-      point.elevation = elevation
-
-      const marker = createPointMarker(point, worldPos)
+      const elevation = Math.round(raster[rasterIndex] || min)
+      area.elevation = elevation
+      const marker = createAreaMarker(area, worldPos)
       scene.add(marker)
       pointMarkers.push(marker)
-
-      console.log(`添加点位: ${point.name} at (${point.lon}, ${point.lat}), DEM海拔: ${elevation}m, 世界坐标: (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`)
+      console.log(`添加区域: ${area.name} at (${area.lon}, ${area.lat}), DEM海拔: ${elevation}m, 世界坐标: (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`)
     })
-    // 添加鼠标点击事件监听
-    renderer.domElement.addEventListener('click', onMouseClick)
-
-    // 添加方位指示器 (指南针)
-    createCompass()
 
     loadingProgress.value = 100
     loadingText.value = '加载完成!'
