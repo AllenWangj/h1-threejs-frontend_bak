@@ -4,13 +4,13 @@
     <div ref="fullscreenContainer" v-loading="loading" :element-loading-text="loadingText"
       class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div ref="threeContainer" class="three-container" />
-      <div v-if="!loading" class="toolbar-container">
+      <div v-if="!loading && currentAcviteScheme" class="toolbar-container">
         <el-button v-for="item in materialDataList" :key="item.value"
           :type="hideModel.includes(item.value) ? 'info' : 'primary'" @click="playStepAnimation(item.value)">
           {{ item.name }}
         </el-button>
       </div>
-      <div v-if="!loading" class="toolbar-content">
+      <div v-if="!loading &&   currentAcviteScheme" class="toolbar-content">
         <BuildInfo v-for="item in materialDataList" :key="item.value" :name="item.name" :list="item.infoList">
         </BuildInfo>
       </div>
@@ -27,7 +27,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { modeService } from './composables/mode-service'
 import { materialInfoService } from './composables/material-info-service'
-import { getPartsProductionDetail } from '@/apis/project'
+import { getPartsProductionDetail ,} from '@/apis/project'
 
 
 // 全屏相关
@@ -41,6 +41,8 @@ const schemeList = ref<any[]>([])
 const currentAcviteScheme = ref('')
 
 const tapScheme = (item) => {
+   currentAcviteScheme.value  = item.id
+   loadModel()
   console.log('点击了部件生产方案', item)
 }
 
@@ -48,11 +50,13 @@ const tapScheme = (item) => {
 async function fetchDetail() {
   try {
     const { data } = await getPartsProductionDetail({
-      projectId: projectId.value
+      projectId: projectId.value,
+      type:5
     })
-    schemeList.value = data.plans || []
+    schemeList.value = data || []
     if (schemeList.value.length) {
       currentAcviteScheme.value = schemeList.value[0].id
+      loadModel()
     }
     console.log('获取部件生产详情', data)
   } catch (error) {
@@ -80,7 +84,7 @@ onMounted(() => {
   fetchDetail();
 
   initThree()
-  loadModel()
+  // loadModel()
   animate()
 
   // 窗口变化刷新
@@ -89,7 +93,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(animationId)
+  if(renderer) {
   renderer.dispose()
+
+  }
   window.removeEventListener('resize', onResize)
 })
 
@@ -147,14 +154,23 @@ function initThree() {
 }
 
 // 加载模型并创建自定义动画
+let lastMesh :any= null
 function loadModel() {
   loading.value = true
   const loader = new GLTFLoader()
   loader.load(
     '/models/tool5/scene.gltf', // 替换成你自己的路径
     async (gltf) => {
+      if(lastMesh) {
+           lastMesh.traverse((object) => {
+               object.geometry?.dispose()
+               object.material?.dispose()
+           })
+        lastMesh.parent.remove(lastMesh)
+
+      }
       const root = gltf.scene
-      console.log('模型根节点:', root)
+      lastMesh = root
       scene.add(root)
 
       // === 关键：把整体移到中心 ===
@@ -272,7 +288,7 @@ function onResize() {
 
 </script>
 
-<style scoped>
+<style scoped lang="less">
 .three-container {
   width: 100%;
   height: 100%;

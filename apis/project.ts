@@ -44,6 +44,9 @@ export const getProjectSiteDetail = (params) => useBaseFetch().get(`${baseUrl}si
  * 工具1（选址决策）生产方案
 */
 export const generateProjectSitePlan = (params) => useBaseFetch().post(`${baseUrl}site/v1/plan/generate`, params)
+// 获取工具1方案列表
+export const getProjectSitePlanList = (params) => useBaseFetch().get(`${baseUrl}site/v1/plan/list`, params)
+
 /**
  * 获取工具1（选址决策）中的规划布局数据方案详情
 */
@@ -104,7 +107,7 @@ export const updatePartsProductionParamsDetail = (params) => useBaseFetch().get(
 /**
  * 获取工具5（部件生产）的详情
 */
-export const getPartsProductionDetail = (params) => useBaseFetch().get(`${baseUrl}parts-production/v1/detail`, params)
+export const getPartsProductionDetail = (params) => useBaseFetch().get(`${baseUrl}/plan/v1/list`, params)
 /**
  * 工具5（部件生产）方案生成
 */
@@ -122,7 +125,7 @@ export const packingParamsDetail = (params) => useBaseFetch().get(`${baseUrl}/pa
 /**
  * 获取工具6（运输保障）的详情
 */
-export const getPackingDetail = (params) => useBaseFetch().get(`${baseUrl}packing/v1/detail`, params)
+export const getPackingDetail = (params) => useBaseFetch().get(`${baseUrl}plan/v1/list`, params)
 /**
  * 工具6（运输保障）方案生成
 */
@@ -138,7 +141,7 @@ export const updateAssembleParams = (params) => useBaseFetch().post(`${baseUrl}a
 /**
  * 获取工具7（现场组装）的详情
 */
-export const getAssembleDetail = (params) => useBaseFetch().get(`${baseUrl}assemble/v1/detail`, params)
+export const getAssembleDetail = (params) => useBaseFetch().get(`${baseUrl}plan/v1/list`, params)
 /**
  * 工具7（现场组装）方案生成
 */
@@ -146,7 +149,7 @@ export const generateAssemblePlan = (params) => useBaseFetch().post(`${baseUrl}p
 
 
 
-export const planDetail = (params) => useBaseFetch().get(`${baseUrl}record/v1/plan/detail`, params)
+export const planDetail = (params) => useBaseFetch().get(`${baseUrl}plan/v1/detail`, params)
 export const removePlan = (data) => useBaseFetch().post(`${baseUrl}/plan/v1/remove`, data)
 export const createPlan = (data) => useBaseFetch().post(`${baseUrl}/plan/v1/create`, data)
 export const updatePlan = (data) => useBaseFetch().post(`${baseUrl}/plan/v1/update`, data)

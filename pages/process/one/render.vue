@@ -54,7 +54,7 @@ declare global {
 import * as THREE from 'three'
 import { fromArrayBuffer } from 'geotiff'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { getProjectSiteDetail, getProjectSitePlanDetail } from '@/apis/project'
+import { getProjectSitePlanList, getProjectSitePlanDetail } from '@/apis/project'
 
 const route = useRoute()
 const projectId = ref('')
@@ -77,11 +77,11 @@ const tapScheme = (item) => {
 // 获取详情
 async function fetchDetail() {
   try {
-    const { data } = await getProjectSiteDetail({
+    const { data } = await getProjectSitePlanList({
       projectId: projectId.value
     })
     console.log('获取部件生产详情', data)
-    schemeList.value = data.plans || []
+    schemeList.value = data || []
     if (schemeList.value.length) {
       currentAcviteScheme.value = schemeList.value[0].id
 
@@ -165,6 +165,28 @@ const pointsData = [
     lat: 26.7,
     description: '地质灾害监测点'
   }
+]
+
+// 示例区域数据 (EPSG:4326 坐标系统)
+const areasData = [
+  {
+    id: 1,
+    name: '选址1',
+    lon: 106.3,
+    lat: 26.5,
+    radius: 0.5, // 单位: 世界坐标
+    description: '主要观测温度、湿度、降雨量',
+    elevation: 0
+  },
+  {
+    id: 2,
+    name: '选址2',
+    lon: 106.7,
+    lat: 26.3,
+    radius: 0.4,
+    description: '监测河流水位和流量',
+    elevation: 0
+  },
 ]
 
 // 加载小范围 DEM
@@ -286,6 +308,61 @@ function createPointMarker(pointData, worldPos) {
   // 保存点位数据
   group.userData = pointData
 
+  return group
+}
+
+// 创建区域标记 - 半透明圆盘+名称
+function createAreaMarker(areaData, worldPos) {
+  const group = new THREE.Group()
+
+  // 区域底部圆盘
+  const circleGeometry = new THREE.CircleGeometry(areaData.radius, 48)
+  const circleMaterial = new THREE.MeshBasicMaterial({
+    color: 0x4caf50,
+    transparent: true,
+    opacity: 0.25,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  })
+  const circle = new THREE.Mesh(circleGeometry, circleMaterial)
+  circle.rotation.x = -Math.PI / 2
+  group.add(circle)
+
+  // 区域边界线
+  const edgeGeometry = new THREE.RingGeometry(areaData.radius * 0.98, areaData.radius, 64)
+  const edgeMaterial = new THREE.MeshBasicMaterial({
+    color: 0x388e3c,
+    transparent: true,
+    opacity: 0.7,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  })
+  const edge = new THREE.Mesh(edgeGeometry, edgeMaterial)
+  edge.rotation.x = -Math.PI / 2
+  group.add(edge)
+
+  // 区域名称文字 (使用 CanvasTexture)
+  const canvas = document.createElement('canvas')
+  canvas.width = 256
+  canvas.height = 64
+  const ctx = canvas.getContext('2d')
+  ctx.fillStyle = 'rgba(255,255,255,0.8)'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.font = 'bold 32px Arial'
+  ctx.fillStyle = '#388e3c'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(areaData.name, canvas.width / 2, canvas.height / 2)
+  const textTexture = new THREE.CanvasTexture(canvas)
+  const spriteMaterial = new THREE.SpriteMaterial({ map: textTexture, transparent: true })
+  const sprite = new THREE.Sprite(spriteMaterial)
+  sprite.scale.set(0.8, 0.2, 1)
+  sprite.position.set(0, 0.15, 0)
+  group.add(sprite)
+
+  // 设置整体位置
+  group.position.set(worldPos.x, worldPos.y, worldPos.z)
+  group.userData = areaData
   return group
 }
 
@@ -482,25 +559,22 @@ async function init() {
     loadingText.value = '加载 DEM 高程数据...'
 
     // 加载 DEM 小片
-    const dem = await loadDEM(gis.value.url ||
+    const dem = await loadDEM(
       'https://support.maxtan.cn/geoserver/h1/wcs?' +
-      'service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:dem_103651411094409222' +
-      '&format=image/tiff&subset=Long(106,107)&subset=Lat(26,27)&resx=0.001&resy=0.001'
+      'service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:dem_107252456638910473' +
+      '&format=image/tiff&subset=Long(106.2,106.3)&subset=Lat(26.1,26.2)&resx=0.001&resy=0.001'
     )  // 降采样（减少降采样步长获得更高分辨率）
-    const step = 8 // 大幅增加降采样,减少顶点数量避免 CPU 过载 (原来是 4)
-    const width = Math.floor(dem.width / step)
-    const height = Math.floor(dem.height / step)
 
     // 限制最大网格尺寸,防止 CPU 过载
-    const maxGridSize = 150 // 降低到 150x150 网格
-    if (width > maxGridSize || height > maxGridSize) {
-      console.warn(`网格过大 (${width}x${height}),强制限制`)
-      alert(`为优化性能,自动调整网格尺寸`)
-    }
-
-    const raster = new Float32Array(Math.min(width, maxGridSize) * Math.min(height, maxGridSize))
-    const finalWidth = Math.min(width, maxGridSize)
-    const finalHeight = Math.min(height, maxGridSize)
+    const maxVertices = 150 * 150;
+    const totalVertices = dem.width * dem.height;
+    const step = Math.ceil(Math.sqrt(totalVertices / maxVertices));
+    const width = Math.floor(dem.width / step)
+    const height = Math.floor(dem.height / step)
+    console.log(`DEM 原始尺寸: ${dem.width} x ${dem.height}, 降采样步长: ${step}, 最终尺寸: ${width} x ${height}`);
+    const raster = new Float32Array(Math.min(width, totalVertices) * Math.min(height, totalVertices))
+    const finalWidth = Math.min(width, totalVertices)
+    const finalHeight = Math.min(height, totalVertices)
 
     for (let y = 0; y < finalHeight; y++) {
       for (let x = 0; x < finalWidth; x++) {
@@ -565,7 +639,7 @@ async function init() {
       })
     }
     // 加载离线卫星纹理
-    satelliteTexture = await loadOfflineSatelliteTexture(gis.value.satelliteUrl || 'https://static.maxtan.cn/h1-static/uploads/20251014/486dbfda30c535f25d8404c0.jpg')
+    satelliteTexture = await loadOfflineSatelliteTexture('https://static.maxtan.cn/h1-static/uploads/20251023/90f6842eff314ee4f3c52fc4.jpg')
 
     loadingProgress.value = 80
     loadingText.value = '创建地形模型...'
@@ -582,15 +656,15 @@ async function init() {
     scene.add(terrainMesh)
 
     loadingProgress.value = 90
-    loadingText.value = '添加点位标记...'
+    loadingText.value = '添加区域标记...'
     // 初始化射线投射器用于点击检测
     raycaster = new THREE.Raycaster()
     mouse = new THREE.Vector2()
-    // 添加点位标记
-    pointsData.forEach((point: any) => {
+    // 添加区域标记
+    areasData.forEach((area) => {
       const worldPos = geoToWorld(
-        point.lon,
-        point.lat,
+        area.lon,
+        area.lat,
         DEM_BOUNDS,
         TERRAIN_SIZE,
         raster, // DEM 栅格数据
@@ -599,29 +673,19 @@ async function init() {
         min,
         max
       )
-
-      // 计算该点的实际海拔高度(米)
-      const x = (point.lon - DEM_BOUNDS.lonMin) / (DEM_BOUNDS.lonMax - DEM_BOUNDS.lonMin)
-      const y = (point.lat - DEM_BOUNDS.latMin) / (DEM_BOUNDS.latMax - DEM_BOUNDS.latMin)
+      // 计算该区域中心的实际海拔高度(米)
+      const x = (area.lon - DEM_BOUNDS.lonMin) / (DEM_BOUNDS.lonMax - DEM_BOUNDS.lonMin)
+      const y = (area.lat - DEM_BOUNDS.latMin) / (DEM_BOUNDS.latMax - DEM_BOUNDS.latMin)
       const rasterX = Math.floor(x * (finalWidth - 1))
       const rasterY = Math.floor(y * (finalHeight - 1))
       const rasterIndex = rasterY * finalWidth + rasterX
-      const elevation = Math.round(raster[rasterIndex] || min) // 实际海拔(米)
-
-      // 将海拔数据保存到点位信息中
-      point.elevation = elevation
-
-      const marker = createPointMarker(point, worldPos)
+      const elevation = Math.round(raster[rasterIndex] || min)
+      area.elevation = elevation
+      const marker = createAreaMarker(area, worldPos)
       scene.add(marker)
       pointMarkers.push(marker)
-
-      console.log(`添加点位: ${point.name} at (${point.lon}, ${point.lat}), DEM海拔: ${elevation}m, 世界坐标: (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`)
+      console.log(`添加区域: ${area.name} at (${area.lon}, ${area.lat}), DEM海拔: ${elevation}m, 世界坐标: (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`)
     })
-    // 添加鼠标点击事件监听
-    renderer.domElement.addEventListener('click', onMouseClick)
-
-    // 添加方位指示器 (指南针)
-    createCompass()
 
     loadingProgress.value = 100
     loadingText.value = '加载完成!'

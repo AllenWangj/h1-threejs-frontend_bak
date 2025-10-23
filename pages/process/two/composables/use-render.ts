@@ -67,7 +67,6 @@ class RenderPlanLayout extends BaseThree {
       enableShadow: true,
       enableDamping: true
     })
-    console.log("Set75",Set75)
     // 绑定事件处理函数
     this.handleMouseDownBound = this.handleMouseDown.bind(this)
     this.handleMouseMoveBound = this.handleMouseMove.bind(this)
@@ -158,6 +157,7 @@ class RenderPlanLayout extends BaseThree {
    * 加载场景模型
    */
   public async loadSceneModels(data: any): Promise<void> {
+    console.log("data",data)
     this.handleClearnJunk(this.wrapper)
     // debugger
     this.loadDefaultScene()

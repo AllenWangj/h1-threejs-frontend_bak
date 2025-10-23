@@ -484,33 +484,47 @@ class BaseThree {
    * @returns Promise<T[]> 所有结果的数组
    */
   protected async runWithConcurrency<T>(tasks: (() => Promise<T>)[], concurrency: number = 3): Promise<T[]> {
-    const results: T[] = []
-    const executing: Promise<void>[] = []
+  const results: T[] = [];
+  const executing: Promise<void>[] = [];
+  let index = 0; // 追踪当前要执行的任务索引
 
-    for (const [index, task] of tasks.entries()) {
-      const promise = task()
-        .then((result) => {
-          results[index] = result
-        })
-        .catch((error) => {
-          console.error(`Task ${index} failed:`, error)
-          throw error
-        })
-
-      executing.push(promise)
-
-      if (executing.length >= concurrency) {
-        await Promise.race(executing)
-        executing.splice(
-          executing.findIndex((p) => p === promise),
-          1
-        )
-      }
+  // 执行单个任务的函数
+  const executeNext = async (): Promise<void> => {
+    if (index >= tasks.length) return; // 所有任务都已添加，退出
+    const currentIndex = index++; // 记录当前任务索引（避免并发时index混乱）
+    const task = tasks[currentIndex];
+    
+    // 声明当前任务的Promise变量（关键修正）
+    let executePromise: Promise<void>;
+    
+    try {
+      const result = await task();
+      results[currentIndex] = result; // 按原顺序保存结果
+    } catch (error) {
+      console.error(`Task ${currentIndex} failed:`, error);
+      results[currentIndex] = error as T; // 或根据需求抛出错误
+      // throw error; // 若需要单个任务失败终止整体，取消注释
+    } finally {
+      // 任务完成后，从执行队列中移除自己，并尝试执行下一个任务
+      const i = executing.indexOf(executePromise);
+      if (i !== -1) executing.splice(i, 1);
+      await executeNext(); // 补一个新任务
     }
+    
+    // 将当前函数的Promise实例赋值给executePromise（关键修正）
+    executePromise = Promise.resolve();
+  };
 
-    await Promise.all(executing)
-    return results
+  // 启动初始的concurrency个任务
+  const initialRuns = Math.min(concurrency, tasks.length);
+  for (let i = 0; i < initialRuns; i++) {
+    const promise = executeNext();
+    executing.push(promise);
   }
+
+  // 等待所有任务执行完成
+  return Promise.all(executing).then(() => results);
+}
 }
 /**
  * 模型尺寸信息
