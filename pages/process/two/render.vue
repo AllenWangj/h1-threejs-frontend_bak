@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-shrink-0 w-[100%] h-[100%] relative">
     <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme">
-      <template #opt="{ record }">
+      <template #opt="{ record }" v-if="record">
         <img
           class="ml-[15px] w-[20px] h-[20px] cursor-pointer"
           src="../../../assets/images/icon-plot-delete.svg"

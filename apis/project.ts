@@ -149,7 +149,7 @@ export const generateAssemblePlan = (params) => useBaseFetch().post(`${baseUrl}p
 
 
 
-export const planDetail = (params) => useBaseFetch().get(`${baseUrl}record/v1/plan/detail`, params)
+export const planDetail = (params) => useBaseFetch().get(`${baseUrl}plan/v1/detail`, params)
 export const removePlan = (data) => useBaseFetch().post(`${baseUrl}/plan/v1/remove`, data)
 export const createPlan = (data) => useBaseFetch().post(`${baseUrl}/plan/v1/create`, data)
 export const updatePlan = (data) => useBaseFetch().post(`${baseUrl}/plan/v1/update`, data)

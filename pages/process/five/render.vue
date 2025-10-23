@@ -93,7 +93,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(animationId)
+  if(renderer) {
   renderer.dispose()
+
+  }
   window.removeEventListener('resize', onResize)
 })
 
