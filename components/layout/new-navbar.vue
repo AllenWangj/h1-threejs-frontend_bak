@@ -23,6 +23,7 @@
         </div>
         <template #dropdown>
           <el-dropdown-menu>
+            <el-dropdown-item command="management">管理系统</el-dropdown-item>
             <el-dropdown-item command="logout">退出登录</el-dropdown-item>
           </el-dropdown-menu>
         </template>
@@ -59,6 +60,9 @@ const selectMenu = (value: string) => {
   switch (value) {
     case 'logout':
       logOut()
+      break
+    case 'management':
+      router.push('/model/list')
       break
     default:
       break
