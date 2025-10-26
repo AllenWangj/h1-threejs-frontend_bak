@@ -5,6 +5,7 @@
   "scripts": {
     "prepare": "nuxt prepare",
     "dev": "cross-env MODE=DEV nuxt dev",
+    "test": "cross-env MODE=TEST nuxt dev",
     "build:test": "cross-env MODE=TEST nuxt generate",
     "build": "cross-env MODE=PROD nuxt generate"
   },

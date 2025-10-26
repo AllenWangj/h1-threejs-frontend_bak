@@ -1,65 +1,37 @@
 <template>
   <div class="flex flex-shrink-0 w-[100%] h-[100%] relative">
     <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list>
-    <div class="flex-1 relative border border-[1px] border-[#adcdf7]">
-      <div ref="container" class="w-[100%] h-[100%]"></div>
-    </div>
-
-    <!-- 加载提示 -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-content">
-        <div class="loading-spinner"></div>
-        <h3>{{ loadingText }}</h3>
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: loadingProgress + '%' }"></div>
-        </div>
-        <p class="progress-text">{{ loadingProgress }}%</p>
-      </div>
-    </div>
-    <!-- 说明文字 -->
-    <div class="info-panel">
-      <p>📍 坐标系统: EPSG:4326</p>
-      <p>📊 DEM 数据: 106-107°E, 26-27°N</p>
-      <p>🛰️ 卫星图: public/satellite.jpg</p>
-      <p style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd;">
-        <span style="color: #ff0000; font-weight: bold;">↑ N</span> 北方
-      </p>
-    </div>
-
-    <!-- 点位数据弹窗 -->
-    <div v-if="selectedPoint" class="point-info-panel">
-      <div class="point-header">
-        <h3>{{ selectedPoint.name }}</h3>
-        <button @click="closePointInfo" class="close-btn">✕</button>
-      </div>
-      <div class="point-content">
-        <p><strong>经度:</strong> {{ selectedPoint.lon }}°E</p>
-        <p><strong>纬度:</strong> {{ selectedPoint.lat }}°N</p>
-        <p><strong>海拔:</strong> {{ selectedPoint.elevation }}m</p>
-        <p><strong>类型:</strong> {{ selectedPoint.type }}</p>
-        <p><strong>描述:</strong> {{ selectedPoint.description }}</p>
-      </div>
+    <div class="flex-1 relative border border-[1px] border-[#adcdf7]">      <!-- 使用组件切换显示 -->
+      <elevation-map 
+        v-if="terrainMode === 'elevation'" 
+        :dem-url="demUrl" 
+        :satellite-url="satelliteUrl"
+        :analyzed-areas="analyzedAreas"
+      />
+      <contour-map 
+        v-else-if="terrainMode === 'contour'" 
+        :dem-url="demUrl"
+        :analyzed-areas="analyzedAreas"
+      />
+      
+      <!-- 新增切换按钮 -->
+      <el-button @click="toggleTerrainMode" class="terrain-toggle-btn" type="primary">
+        {{ terrainMode === 'elevation' ? '等高线地图' : '高程地图' }}
+      </el-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-
-declare global {
-  interface Window {
-    compassGroup?: THREE.Group;
-  }
-}
-import * as THREE from 'three'
-import { fromArrayBuffer } from 'geotiff'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { ref, onMounted, computed } from 'vue'
 import { getProjectSitePlanList, getProjectSitePlanDetail } from '@/apis/project'
+import { fromArrayBuffer } from 'geotiff'
+import ElevationMap from './elevation-map.vue'
+import ContourMap from './contour-map.vue'
 
 const route = useRoute()
 const projectId = ref('')
 const schemeList = ref<any[]>([])
-// 当前激活得方案id
 const currentAcviteScheme = ref('')
 
 const gis = ref({
@@ -68,129 +40,42 @@ const gis = ref({
   satelliteUrl: ''
 })
 
+const terrainMode = ref('elevation')
+
+// 分析结果数据
+const analyzedAreas = ref<any[]>([])
+const isAnalyzing = ref(false)
+const defaultDemUrl = 'https://support.maxtan.cn/geoserver/h1/wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:dem_107252456638910473&format=image/tiff&subset=Long(106.2,106.3)&subset=Lat(26.1,26.2)&resx=0.001&resy=0.001'
+const defaultSatelliteUrl = 'https://static.maxtan.cn/h1-static/uploads/20251023/90f6842eff314ee4f3c52fc4.jpg'
+const demUrl = computed(() => {
+  return gis.value?.url || defaultDemUrl
+})
+
+const satelliteUrl = computed(() => {
+  return gis.value?.satelliteUrl || defaultSatelliteUrl
+})
+
+const DEM_BOUNDS = {
+  lonMin: 106.2,
+  lonMax: 106.3,
+  latMin: 26.1,
+  latMax: 26.2
+}
+
+const TERRAIN_SIZE = 8
+
 const tapScheme = (item) => {
   console.log('点击了方案', item)
   currentAcviteScheme.value = item.id
   fetchPlanDetail(currentAcviteScheme.value)
 }
 
-// 获取详情
-async function fetchDetail() {
-  try {
-    const { data } = await getProjectSitePlanList({
-      projectId: projectId.value
-    })
-    console.log('获取部件生产详情', data)
-    schemeList.value = data || []
-    if (schemeList.value.length) {
-      currentAcviteScheme.value = schemeList.value[0].id
-
-      fetchPlanDetail(currentAcviteScheme.value)
-    }
-  } catch (error) {
-    console.error('获取部件生产详情失败', error)
-  } finally {
-  }
+function toggleTerrainMode() {
+  terrainMode.value = terrainMode.value === 'elevation' ? 'contour' : 'elevation'
 }
 
-async function fetchPlanDetail(planId) {
-  try {
-    const { data: plan } = await getProjectSitePlanDetail({
-      planId
-    })
-    gis.value = plan.gis || {}
-
-    // 使用 nextTick 确保 DOM 已完全渲染
-    nextTick(() => {
-      // 延迟初始化,避免与其他 WebGL 上下文冲突
-      setTimeout(() => {
-        console.log('开始初始化 Three.js 场景...')
-        init()
-      }, 100)
-    })
-
-    console.log('获取方案详情', plan)
-  } catch (error) {
-    console.error('获取方案详情失败', error)
-  }
-}
-
-
-
-
-const container = ref(null)
-let scene, camera, renderer, controls, animationId
-let terrainMesh = null
-let satelliteTexture = null
-let raycaster, mouse
-let pointMarkers = []
-const selectedPoint = ref(null)
-
-// 加载状态
-const loading = ref(false)
-const loadingText = ref('初始化场景...')
-const loadingProgress = ref(0)
-
-// 地形配置参数
-const TERRAIN_SIZE = 8 // 地形尺寸 (世界坐标单位)
-const DEM_BOUNDS = {
-  lonMin: 106,
-  lonMax: 107,
-  latMin: 26,
-  latMax: 27
-}
-
-// 示例点位数据 (EPSG:4326 坐标系统)
-const pointsData = [
-  {
-    id: 1,
-    name: '观测站A',
-    lon: 106.3,
-    lat: 26.5,
-    type: '气象站',
-    description: '主要观测温度、湿度、降雨量'
-  },
-  {
-    id: 2,
-    name: '观测站B',
-    lon: 106.7,
-    lat: 26.3,
-    type: '水文站',
-    description: '监测河流水位和流量'
-  },
-  {
-    id: 3,
-    name: '观测站C',
-    lon: 106.5,
-    lat: 26.7,
-    description: '地质灾害监测点'
-  }
-]
-
-// 示例区域数据 (EPSG:4326 坐标系统)
-const areasData = [
-  {
-    id: 1,
-    name: '选址1',
-    lon: 106.3,
-    lat: 26.5,
-    radius: 0.5, // 单位: 世界坐标
-    description: '主要观测温度、湿度、降雨量',
-    elevation: 0
-  },
-  {
-    id: 2,
-    name: '选址2',
-    lon: 106.7,
-    lat: 26.3,
-    radius: 0.4,
-    description: '监测河流水位和流量',
-    elevation: 0
-  },
-]
-
-// 加载小范围 DEM
-async function loadDEM(url) {
+// 加载DEM数据
+async function loadDEM(url: string) {
   const resp = await fetch(url)
   const buffer = await resp.arrayBuffer()
   const tiff = await fromArrayBuffer(buffer)
@@ -200,9 +85,8 @@ async function loadDEM(url) {
 }
 
 // 获取最小/最大值
-function getMinMax(array) {
-  let min = Infinity,
-    max = -Infinity
+function getMinMax(array: any) {
+  let min = Infinity, max = -Infinity
   for (let i = 0; i < array.length; i++) {
     const v = array[i]
     if (v < min) min = v
@@ -211,524 +95,254 @@ function getMinMax(array) {
   return { min, max }
 }
 
-// 处理窗口大小变化
-function onWindowResize() {
-  if (camera && renderer && container.value) {
-    camera.aspect = container.value.clientWidth / container.value.clientHeight
-    camera.updateProjectionMatrix()
-    renderer.setSize(container.value.clientWidth, container.value.clientHeight)
+// 地理坐标转世界坐标
+function geoToWorld(lon: number, lat: number, raster: Float32Array, width: number, height: number, min: number, max: number) {
+  const x = (lon - DEM_BOUNDS.lonMin) / (DEM_BOUNDS.lonMax - DEM_BOUNDS.lonMin)
+  const y = (lat - DEM_BOUNDS.latMin) / (DEM_BOUNDS.latMax - DEM_BOUNDS.latMin)
+
+  const worldX = (x - 0.5) * TERRAIN_SIZE
+  const worldZ = (y - 0.5) * TERRAIN_SIZE
+
+  const rasterX = Math.floor(x * (width - 1))
+  const rasterY = Math.floor(y * (height - 1))
+  const rasterIndex = rasterY * width + rasterX
+  const elevation = raster[rasterIndex] || min
+  const normalizedHeight = (elevation - min) / (max - min)
+  const worldY = normalizedHeight * 1.0
+
+  return { x: worldX, y: worldY, z: worldZ, elevation }
+}
+
+// 计算地形坡度
+function calculateSlope(raster: Float32Array, width: number, height: number, x: number, y: number): number {
+  if (x <= 0 || x >= width - 1 || y <= 0 || y >= height - 1) {
+    return Infinity
   }
+
+  const index = y * width + x
+  const current = raster[index]
+  
+  const diffs = [
+    Math.abs(current - raster[(y - 1) * width + (x - 1)]),
+    Math.abs(current - raster[(y - 1) * width + x]),
+    Math.abs(current - raster[(y - 1) * width + (x + 1)]),
+    Math.abs(current - raster[y * width + (x - 1)]),
+    Math.abs(current - raster[y * width + (x + 1)]),
+    Math.abs(current - raster[(y + 1) * width + (x - 1)]),
+    Math.abs(current - raster[(y + 1) * width + x]),
+    Math.abs(current - raster[(y + 1) * width + (x + 1)])
+  ]
+  
+  return diffs.reduce((a, b) => a + b, 0) / diffs.length
 }
 
-// 关闭点位信息面板
-function closePointInfo() {
-  selectedPoint.value = null
-}
-
-// 将地理坐标转换为 3D 空间坐标
-function geoToWorld(lon, lat, demBounds, terrainSize, rasterData, rasterWidth, rasterHeight, minElevation, maxElevation) {
-  // 归一化到 0-1 范围
-  const x = (lon - demBounds.lonMin) / (demBounds.lonMax - demBounds.lonMin)
-  const y = (lat - demBounds.latMin) / (demBounds.latMax - demBounds.latMin)
-
-  // 从 DEM 栅格数据中查询该位置的高程
-  const rasterX = Math.floor(x * (rasterWidth - 1))
-  const rasterY = Math.floor(y * (rasterHeight - 1))
-  const rasterIndex = rasterY * rasterWidth + rasterX
-  const elevation = rasterData[rasterIndex] || minElevation
-
-  // 归一化高程
-  const normalizedHeight = (elevation - minElevation) / (maxElevation - minElevation)
-  const heightValue = normalizedHeight * 1.0 // 与地形的 scale 一致
-
-  // 转换到世界坐标 (考虑地形旋转)
-  return {
-    x: (x - 0.5) * terrainSize,
-    y: heightValue + 0.15, // DEM 高程 + 0.15 偏移,让标记浮在地形上
-    z: -(y - 0.5) * terrainSize // 负号因为地形旋转了
-  }
-}
-
-// 创建点位标记 - 改为地图标记样式
-function createPointMarker(pointData, worldPos) {
-  const group = new THREE.Group()
-
-  // 创建标记底座 (圆锥形,尖端朝下)
-  const coneGeometry = new THREE.ConeGeometry(0.08, 0.25, 8)
-  const coneMaterial = new THREE.MeshStandardMaterial({
-    color: 0xff4444,
-    emissive: 0xff0000,
-    emissiveIntensity: 0.3,
-    metalness: 0.3,
-    roughness: 0.7
-  })
-  const cone = new THREE.Mesh(coneGeometry, coneMaterial)
-  cone.rotation.x = Math.PI // 翻转使尖端朝下
-  cone.position.y = 0.125 // 调整位置
-  group.add(cone)
-
-  // 创建顶部圆球 (标记点)
-  const sphereGeometry = new THREE.SphereGeometry(0.1, 16, 16)
-  const sphereMaterial = new THREE.MeshStandardMaterial({
-    color: 0xff5555,
-    emissive: 0xff3333,
-    emissiveIntensity: 0.5,
-    metalness: 0.1,
-    roughness: 0.4
-  })
-  const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
-  sphere.position.y = 0.25
-  group.add(sphere)
-
-  // 添加内部白色圆点
-  const dotGeometry = new THREE.SphereGeometry(0.04, 12, 12)
-  const dotMaterial = new THREE.MeshBasicMaterial({
-    color: 0xffffff
-  })
-  const dot = new THREE.Mesh(dotGeometry, dotMaterial)
-  dot.position.y = 0.25
-  group.add(dot)
-
-  // 添加光晕效果 (可选)
-  const glowGeometry = new THREE.RingGeometry(0.08, 0.12, 16)
-  const glowMaterial = new THREE.MeshBasicMaterial({
-    color: 0xff4444,
-    transparent: true,
-    opacity: 0.3,
-    side: THREE.DoubleSide
-  })
-  const glow = new THREE.Mesh(glowGeometry, glowMaterial)
-  glow.rotation.x = -Math.PI / 2
-  glow.position.y = 0.01
-  group.add(glow)
-
-  // 设置整体位置
-  group.position.set(worldPos.x, worldPos.y, worldPos.z)
-
-  // 保存点位数据
-  group.userData = pointData
-
-  return group
-}
-
-// 创建区域标记 - 半透明圆盘+名称
-function createAreaMarker(areaData, worldPos) {
-  const group = new THREE.Group()
-
-  // 区域底部圆盘
-  const circleGeometry = new THREE.CircleGeometry(areaData.radius, 48)
-  const circleMaterial = new THREE.MeshBasicMaterial({
-    color: 0x4caf50,
-    transparent: true,
-    opacity: 0.25,
-    side: THREE.DoubleSide,
-    depthWrite: false
-  })
-  const circle = new THREE.Mesh(circleGeometry, circleMaterial)
-  circle.rotation.x = -Math.PI / 2
-  group.add(circle)
-
-  // 区域边界线
-  const edgeGeometry = new THREE.RingGeometry(areaData.radius * 0.98, areaData.radius, 64)
-  const edgeMaterial = new THREE.MeshBasicMaterial({
-    color: 0x388e3c,
-    transparent: true,
-    opacity: 0.7,
-    side: THREE.DoubleSide,
-    depthWrite: false
-  })
-  const edge = new THREE.Mesh(edgeGeometry, edgeMaterial)
-  edge.rotation.x = -Math.PI / 2
-  group.add(edge)
-
-  // 区域名称文字 (使用 CanvasTexture)
-  const canvas = document.createElement('canvas')
-  canvas.width = 256
-  canvas.height = 64
-  const ctx = canvas.getContext('2d')
-  ctx.fillStyle = 'rgba(255,255,255,0.8)'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.font = 'bold 32px Arial'
-  ctx.fillStyle = '#388e3c'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(areaData.name, canvas.width / 2, canvas.height / 2)
-  const textTexture = new THREE.CanvasTexture(canvas)
-  const spriteMaterial = new THREE.SpriteMaterial({ map: textTexture, transparent: true })
-  const sprite = new THREE.Sprite(spriteMaterial)
-  sprite.scale.set(0.8, 0.2, 1)
-  sprite.position.set(0, 0.15, 0)
-  group.add(sprite)
-
-  // 设置整体位置
-  group.position.set(worldPos.x, worldPos.y, worldPos.z)
-  group.userData = areaData
-  return group
-}
-
-// 创建方位指示器 (指南针)
-function createCompass() {
-  const compassGroup = new THREE.Group()
-
-  // 创建圆盘底座
-  const circleGeometry = new THREE.CircleGeometry(0.15, 32)
-  const circleMaterial = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0.8,
-    side: THREE.DoubleSide
-  })
-  const circle = new THREE.Mesh(circleGeometry, circleMaterial)
-  circle.rotation.x = -Math.PI / 2
-  compassGroup.add(circle)
-
-  // 创建北向箭头 (红色)
-  const arrowNorthGeometry = new THREE.ConeGeometry(0.05, 0.15, 8)
-  const arrowNorthMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 })
-  const arrowNorth = new THREE.Mesh(arrowNorthGeometry, arrowNorthMaterial)
-  arrowNorth.rotation.x = -Math.PI / 2
-  arrowNorth.position.z = 0.075
-  compassGroup.add(arrowNorth)
-
-  // 创建南向箭头 (白色)
-  const arrowSouthGeometry = new THREE.ConeGeometry(0.05, 0.15, 8)
-  const arrowSouthMaterial = new THREE.MeshBasicMaterial({ color: 0xcccccc })
-  const arrowSouth = new THREE.Mesh(arrowSouthGeometry, arrowSouthMaterial)
-  arrowSouth.rotation.x = Math.PI / 2
-  arrowSouth.position.z = -0.075
-  compassGroup.add(arrowSouth)
-
-  // 添加 N 标记 (使用文字精灵)
-  const canvas = document.createElement('canvas')
-  canvas.width = 64
-  canvas.height = 64
-  const ctx = canvas.getContext('2d')
-  ctx.fillStyle = '#000000'
-  ctx.font = 'bold 48px Arial'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('N', 32, 32)
-
-  const texture = new THREE.CanvasTexture(canvas)
-  const spriteMaterial = new THREE.SpriteMaterial({ map: texture })
-  const sprite = new THREE.Sprite(spriteMaterial)
-  sprite.scale.set(0.12, 0.12, 1)
-  sprite.position.z = 0.15
-  sprite.position.y = 0.05
-  compassGroup.add(sprite)
-
-  // 放置在地形右下角
-  compassGroup.position.set(3.5, 0.05, -3.5)
-  scene.add(compassGroup)
-
-  // 保存引用以便后续更新
-  window.compassGroup = compassGroup
-}
-
-// 处理鼠标点击事件
-function onMouseClick(event) {
-  if (!camera || !renderer) return
-
-  // 计算鼠标在归一化设备坐标中的位置
-  const rect = renderer.domElement.getBoundingClientRect()
-  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
-  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
-
-  // 更新射线
-  raycaster.setFromCamera(mouse, camera)
-
-  // 检测与点位标记的交互
-  const intersects = raycaster.intersectObjects(pointMarkers, true)
-
-  if (intersects.length > 0) {
-    // 找到最近的标记
-    let markerObj = intersects[0].object
-    while (markerObj.parent && !markerObj.userData.id) {
-      markerObj = markerObj.parent
-    }
-
-    if (markerObj.userData.id) {
-      selectedPoint.value = markerObj.userData
-      console.log('选中点位:', markerObj.userData)
-    }
-  }
-}
-
-async function init() {
-  try {
-    loading.value = true
-    loadingProgress.value = 0
-    loadingText.value = '初始化场景...'
-
-    // 确保容器已经挂载
-    if (!container.value) {
-      console.error('容器元素未挂载')
-      loading.value = false
-      return
-    }
-
-    // 检查 WebGL 支持
-    const canvas = document.createElement('canvas')
-    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
-
-    if (!gl) {
-      console.error('浏览器不支持 WebGL 或 WebGL 已被禁用')
-      alert('您的浏览器不支持 WebGL,无法加载 3D 地形。请使用 Chrome、Firefox 或 Edge 浏览器。')
-      loading.value = false
-      return
-    }
-
-    // 清理测试 canvas
-    canvas.remove()
-
-    loadingProgress.value = 10
-    loadingText.value = '创建 WebGL 渲染器...'
-
-    scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x87ceeb) // 天蓝色背景
-    scene.fog = new THREE.Fog(0x87ceeb, 1, 100) // 添加雾效果
-    camera = new THREE.PerspectiveCamera(60, container.value.clientWidth / container.value.clientHeight, 0.1, 1000)
-    camera.position.set(0, 3, 5)
-    camera.lookAt(0, 0, 0)
-
-    // 创建 WebGL 渲染器,添加上下文丢失处理
-    try {
-      renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: false,
-        preserveDrawingBuffer: false,
-        powerPreference: 'high-performance',
-        failIfMajorPerformanceCaveat: false
-      })
-    } catch (error) {
-      console.error('创建 WebGL 渲染器失败:', error)
-      alert('创建 3D 渲染器失败,请刷新页面重试或关闭其他占用 GPU 的网页。')
-      loading.value = false
-      return
-    }
-
-    renderer.setSize(container.value.clientWidth, container.value.clientHeight)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1)) // 降低像素比到 1,大幅减少渲染负担
-    renderer.shadowMap.enabled = false // 关闭阴影
-    renderer.toneMapping = THREE.NoToneMapping // 关闭色调映射,减少计算
-    renderer.toneMappingExposure = 1.0
-
-    loadingProgress.value = 20
-    loadingText.value = '设置光照和控制器...'
-
-    // 添加 WebGL 上下文丢失/恢复事件监听
-    const rendererCanvas = renderer.domElement
-    rendererCanvas.addEventListener('webglcontextlost', (event) => {
-      event.preventDefault()
-      console.warn('WebGL 上下文丢失,停止渲染')
-      if (animationId) {
-        cancelAnimationFrame(animationId)
-        animationId = null
+// 计算区域的平均坡度和平坦度
+function calculateAreaSlope(raster: Float32Array, width: number, height: number, centerX: number, centerY: number, radius: number): { slope: number, variance: number } {
+  let totalSlope = 0
+  let count = 0
+  const heights: number[] = []
+  
+  const radiusPixels = Math.floor(radius)
+  
+  for (let dy = -radiusPixels; dy <= radiusPixels; dy++) {
+    for (let dx = -radiusPixels; dx <= radiusPixels; dx++) {
+      if (dx * dx + dy * dy <= radiusPixels * radiusPixels) {
+        const x = centerX + dx
+        const y = centerY + dy
+        
+        if (x > 0 && x < width - 1 && y > 0 && y < height - 1) {
+          const slope = calculateSlope(raster, width, height, x, y)
+          totalSlope += slope
+          
+          const index = y * width + x
+          heights.push(raster[index])
+          
+          count++
+        }
       }
-    })
+    }
+  }
+  
+  if (count === 0) return { slope: Infinity, variance: Infinity }
+  
+  const avgSlope = totalSlope / count
+  const avgHeight = heights.reduce((a, b) => a + b, 0) / heights.length
+  const variance = heights.reduce((sum, h) => sum + Math.pow(h - avgHeight, 2), 0) / heights.length
+  
+  return { slope: avgSlope, variance: Math.sqrt(variance) }
+}
 
-    rendererCanvas.addEventListener('webglcontextrestored', () => {
-      console.log('WebGL 上下文已恢复,重新初始化')
-      setTimeout(() => init(), 100)
-    })
+// 自动分析并推荐平缓的选址区域
+function analyzeFlatAreas(
+  raster: Float32Array, 
+  width: number, 
+  height: number, 
+  min: number, 
+  max: number,
+  options: {
+    minRadius?: number,
+    maxSlope?: number,
+    maxVariance?: number,
+    numRecommendations?: number
+  } = {}
+) {
+  const {
+    minRadius = Math.floor(width * 0.08),
+    maxSlope = (max - min) * 0.05,
+    maxVariance = (max - min) * 0.05,
+    numRecommendations = 1
+  } = options
 
-    container.value.appendChild(renderer.domElement)
-    // 添加轨道控制器
-    controls = new OrbitControls(camera, renderer.domElement)
-    controls.enableDamping = true
-    controls.dampingFactor = 0.05
-    controls.screenSpacePanning = false
-    controls.minDistance = 0.5
-    controls.maxDistance = 50
-    controls.maxPolarAngle = Math.PI / 2
-    controls.enableRotate = true
-    controls.enableZoom = true
-    controls.enablePan = true
+  console.log('开始分析地形平缓区域...')
+  console.log(`参数: 最小半径=${minRadius}像素, 最大坡度=${maxSlope.toFixed(2)}m, 最大方差=${maxVariance.toFixed(2)}m`)
 
-    // 改进的光照系统
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.3) // 降低环境光
-    scene.add(ambientLight)
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0)
-    dirLight.position.set(10, 20, 10)
-    scene.add(dirLight)
-    // 添加天光
-    const hemiLight = new THREE.HemisphereLight(0x87ceeb, 0x362d1b, 0.5)
-    scene.add(hemiLight)
+  const candidates: Array<any> = []
+  const step = Math.max(Math.floor(minRadius / 3), 3)
 
-    loadingProgress.value = 30
-    loadingText.value = '加载 DEM 高程数据...'
+  for (let y = minRadius + 5; y < height - minRadius - 5; y += step) {
+    for (let x = minRadius + 5; x < width - minRadius - 5; x += step) {
+      const { slope, variance } = calculateAreaSlope(raster, width, height, x, y, minRadius)
+      
+      if (slope < maxSlope && variance < maxVariance) {
+        const index = y * width + x
+        const elevation = raster[index]
+        
+        candidates.push({
+          x,
+          y,
+          slope,
+          variance,
+          elevation,
+          radius: minRadius
+        })
+      }
+    }
+  }
 
-    // 加载 DEM 小片
-    const dem = await loadDEM(
-      'https://support.maxtan.cn/geoserver/h1/wcs?' +
-      'service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:dem_107252456638910473' +
-      '&format=image/tiff&subset=Long(106.2,106.3)&subset=Lat(26.1,26.2)&resx=0.001&resy=0.001'
-    )  // 降采样（减少降采样步长获得更高分辨率）
+  console.log(`找到 ${candidates.length} 个候选平缓区域`)
 
-    // 限制最大网格尺寸,防止 CPU 过载
-    const maxVertices = 150 * 150;
-    const totalVertices = dem.width * dem.height;
-    const step = Math.ceil(Math.sqrt(totalVertices / maxVertices));
+  if (candidates.length === 0) {
+    console.warn('未找到符合条件的区域，尝试大幅放宽条件...')
+    for (let y = minRadius + 5; y < height - minRadius - 5; y += step) {
+      for (let x = minRadius + 5; x < width - minRadius - 5; x += step) {
+        const { slope, variance } = calculateAreaSlope(raster, width, height, x, y, minRadius)
+        
+        if (slope < maxSlope * 10 && variance < maxVariance * 10) {
+          const index = y * width + x
+          const elevation = raster[index]
+          
+          candidates.push({
+            x,
+            y,
+            slope,
+            variance,
+            elevation,
+            radius: minRadius
+          })
+        }
+      }
+    }
+    console.log(`大幅放宽条件后找到 ${candidates.length} 个候选区域`)
+  }
+
+  candidates.forEach(c => {
+    const slopeScore = 1 - Math.min(c.slope / maxSlope, 1)
+    const varianceScore = 1 - Math.min(c.variance / maxVariance, 1)
+    c.score = slopeScore * 0.5 + varianceScore * 0.5
+  })
+
+  candidates.sort((a, b) => b.score - a.score)
+  const selectedAreas = candidates.slice(0, numRecommendations)
+
+  console.log(`最终推荐 ${selectedAreas.length} 个选址区域`)
+
+  return selectedAreas.map((area) => {
+    const lonFraction = area.x / (width - 1)
+    const latFraction = area.y / (height - 1)
+    const lon = DEM_BOUNDS.lonMin + lonFraction * (DEM_BOUNDS.lonMax - DEM_BOUNDS.lonMin)
+    const lat = DEM_BOUNDS.latMin + latFraction * (DEM_BOUNDS.latMax - DEM_BOUNDS.latMin)
+    
+    const worldPos = geoToWorld(lon, lat, raster, width, height, min, max)
+    const radiusWorld = (area.radius / width) * TERRAIN_SIZE
+
+    return {
+      centerX: area.x,
+      centerY: area.y,
+      lon,
+      lat,
+      elevation: Math.round(area.elevation),
+      slope: area.slope,
+      variance: area.variance,
+      radius: radiusWorld,
+      score: area.score,
+      worldPos
+    }
+  })
+}
+
+// 分析地形数据
+async function analyzeTerrainData() {
+  try {
+    isAnalyzing.value = true
+    console.log('开始加载和分析地形数据...')
+    
+    const dem = await loadDEM(demUrl.value)
+    
+    const step = Math.ceil(Math.sqrt((dem.width * dem.height) / (150 * 150)))
     const width = Math.floor(dem.width / step)
     const height = Math.floor(dem.height / step)
-    console.log(`DEM 原始尺寸: ${dem.width} x ${dem.height}, 降采样步长: ${step}, 最终尺寸: ${width} x ${height}`);
-    const raster = new Float32Array(Math.min(width, totalVertices) * Math.min(height, totalVertices))
-    const finalWidth = Math.min(width, totalVertices)
-    const finalHeight = Math.min(height, totalVertices)
 
-    for (let y = 0; y < finalHeight; y++) {
-      for (let x = 0; x < finalWidth; x++) {
-        raster[y * finalWidth + x] = dem.raster[y * step * dem.width + x * step] as number
+    const raster = new Float32Array(width * height)
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        raster[y * width + x] = dem.raster[y * step * dem.width + x * step] as number
       }
     }
+
     const { min, max } = getMinMax(raster)
-    const scale = 1.0 // 增强高度差异
-
-    loadingProgress.value = 50
-    loadingText.value = '生成地形网格...'
-    // 添加高度数据统计信息
-    console.log(`DEM 数据统计:`)
-    console.log(`最小高度: ${min}m`)
-    console.log(`最大高度: ${max}m`)
-    console.log(`高度差: ${max - min}m`)
-    console.log(`网格大小: ${finalWidth} x ${finalHeight}`)
-    console.log(`总顶点数: ${(finalWidth * finalHeight).toLocaleString()}`)
-
-    // 创建PlaneGeometry并设置高度
-    const geometry = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, finalWidth - 1, finalHeight - 1)
-    const positions = geometry.attributes.position.array
-
-    // 优化高度映射算法 - 简化计算
-    for (let i = 0; i < finalWidth; i++) {
-      for (let j = 0; j < finalHeight; j++) {
-        const index = j * finalWidth + i
-        const normalizedHeight = (raster[index] - min) / (max - min)
-        // 简化高度计算,减少 CPU 负担
-        const heightValue = normalizedHeight * scale
-        positions[index * 3 + 2] = heightValue
-      }
-    }
-
-    geometry.attributes.position.needsUpdate = true
-    geometry.computeVertexNormals()
-
-    loadingProgress.value = 70
-    loadingText.value = '加载卫星影像...'
-
-    // 加载离线卫星影像纹理
-    async function loadOfflineSatelliteTexture(imagePath) {
-      return new Promise((resolve, reject) => {
-        const loader = new THREE.TextureLoader()
-        loader.load(
-          imagePath,
-          (texture) => {
-            texture.wrapS = THREE.ClampToEdgeWrapping
-            texture.wrapT = THREE.ClampToEdgeWrapping
-            texture.minFilter = THREE.LinearFilter
-            texture.magFilter = THREE.LinearFilter
-            console.log('✅ 离线卫星影像加载成功')
-            resolve(texture)
-          },
-          undefined,
-          (error) => {
-            console.error('❌ 离线卫星影像加载失败')
-            alert('请将 satellite.jpg 文件放到 public 目录下!')
-            reject(error)
-          }
-        )
-      })
-    }
-    // 加载离线卫星纹理
-    satelliteTexture = await loadOfflineSatelliteTexture('https://static.maxtan.cn/h1-static/uploads/20251023/90f6842eff314ee4f3c52fc4.jpg')
-
-    loadingProgress.value = 80
-    loadingText.value = '创建地形模型...'
-
-    // 创建地形材质 - 直接使用卫星图 + 高程地形
-    const material = new THREE.MeshStandardMaterial({
-      map: satelliteTexture,
-      flatShading: false,
-      side: THREE.DoubleSide
+    
+    const areas = analyzeFlatAreas(raster, width, height, min, max, {
+      minRadius: Math.floor(width * 0.08),
+      maxSlope: (max - min) * 0.05,
+      maxVariance: (max - min) * 0.05,
+      numRecommendations: 1
     })
-    // 使用带高程的地形几何体 + 卫星图纹理
-    terrainMesh = new THREE.Mesh(geometry, material)
-    terrainMesh.rotation.x = -Math.PI / 2
-    scene.add(terrainMesh)
-
-    loadingProgress.value = 90
-    loadingText.value = '添加区域标记...'
-    // 初始化射线投射器用于点击检测
-    raycaster = new THREE.Raycaster()
-    mouse = new THREE.Vector2()
-    // 添加区域标记
-    areasData.forEach((area) => {
-      const worldPos = geoToWorld(
-        area.lon,
-        area.lat,
-        DEM_BOUNDS,
-        TERRAIN_SIZE,
-        raster, // DEM 栅格数据
-        finalWidth,
-        finalHeight,
-        min,
-        max
-      )
-      // 计算该区域中心的实际海拔高度(米)
-      const x = (area.lon - DEM_BOUNDS.lonMin) / (DEM_BOUNDS.lonMax - DEM_BOUNDS.lonMin)
-      const y = (area.lat - DEM_BOUNDS.latMin) / (DEM_BOUNDS.latMax - DEM_BOUNDS.latMin)
-      const rasterX = Math.floor(x * (finalWidth - 1))
-      const rasterY = Math.floor(y * (finalHeight - 1))
-      const rasterIndex = rasterY * finalWidth + rasterX
-      const elevation = Math.round(raster[rasterIndex] || min)
-      area.elevation = elevation
-      const marker = createAreaMarker(area, worldPos)
-      scene.add(marker)
-      pointMarkers.push(marker)
-      console.log(`添加区域: ${area.name} at (${area.lon}, ${area.lat}), DEM海拔: ${elevation}m, 世界坐标: (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`)
-    })
-
-    loadingProgress.value = 100
-    loadingText.value = '加载完成!'
-
-    // 延迟隐藏加载提示
-    setTimeout(() => {
-      loading.value = false
-    }, 500)
-    // 渲染循环 - 优化性能,按需渲染
-    let needsRender = true
-
-    function render() {
-      if (needsRender && renderer && scene && camera) {
-        renderer.render(scene, camera)
-        needsRender = false
-      }
-    }
-
-    function animate() {
-      if (!renderer || !scene || !camera) return
-
-      animationId = requestAnimationFrame(animate)
-
-      // 只在控制器有变化时才渲染
-      if (controls.enabled && controls.update()) {
-        needsRender = true
-      }
-
-      render()
-    }
-
-    // 监听控制器变化
-    controls.addEventListener('change', () => {
-      needsRender = true
-    })
-
-    animate()
-
-    window.addEventListener('resize', onWindowResize)
+    
+    analyzedAreas.value = areas
+    console.log('地形分析完成，推荐区域:', areas)
+    
   } catch (error) {
-    console.error('初始化失败:', error)
-    ElMessage.error('3D 场景初始化失败: ' + error.message)
-    loading.value = false
+    console.error('地形分析失败:', error)
+  } finally {
+    isAnalyzing.value = false
+  }
+}
+
+async function fetchDetail() {
+  try {
+    const { data } = await getProjectSitePlanList({
+      projectId: projectId.value
+    })
+    console.log('获取部件生产详情', data)
+    schemeList.value = data || []
+    if (schemeList.value.length) {
+      currentAcviteScheme.value = schemeList.value[0].id
+      fetchPlanDetail(currentAcviteScheme.value)
+    }
+  } catch (error) {
+    console.error('获取部件生产详情失败', error)
+  }
+}
+
+async function fetchPlanDetail(planId) {
+  try {
+    const { data: plan } = await getProjectSitePlanDetail({
+      planId
+    })
+    gis.value = plan.gis || {}
+    console.log('获取方案详情', plan)
+  } catch (error) {
+    console.error('获取方案详情失败', error)
   }
 }
 
@@ -737,204 +351,16 @@ onMounted(() => {
     projectId.value = route.query.projectId as string
   }
   fetchDetail()
-})
-
-onUnmounted(() => {
-  // 停止动画循环
-  if (animationId) {
-    cancelAnimationFrame(animationId)
-    animationId = null
-  }
-
-  // 移除事件监听
-  window.removeEventListener('resize', onWindowResize)
-  if (renderer && renderer.domElement) {
-    renderer.domElement.removeEventListener('click', onMouseClick)
-  }
-
-  // 清理 Three.js 资源
-  if (terrainMesh) {
-    terrainMesh.geometry.dispose()
-    terrainMesh.material.dispose()
-  }
-
-  if (satelliteTexture) satelliteTexture.dispose()
-
-  // 清理点位标记
-  pointMarkers.forEach(marker => {
-    if (marker.geometry) marker.geometry.dispose()
-    if (marker.material) marker.material.dispose()
-  })
-  pointMarkers = []
-
-  if (controls) controls.dispose()
-
-  if (renderer) {
-    renderer.dispose()
-    renderer.forceContextLoss()
-    renderer = null
-  }
-
-  if (scene) {
-    scene.clear()
-    scene = null
-  }
-
-  console.log('Three.js 资源已清理')
+  // 自动分析地形数据
+  analyzeTerrainData()
 })
 </script>
 
 <style scoped>
-.info-panel {
-  position: fixed;
-  bottom: 10px;
+.terrain-toggle-btn {
+  position: absolute;
+  top: 10px;
   left: 10px;
   z-index: 9999;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 12px 16px;
-  border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.info-panel p {
-  margin: 4px 0;
-  font-size: 12px;
-  color: #666;
-}
-
-.point-info-panel {
-  position: fixed;
-  top: 50%;
-  right: 20px;
-  transform: translateY(-50%);
-  background: white;
-  padding: 0;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  width: 300px;
-  z-index: 10000;
-  overflow: hidden;
-}
-
-.point-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.point-header h3 {
-  margin: 0;
-  color: white;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.close-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  font-size: 20px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.close-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: rotate(90deg);
-}
-
-.point-content {
-  padding: 20px;
-}
-
-.point-content p {
-  margin: 10px 0;
-  font-size: 14px;
-  color: #333;
-  line-height: 1.6;
-}
-
-.point-content strong {
-  color: #667eea;
-  display: inline-block;
-  min-width: 60px;
-}
-
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10001;
-  pointer-events: none;
-}
-
-.loading-content {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  min-width: 320px;
-  pointer-events: auto;
-}
-
-.loading-spinner {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 20px;
-  border: 4px solid rgba(76, 175, 80, 0.2);
-  border-top-color: #4CAF50;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-content h3 {
-  margin: 0 0 20px 0;
-  font-size: 18px;
-  color: #333;
-  font-weight: 600;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: rgba(76, 175, 80, 0.2);
-  border-radius: 4px;
-  overflow: hidden;
-  margin: 0 auto 10px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #8BC34A);
-  transition: width 0.3s ease;
-  border-radius: 4px;
-}
-
-.progress-text {
-  margin: 0;
-  font-size: 14px;
-  color: #4CAF50;
-  font-weight: bold;
 }
 </style>

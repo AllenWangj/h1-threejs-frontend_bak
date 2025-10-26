@@ -4,24 +4,55 @@
     <div ref="fullscreenContainer" class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div ref="threeContainer" class="three-container"></div>
       <div class="toolbar-container">
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep1Animation">步骤1</el-button>
-        <!-- <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep2Animation">步骤2</el-button> -->
-         <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStepNew2Animation">步骤2</el-button> 
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep2Animation">步骤3</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStepNew21Animation">步骤4</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStepNew22Animation">步骤5</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep3Animation">步骤6</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep41Animation">步骤7</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep42Animation">步骤8</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep43Animation">步骤9</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep44Animation">步骤10</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep51Animation">步骤11</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep52Animation">步骤12</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep53Animation">步骤13</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep54Animation">步骤14</el-button>
-        <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep55Animation">步骤15</el-button>
-        <!-- <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep4Animation">步骤4</el-button> -->
-        <!-- <el-button :disabled="btnLoading" class="w-[120px]" type="primary" @click="playStep5Animation">步骤5</el-button> -->
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要20人/天" placement="top-start">
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep1Animation">
+            步骤1
+          </el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要10人/天" placement="top-start">
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStepNew2Animation">
+            步骤2
+          </el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要5人/天" placement="top-start"> 
+           <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep2Animation">步骤3</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要15人/天" placement="top-start">
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStepNew21Animation">步骤4</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要10人/天" placement="top-start"> 
+           <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStepNew22Animation">步骤5</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要8人/天" placement="top-start">
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep3Animation">步骤6</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要8人/天" placement="top-start"> 
+           <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep41Animation">步骤7</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要6人/天" placement="top-start"> 
+           <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep42Animation">步骤8</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要12人/天" placement="top-start">
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep43Animation">步骤9</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要24人/天" placement="top-start"> 
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep44Animation">步骤10</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要30人/天" placement="top-start">
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep51Animation">步骤11</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要30人/天" placement="top-start"> 
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep52Animation">步骤12</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要20人/天" placement="top-start"> 
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep53Animation">步骤13</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要15人/天" placement="top-start">
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep54Animation">步骤14</el-button>
+        </el-tooltip>
+        <el-tooltip class="box-item" :enterable="false" effect="dark" content="需要10人/天" placement="top-start"> 
+          <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep55Animation">步骤15</el-button>
+        </el-tooltip>
       </div>
     </div>
   </div>
@@ -39,7 +70,6 @@ import { getAssembleDetail } from '@/apis/project'
 const fullscreenContainer = ref<HTMLElement | null>(null)
 useFullScreenResize(fullscreenContainer, onResize)
 
-
 const route = useRoute()
 const projectId = ref('')
 const schemeList = ref<any[]>([])
@@ -56,13 +86,12 @@ async function fetchDetail() {
   try {
     const { data } = await getAssembleDetail({
       projectId: projectId.value,
-      type:7
+      type: 7
     })
     schemeList.value = data || []
     if (schemeList.value.length) {
       currentAcviteScheme.value = schemeList.value[0].id
-  loadModel()
-
+      loadModel()
     }
     console.log('获取现场组装详情', data)
   } catch (error) {
@@ -71,7 +100,6 @@ async function fetchDetail() {
   }
 }
 
-
 const threeContainer = ref(null)
 let scene, camera, renderer, controls, animationId
 
@@ -79,7 +107,7 @@ onMounted(() => {
   if (route.query.projectId) {
     projectId.value = route.query.projectId as string
   }
-  fetchDetail();
+  fetchDetail()
 
   initThree()
   animate()
@@ -169,7 +197,7 @@ function fixMaterial(child) {
     child.renderOrder = 999 // 优先渲染线条，避免Z-fighting
   }
 }
-let lastMesh :any =null
+let lastMesh: any = null
 // 加载模型并创建自定义动画
 function loadModel() {
   btnLoading.value = true
@@ -177,13 +205,12 @@ function loadModel() {
   loader.load(
     '/models/tool7/scene.gltf', // 替换成你自己的路径
     (gltf) => {
-       if(lastMesh) {
-           lastMesh.traverse((object) => {
-               object.geometry?.dispose()
-               object.material?.dispose()
-           })
+      if (lastMesh) {
+        lastMesh.traverse((object) => {
+          object.geometry?.dispose()
+          object.material?.dispose()
+        })
         lastMesh.parent.remove(lastMesh)
-
       }
       const root = gltf.scene
       console.log('模型根节点:', root)
@@ -311,7 +338,7 @@ async function playStepNew21Animation() {
   // 需要先显示上一步的部件以免未执行第上一步
   await animateObjects(['底柱'], 0)
   // 执行当前步骤的动画
-  await animateObjects(['地板托架'],0)
+  await animateObjects(['地板托架'], 0)
   await animateObjects(['次梁'])
   // await animateObjects(['密封钢板', '地板'])
   btnLoading.value = false
@@ -342,12 +369,11 @@ async function playStepNew22Animation() {
   // 需要先显示上一步的部件以免未执行第上一步
   await animateObjects(['底柱'], 0)
   // 执行当前步骤的动画
-  await animateObjects(['地板托架'],0)
-  await animateObjects(['次梁'],0)
+  await animateObjects(['地板托架'], 0)
+  await animateObjects(['次梁'], 0)
   await animateObjects(['密封钢板', '地板'])
   btnLoading.value = false
 }
-
 
 async function playStepNew2Animation() {
   btnLoading.value = true
@@ -371,9 +397,9 @@ async function playStepNew2Animation() {
   // 需要先显示上一步的部件以免未执行第上一步
   // await animateObjects(['底柱', '地板托架', '次梁', '密封钢板', '地板'], 0)
   // // 执行当前步骤的动画
-   await animateObjects(['底柱'], 0)
-    await animateObjects(['角件'])
-   await animateObjects(['柱'])
+  await animateObjects(['底柱'], 0)
+  await animateObjects(['角件'])
+  await animateObjects(['柱'])
 
   // await animateObjects(['梁'])
   btnLoading.value = false
@@ -452,7 +478,7 @@ async function playStep42Animation() {
   // 需要先显示上一步的部件以免未执行第上一步
   await animateObjects(['底柱', '地板托架', '次梁', '密封钢板', '地板', '柱', '角件', '梁'], 0)
   // 执行当前步骤的动画
-  await animateObjects(['地板托架（顶）'],0)
+  await animateObjects(['地板托架（顶）'], 0)
   await animateObjects(['次梁（顶）'])
   // await animateObjects(['密封钢板（顶）', '吊顶板', '地板(顶）'])
   // await animateObjects(['屋架'])
@@ -477,8 +503,8 @@ async function playStep43Animation() {
   // 需要先显示上一步的部件以免未执行第上一步
   await animateObjects(['底柱', '地板托架', '次梁', '密封钢板', '地板', '柱', '角件', '梁'], 0)
   // 执行当前步骤的动画
-  await animateObjects(['地板托架（顶）'],0)
-  await animateObjects(['次梁（顶）'],0)
+  await animateObjects(['地板托架（顶）'], 0)
+  await animateObjects(['次梁（顶）'], 0)
   await animateObjects(['密封钢板（顶）', '吊顶板', '地板(顶）'])
   // await animateObjects(['屋架'])
   btnLoading.value = false
@@ -502,13 +528,12 @@ async function playStep44Animation() {
   // 需要先显示上一步的部件以免未执行第上一步
   await animateObjects(['底柱', '地板托架', '次梁', '密封钢板', '地板', '柱', '角件', '梁'], 0)
   // 执行当前步骤的动画
-  await animateObjects(['地板托架（顶）'],0)
-  await animateObjects(['次梁（顶）'],0)
-  await animateObjects(['密封钢板（顶）', '吊顶板', '地板(顶）'],0)
+  await animateObjects(['地板托架（顶）'], 0)
+  await animateObjects(['次梁（顶）'], 0)
+  await animateObjects(['密封钢板（顶）', '吊顶板', '地板(顶）'], 0)
   await animateObjects(['屋架'])
   btnLoading.value = false
 }
-
 
 async function playStep45Animation() {
   btnLoading.value = true
@@ -529,13 +554,12 @@ async function playStep45Animation() {
   // 需要先显示上一步的部件以免未执行第上一步
   await animateObjects(['底柱', '地板托架', '次梁', '密封钢板', '地板', '柱', '角件', '梁'], 0)
   // 执行当前步骤的动画
-  await animateObjects(['地板托架（顶）'],0)
-  await animateObjects(['次梁（顶）'],0)
-  await animateObjects(['密封钢板（顶）', '吊顶板', '地板(顶）'],0)
+  await animateObjects(['地板托架（顶）'], 0)
+  await animateObjects(['次梁（顶）'], 0)
+  await animateObjects(['密封钢板（顶）', '吊顶板', '地板(顶）'], 0)
   await animateObjects(['屋架'])
   btnLoading.value = false
 }
-
 
 async function playStep51Animation() {
   btnLoading.value = true
@@ -570,7 +594,7 @@ async function playStep51Animation() {
 }
 async function playStep52Animation() {
   btnLoading.value = true
-  hiddenModel([ '外墙板檩条', '外墙面板', '柱装饰板', '屋面板'])
+  hiddenModel(['外墙板檩条', '外墙面板', '柱装饰板', '屋面板'])
   // 需要先显示上一步的部件以免未执行第上一步
   await animateObjects(
     [
@@ -592,7 +616,7 @@ async function playStep52Animation() {
     0
   )
   // 执行当前步骤的动画
-  await animateObjects(['内装饰墙板', '门窗'],0)
+  await animateObjects(['内装饰墙板', '门窗'], 0)
   await animateObjects(['外墙板檩条'])
   // await animateObjects(['外墙面板'])
   // await animateObjects(['柱装饰板'])
@@ -601,7 +625,7 @@ async function playStep52Animation() {
 }
 async function playStep53Animation() {
   btnLoading.value = true
-  hiddenModel([  '外墙面板', '柱装饰板', '屋面板'])
+  hiddenModel(['外墙面板', '柱装饰板', '屋面板'])
   // 需要先显示上一步的部件以免未执行第上一步
   await animateObjects(
     [
@@ -623,8 +647,8 @@ async function playStep53Animation() {
     0
   )
   // 执行当前步骤的动画
-  await animateObjects(['内装饰墙板', '门窗'],0)
-  await animateObjects(['外墙板檩条'],0)
+  await animateObjects(['内装饰墙板', '门窗'], 0)
+  await animateObjects(['外墙板檩条'], 0)
   await animateObjects(['外墙面板'])
   // await animateObjects(['柱装饰板'])
   // await animateObjects(['屋面板'])
@@ -632,7 +656,7 @@ async function playStep53Animation() {
 }
 async function playStep54Animation() {
   btnLoading.value = true
-  hiddenModel([  '柱装饰板', '屋面板'])
+  hiddenModel(['柱装饰板', '屋面板'])
   // 需要先显示上一步的部件以免未执行第上一步
   await animateObjects(
     [
@@ -654,16 +678,16 @@ async function playStep54Animation() {
     0
   )
   // 执行当前步骤的动画
-  await animateObjects(['内装饰墙板', '门窗'],0)
-  await animateObjects(['外墙板檩条'],0)
-  await animateObjects(['外墙面板'],0)
+  await animateObjects(['内装饰墙板', '门窗'], 0)
+  await animateObjects(['外墙板檩条'], 0)
+  await animateObjects(['外墙面板'], 0)
   await animateObjects(['柱装饰板'])
   // await animateObjects(['屋面板'])
   btnLoading.value = false
 }
 async function playStep55Animation() {
   btnLoading.value = true
-  hiddenModel([  '屋面板'])
+  hiddenModel(['屋面板'])
   // 需要先显示上一步的部件以免未执行第上一步
   await animateObjects(
     [
@@ -685,10 +709,10 @@ async function playStep55Animation() {
     0
   )
   // 执行当前步骤的动画
-  await animateObjects(['内装饰墙板', '门窗'],0)
-  await animateObjects(['外墙板檩条'],0)
-  await animateObjects(['外墙面板'],0)
-  await animateObjects(['柱装饰板'],0)
+  await animateObjects(['内装饰墙板', '门窗'], 0)
+  await animateObjects(['外墙板檩条'], 0)
+  await animateObjects(['外墙面板'], 0)
+  await animateObjects(['柱装饰板'], 0)
   await animateObjects(['屋面板'])
   btnLoading.value = false
 }
@@ -813,12 +837,13 @@ function onResize() {
   position: absolute;
   top: 20px;
   right: 20px;
+  width: 140px;
   background: transparent;
   overflow-y: auto;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  padding: 10px;
+  justify-content: space-between;
 
   .el-button {
     margin: 0;
