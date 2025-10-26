@@ -79,6 +79,11 @@ const props = defineProps<{
 }>()
 
 const container = ref<HTMLElement | null>(null)
+const loading = ref(true)
+const loadingText = ref('正在加载...')
+const loadingProgress = ref(0)
+const selectedArea = ref<any>(null)
+
 let scene: THREE.Scene
 let camera: THREE.PerspectiveCamera
 let renderer: THREE.WebGLRenderer
@@ -87,6 +92,7 @@ let controls: OrbitControls
 let animationId: number
 let terrainMesh: THREE.Mesh
 let contourLabels: CSS2DObject[] = []
+let areaMarkers: CSS2DObject[] = []
 
 const TERRAIN_SIZE = 8
 let demMinHeight = 0
@@ -109,30 +115,11 @@ const areasData = [
     radius: 0.3,
     description: '适合建设主厂房',
     elevation: 0
-  },
-  {
-    id: 2,
-    name: '选址区B',
-    lon: 106.26,
-    lat: 26.13,
-    radius: 0.25,
-    description: '备选厂址',
-    elevation: 0
   }
 ]
 
-let areaMarkers: CSS2DObject[] = []
-
 // 图例数据
 const legendItems = ref<Array<{ color: string; label: string }>>([])
-
-// 加载状态
-const loading = ref(true)
-const loadingText = ref('正在加载地形数据...')
-const loadingProgress = ref(0)
-
-// 选中的区域
-const selectedArea = ref<any>(null)
 
 // 加载DEM数据
 async function loadDEM(url: string) {
@@ -168,7 +155,8 @@ function geoToWorld(lon: number, lat: number, raster: Float32Array, width: numbe
   const rasterY = Math.floor(y * (height - 1))
   const rasterIndex = rasterY * width + rasterX
   const elevation = raster[rasterIndex] || min
-    return { x: worldX, z: worldZ, elevation }
+  
+  return { x: worldX, z: worldZ, elevation }
 }
 
 // 生成图例数据
@@ -194,7 +182,7 @@ function generateLegend(minHeight: number, maxHeight: number) {
   legendItems.value = items
 }
 
-// 添加选址区域标记
+// 添加选址区域标记 - 使用THREE.js圆环
 function addAreaMarkers(raster: Float32Array, width: number, height: number, min: number, max: number) {
   // 清除旧标记
   areaMarkers.forEach(marker => {
@@ -221,64 +209,93 @@ function addAreaMarkers(raster: Float32Array, width: number, height: number, min
   areasToShow.forEach((area) => {
     const worldPos = geoToWorld(area.lon, area.lat, raster, width, height, min, max)
     area.elevation = Math.round(worldPos.elevation)
-    
-    // 创建区域圆形边界
-    const circleDiv = document.createElement('div')
-    circleDiv.className = 'area-marker-circle'    
-    circleDiv.style.cssText = `
-      width: ${area.radius * 200}px;
-      height: ${area.radius * 200}px;
-      border: 3px solid #2e7d32;
-      border-radius: 50%;
-      background: rgba(76, 175, 80, 0.15);
-      pointer-events: auto;
-      position: relative;
-      cursor: pointer;
-      transition: all 0.3s;
-    `
-    
-    // 添加点击事件
-    circleDiv.addEventListener('click', (e) => {
-      e.stopPropagation()
-      selectedArea.value = area
+
+    // 创建THREE.js圆环（更清晰可见）
+    const circleRadius = 0.5 // 圆圈半径
+    const circleGeometry = new THREE.RingGeometry(circleRadius - 0.02, circleRadius, 64)
+    const circleMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff5722,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.9,
+      depthTest: false
     })
+    const circleMesh = new THREE.Mesh(circleGeometry, circleMaterial)
+    circleMesh.rotation.x = -Math.PI / 2
+    circleMesh.position.set(worldPos.x, 0.01, worldPos.z)
+    circleMesh.renderOrder = 999
+    scene.add(circleMesh)
     
-    circleDiv.addEventListener('mouseenter', () => {
-      circleDiv.style.background = 'rgba(76, 175, 80, 0.35)'
-      circleDiv.style.borderWidth = '4px'
+    // 添加半透明填充圆
+    const fillGeometry = new THREE.CircleGeometry(circleRadius - 0.02, 64)
+    const fillMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff5722,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.15,
+      depthTest: false
     })
+    const fillMesh = new THREE.Mesh(fillGeometry, fillMaterial)
+    fillMesh.rotation.x = -Math.PI / 2
+    fillMesh.position.set(worldPos.x, 0.005, worldPos.z)
+    fillMesh.renderOrder = 998
+    scene.add(fillMesh)
     
-    circleDiv.addEventListener('mouseleave', () => {
-      circleDiv.style.background = 'rgba(76, 175, 80, 0.15)'
-      circleDiv.style.borderWidth = '3px'
+    // 添加中心标记点
+    const dotGeometry = new THREE.CircleGeometry(0.05, 32)
+    const dotMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff5722,
+      side: THREE.DoubleSide,
+      depthTest: false
     })
-    
-    const circleLabel = new CSS2DObject(circleDiv)
-    circleLabel.position.set(worldPos.x, 0, worldPos.z)
-    scene.add(circleLabel)
-    areaMarkers.push(circleLabel)
+    const dotMesh = new THREE.Mesh(dotGeometry, dotMaterial)
+    dotMesh.rotation.x = -Math.PI / 2
+    dotMesh.position.set(worldPos.x, 0.02, worldPos.z)
+    dotMesh.renderOrder = 1000
+    scene.add(dotMesh)
     
     // 创建区域名称标签
     const nameDiv = document.createElement('div')
     nameDiv.style.cssText = `
       background: rgba(255, 255, 255, 0.95);
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 16px;
       font-weight: bold;
-      color: #2e7d32;
-      border: 2px solid #2e7d32;
-      pointer-events: none;
+      color: #ff5722;
+      border: 3px solid #ff5722;
+      pointer-events: auto;
       white-space: nowrap;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: all 0.3s;
     `
     nameDiv.textContent = `${area.name} (${area.elevation}m)`
     
+    // 添加点击和悬停效果
+    nameDiv.addEventListener('click', (e) => {
+      e.stopPropagation()
+      selectedArea.value = area
+    })
+    
+    nameDiv.addEventListener('mouseenter', () => {
+      nameDiv.style.background = '#ff5722'
+      nameDiv.style.color = 'white'
+      nameDiv.style.transform = 'scale(1.05)'
+    })
+    
+    nameDiv.addEventListener('mouseleave', () => {
+      nameDiv.style.background = 'rgba(255, 255, 255, 0.95)'
+      nameDiv.style.color = '#ff5722'
+      nameDiv.style.transform = 'scale(1)'
+    })
+    
     const nameLabel = new CSS2DObject(nameDiv)
-    nameLabel.position.set(worldPos.x, 0, worldPos.z + area.radius + 0.2)
+    nameLabel.position.set(worldPos.x, 0, worldPos.z + circleRadius + 0.3)
     scene.add(nameLabel)
     areaMarkers.push(nameLabel)
-      console.log(`选址区域: ${area.name}, 海拔: ${area.elevation}m, 坐标: (${worldPos.x.toFixed(2)}, ${worldPos.z.toFixed(2)})`)
+    
+    console.log(`✅ 添加区域标记: ${area.name}, 位置=(${worldPos.x.toFixed(2)}, ${worldPos.z.toFixed(2)}), 半径=${circleRadius}`)
   })
 }
 
@@ -445,34 +462,18 @@ async function init() {
 
     loadingProgress.value = 100
     loadingText.value = '加载完成！'
-    
-    // 延迟隐藏加载提示
+      // 延迟隐藏加载提示
     setTimeout(() => {
       loading.value = false
     }, 300)
 
     // 动画循环
-    let needsRender = true
-    
-    function render() {
-      if (needsRender && renderer && labelRenderer && scene && camera) {
-        renderer.render(scene, camera)
-        labelRenderer.render(scene, camera)
-        needsRender = false
-      }
-    }
-
     function animate() {
       animationId = requestAnimationFrame(animate)
-      if (controls.update()) {
-        needsRender = true
-      }
-      render()
+      controls.update()
+      renderer.render(scene, camera)
+      labelRenderer.render(scene, camera)
     }
-
-    controls.addEventListener('change', () => {
-      needsRender = true
-    })
 
     animate()
 
@@ -499,7 +500,15 @@ onMounted(() => {
 onUnmounted(() => {
   if (animationId) cancelAnimationFrame(animationId)
   window.removeEventListener('resize', onWindowResize)
-  
+
+  // 清理等高线标签
+  contourLabels.forEach(label => {
+    if (label.element && label.element.parentNode) {
+      label.element.parentNode.removeChild(label.element)
+    }
+  })
+  contourLabels = []
+
   // 清理区域标记
   areaMarkers.forEach(marker => {
     if (marker.element && marker.element.parentNode) {
@@ -507,24 +516,22 @@ onUnmounted(() => {
     }
   })
   areaMarkers = []
-  
+
   if (terrainMesh) {
     terrainMesh.geometry.dispose()
     if (terrainMesh.material instanceof THREE.Material) {
       terrainMesh.material.dispose()
     }
   }
-    if (controls) controls.dispose()
   
-  if (labelRenderer && labelRenderer.domElement && labelRenderer.domElement.parentNode) {
-    labelRenderer.domElement.parentNode.removeChild(labelRenderer.domElement)
-  }
-  
+  if (controls) controls.dispose()
   if (renderer) {
     renderer.dispose()
     renderer.forceContextLoss()
   }
-  
+  if (labelRenderer && labelRenderer.domElement.parentNode) {
+    labelRenderer.domElement.parentNode.removeChild(labelRenderer.domElement)
+  }
   if (scene) scene.clear()
 })
 </script>
@@ -576,5 +583,149 @@ onUnmounted(() => {
   font-weight: 600;
   color: #333;
   min-width: 60px;
+}
+
+.area-info-panel {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  min-width: 320px;
+  max-width: 450px;
+  overflow: hidden;
+}
+
+.info-header {
+  background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-header h3 {
+  margin: 0;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.info-content {
+  padding: 20px;
+}
+
+.info-item {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.loading-content {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  min-width: 320px;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  border: 4px solid rgba(255, 87, 34, 0.2);
+  border-top-color: #ff5722;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-content h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 87, 34, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0 auto 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff5722, #ff7043);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.progress-text {
+  margin: 0;
+  font-size: 14px;
+  color: #ff5722;
+  font-weight: bold;
 }
 </style>

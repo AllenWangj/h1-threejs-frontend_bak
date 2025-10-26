@@ -616,15 +616,14 @@ async function init() {
                 break
             }
         }
-    })
-
-    // 动画循环
+    })    // 动画循环
     let needsRender = true
 
     // 更新标记大小以保持恒定的屏幕尺寸
     function updateMarkerScales() {
         const distance = camera.position.distanceTo(new THREE.Vector3(0, 0, 0))
-        const scaleFactor = Math.max(distance * 0.1, 0.5) // 增加最小值，确保标记始终可见
+        // 反向缩放：距离越远，标记越大，这样在屏幕上看起来大小恒定
+        const scaleFactor = Math.max(distance * 0.15, 0.5)
         
         areaMarkers.forEach(marker => {
             marker.scale.set(scaleFactor, scaleFactor, scaleFactor)
