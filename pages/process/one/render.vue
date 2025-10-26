@@ -3,6 +3,10 @@
     <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list>
     <div class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div ref="container" class="w-[100%] h-[100%]"></div>
+      <!-- 新增切换按钮 -->
+      <el-button v-if="!loading" @click="toggleTerrainMode" class="terrain-toggle-btn" type="primary">
+        {{ terrainMode === 'elevation' ? '高程地图' : '等高线地图' }}
+      </el-button>
     </div>
 
     <!-- 加载提示 -->
@@ -21,8 +25,9 @@
       <p>📍 坐标系统: EPSG:4326</p>
       <p>📊 DEM 数据: 106-107°E, 26-27°N</p>
       <p>🛰️ 卫星图: public/satellite.jpg</p>
-      <p style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd;">
-        <span style="color: #ff0000; font-weight: bold;">↑ N</span> 北方
+      <p style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd">
+        <span style="color: #ff0000; font-weight: bold">↑ N</span>
+        北方
       </p>
     </div>
 
@@ -33,11 +38,26 @@
         <button @click="closePointInfo" class="close-btn">✕</button>
       </div>
       <div class="point-content">
-        <p><strong>经度:</strong> {{ selectedPoint.lon }}°E</p>
-        <p><strong>纬度:</strong> {{ selectedPoint.lat }}°N</p>
-        <p><strong>海拔:</strong> {{ selectedPoint.elevation }}m</p>
-        <p><strong>类型:</strong> {{ selectedPoint.type }}</p>
-        <p><strong>描述:</strong> {{ selectedPoint.description }}</p>
+        <p>
+          <strong>经度:</strong>
+          {{ selectedPoint.lon }}°E
+        </p>
+        <p>
+          <strong>纬度:</strong>
+          {{ selectedPoint.lat }}°N
+        </p>
+        <p>
+          <strong>海拔:</strong>
+          {{ selectedPoint.elevation }}m
+        </p>
+        <p>
+          <strong>类型:</strong>
+          {{ selectedPoint.type }}
+        </p>
+        <p>
+          <strong>描述:</strong>
+          {{ selectedPoint.description }}
+        </p>
       </div>
     </div>
   </div>
@@ -48,7 +68,7 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 
 declare global {
   interface Window {
-    compassGroup?: THREE.Group;
+    compassGroup?: THREE.Group
   }
 }
 import * as THREE from 'three'
@@ -115,8 +135,78 @@ async function fetchPlanDetail(planId) {
   }
 }
 
+const terrainMode = ref('elevation') // 'elevation' 或 'contour'
+// 切换模式函数
+function toggleTerrainMode() {
+  terrainMode.value = terrainMode.value === 'elevation' ? 'contour' : 'elevation'
+  updateTerrainMaterial()
 
+  // 手动刷新渲染
+  renderer.render(scene, camera)
+}
 
+// 修改地形材质
+function updateTerrainMaterial() {
+  if (!terrainMesh) return
+
+  if (terrainMode.value === 'elevation') {
+    // 高程模式: 使用卫星纹理
+    terrainMesh.material = new THREE.MeshStandardMaterial({
+      map: satelliteTexture,
+      flatShading: false,
+      side: THREE.DoubleSide
+    })
+  } else {
+    // 等高线模式: 自定义 Shader
+    const positions = terrainMesh.geometry.attributes.position.array
+    const minHeight = positions.reduce((a, _, i) => (i % 3 === 2 ? Math.min(a, positions[i]) : a), Infinity)
+    const maxHeight = positions.reduce((a, _, i) => (i % 3 === 2 ? Math.max(a, positions[i]) : a), -Infinity)
+
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        minHeight: { value: minHeight },
+        maxHeight: { value: maxHeight },
+        lineCount: { value: 10 } // 10 条等高线
+      },
+      vertexShader: `
+        varying float vHeight;
+        void main() {
+          vHeight = position.z;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+        }
+      `,
+      fragmentShader: `
+        varying float vHeight;
+        uniform float minHeight;
+        uniform float maxHeight;
+        uniform float lineCount;
+
+        void main() {
+          float hNorm = (vHeight - minHeight) / (maxHeight - minHeight);
+          
+          // 颜色渐变: 低海拔绿色，中海拔棕色，高海拔灰白
+          vec3 color;
+          if (hNorm < 0.3) {
+            color = mix(vec3(0.0,0.3,0.0), vec3(0.2,0.6,0.2), hNorm/0.3); // 绿色渐变
+          } else if (hNorm < 0.6) {
+            color = mix(vec3(0.4,0.3,0.1), vec3(0.6,0.5,0.3), (hNorm-0.3)/0.3); // 棕色渐变
+          } else {
+            color = mix(vec3(0.5,0.5,0.5), vec3(1.0,1.0,1.0), (hNorm-0.6)/0.4); // 灰→白
+          }
+
+          // 等高线叠加，线条稍暗
+          float lines = abs(fract(hNorm * lineCount - 0.5) - 0.5) * lineCount;
+          float intensity = 1.0 - smoothstep(0.0, 0.2, lines);
+          color = mix(color, vec3(0.0), intensity * 0.5);
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `
+    })
+
+    terrainMesh.material = material
+  }
+}
 
 const container = ref(null)
 let scene, camera, renderer, controls, animationId
@@ -186,7 +276,7 @@ const areasData = [
     radius: 0.4,
     description: '监测河流水位和流量',
     elevation: 0
-  },
+  }
 ]
 
 // 加载小范围 DEM
@@ -226,7 +316,17 @@ function closePointInfo() {
 }
 
 // 将地理坐标转换为 3D 空间坐标
-function geoToWorld(lon, lat, demBounds, terrainSize, rasterData, rasterWidth, rasterHeight, minElevation, maxElevation) {
+function geoToWorld(
+  lon,
+  lat,
+  demBounds,
+  terrainSize,
+  rasterData,
+  rasterWidth,
+  rasterHeight,
+  minElevation,
+  maxElevation
+) {
   // 归一化到 0-1 范围
   const x = (lon - demBounds.lonMin) / (demBounds.lonMax - demBounds.lonMin)
   const y = (lat - demBounds.latMin) / (demBounds.latMax - demBounds.latMin)
@@ -561,17 +661,17 @@ async function init() {
     // 加载 DEM 小片
     const dem = await loadDEM(
       'https://support.maxtan.cn/geoserver/h1/wcs?' +
-      'service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:dem_107252456638910473' +
-      '&format=image/tiff&subset=Long(106.2,106.3)&subset=Lat(26.1,26.2)&resx=0.001&resy=0.001'
-    )  // 降采样（减少降采样步长获得更高分辨率）
+        'service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:dem_107252456638910473' +
+        '&format=image/tiff&subset=Long(106.2,106.3)&subset=Lat(26.1,26.2)&resx=0.001&resy=0.001'
+    ) // 降采样（减少降采样步长获得更高分辨率）
 
     // 限制最大网格尺寸,防止 CPU 过载
-    const maxVertices = 150 * 150;
-    const totalVertices = dem.width * dem.height;
-    const step = Math.ceil(Math.sqrt(totalVertices / maxVertices));
+    const maxVertices = 150 * 150
+    const totalVertices = dem.width * dem.height
+    const step = Math.ceil(Math.sqrt(totalVertices / maxVertices))
     const width = Math.floor(dem.width / step)
     const height = Math.floor(dem.height / step)
-    console.log(`DEM 原始尺寸: ${dem.width} x ${dem.height}, 降采样步长: ${step}, 最终尺寸: ${width} x ${height}`);
+    console.log(`DEM 原始尺寸: ${dem.width} x ${dem.height}, 降采样步长: ${step}, 最终尺寸: ${width} x ${height}`)
     const raster = new Float32Array(Math.min(width, totalVertices) * Math.min(height, totalVertices))
     const finalWidth = Math.min(width, totalVertices)
     const finalHeight = Math.min(height, totalVertices)
@@ -639,7 +739,9 @@ async function init() {
       })
     }
     // 加载离线卫星纹理
-    satelliteTexture = await loadOfflineSatelliteTexture('https://static.maxtan.cn/h1-static/uploads/20251023/90f6842eff314ee4f3c52fc4.jpg')
+    satelliteTexture = await loadOfflineSatelliteTexture(
+      'https://static.maxtan.cn/h1-static/uploads/20251023/90f6842eff314ee4f3c52fc4.jpg'
+    )
 
     loadingProgress.value = 80
     loadingText.value = '创建地形模型...'
@@ -684,7 +786,9 @@ async function init() {
       const marker = createAreaMarker(area, worldPos)
       scene.add(marker)
       pointMarkers.push(marker)
-      console.log(`添加区域: ${area.name} at (${area.lon}, ${area.lat}), DEM海拔: ${elevation}m, 世界坐标: (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`)
+      console.log(
+        `添加区域: ${area.name} at (${area.lon}, ${area.lat}), DEM海拔: ${elevation}m, 世界坐标: (${worldPos.x.toFixed(2)}, ${worldPos.y.toFixed(2)}, ${worldPos.z.toFixed(2)})`
+      )
     })
 
     loadingProgress.value = 100
@@ -761,7 +865,7 @@ onUnmounted(() => {
   if (satelliteTexture) satelliteTexture.dispose()
 
   // 清理点位标记
-  pointMarkers.forEach(marker => {
+  pointMarkers.forEach((marker) => {
     if (marker.geometry) marker.geometry.dispose()
     if (marker.material) marker.material.dispose()
   })
@@ -897,7 +1001,7 @@ onUnmounted(() => {
   height: 60px;
   margin: 0 auto 20px;
   border: 4px solid rgba(76, 175, 80, 0.2);
-  border-top-color: #4CAF50;
+  border-top-color: #4caf50;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -926,7 +1030,7 @@ onUnmounted(() => {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
   transition: width 0.3s ease;
   border-radius: 4px;
 }
@@ -934,7 +1038,14 @@ onUnmounted(() => {
 .progress-text {
   margin: 0;
   font-size: 14px;
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: bold;
+}
+
+.terrain-toggle-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 9999;
 }
 </style>
