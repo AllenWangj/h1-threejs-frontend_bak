@@ -64,6 +64,18 @@ import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRe
 
 const props = defineProps<{
   demUrl: string
+  analyzedAreas?: Array<{
+    centerX: number
+    centerY: number
+    lon: number
+    lat: number
+    elevation: number
+    slope: number
+    variance: number
+    radius: number
+    score: number
+    worldPos: { x: number; y: number; z: number; elevation: number }
+  }>
 }>()
 
 const container = ref<HTMLElement | null>(null)
@@ -193,7 +205,20 @@ function addAreaMarkers(raster: Float32Array, width: number, height: number, min
   })
   areaMarkers = []
   
-  areasData.forEach((area) => {
+  // 如果有分析结果，使用分析结果；否则使用默认数据
+  const areasToShow = props.analyzedAreas && props.analyzedAreas.length > 0 
+    ? props.analyzedAreas.map((area, index) => ({
+        id: index + 1,
+        name: `推荐选址`,
+        lon: area.lon,
+        lat: area.lat,
+        radius: area.radius,
+        description: `平均坡度: ${area.slope.toFixed(3)}m, 高度方差: ${area.variance.toFixed(3)}m`,
+        elevation: area.elevation
+      }))
+    : areasData
+  
+  areasToShow.forEach((area) => {
     const worldPos = geoToWorld(area.lon, area.lat, raster, width, height, min, max)
     area.elevation = Math.round(worldPos.elevation)
     

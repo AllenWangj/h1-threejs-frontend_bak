@@ -270,18 +270,17 @@ function analyzeFlatAreas(
                 })
             }
         }
-    }
-
-    console.log(`找到 ${candidates.length} 个候选平缓区域`)
+    }    console.log(`找到 ${candidates.length} 个候选平缓区域`)
 
     if (candidates.length === 0) {
-        console.warn('未找到符合条件的区域，尝试放宽条件...')
-        // 放宽条件重新搜索
+        console.warn('未找到符合条件的区域，尝试大幅放宽条件...')
+        // 大幅放宽条件重新搜索
         for (let y = minRadius + 5; y < height - minRadius - 5; y += step) {
             for (let x = minRadius + 5; x < width - minRadius - 5; x += step) {
                 const { slope, variance } = calculateAreaSlope(raster, width, height, x, y, minRadius)
                 
-                if (slope < maxSlope * 2 && variance < maxVariance * 2) {
+                // 放宽到10倍
+                if (slope < maxSlope * 10 && variance < maxVariance * 10) {
                     const index = y * width + x
                     const elevation = raster[index]
                     
@@ -296,7 +295,7 @@ function analyzeFlatAreas(
                 }
             }
         }
-        console.log(`放宽条件后找到 ${candidates.length} 个候选区域`)
+        console.log(`大幅放宽条件后找到 ${candidates.length} 个候选区域`)
     }
 
     // 按综合评分排序
@@ -512,15 +511,14 @@ async function init() {
     loadingProgress.value = 95
     loadingText.value = '添加选址区域标记...'
     
-    console.log('地形高程范围:', { min, max, range: max - min })
-    
-    // 自动分析平缓区域 - 只找一个最佳位置
+    console.log('地形高程范围:', { min, max, range: max - min })    // 自动分析平缓区域 - 只找一个最佳位置
     const recommendedAreas = analyzeFlatAreas(raster, width, height, min, max, {
-        minRadius: Math.floor(width * 0.15),  // 区域半径约15%宽度（增大）
-        maxSlope: (max - min) * 0.03,         // 最大坡度3%
-        maxVariance: (max - min) * 0.02,      // 最大高度方差2%
+        minRadius: Math.floor(width * 0.08),  // 区域半径约8%宽度
+        maxSlope: (max - min) * 0.05,         // 最大坡度5%（放宽）
+        maxVariance: (max - min) * 0.05,      // 最大高度方差5%（放宽）
         numRecommendations: 1                 // 只推荐1个最佳位置
-    })    
+    })
+    
     console.log('推荐的选址区域:', recommendedAreas)
     
     if (recommendedAreas.length === 0) {
@@ -605,8 +603,9 @@ async function init() {
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
 
-        raycaster.setFromCamera(mouse, camera)
-        const intersects = raycaster.intersectObjects(scene.children, true)        
+        raycaster.setFromCamera(mouse, camera)        
+        const intersects = raycaster.intersectObjects(scene.children, true)
+        
         for (const intersect of intersects) {
             let obj = intersect.object
             while (obj.parent && !obj.userData.clickable) {
