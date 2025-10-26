@@ -11,7 +11,6 @@
                 <p class="progress-text">{{ loadingProgress }}%</p>
             </div>
         </div>
-
         <!-- 地理标记信息面板 -->
         <div v-if="!loading && selectedArea" class="area-info-panel">
             <div class="info-header">
@@ -75,28 +74,6 @@ const DEM_BOUNDS = {
     latMin: 26.1,
     latMax: 26.2
 }
-
-// 选址区域数据
-const areasData = [
-    {
-        id: 1,
-        name: '选址区A',
-        lon: 106.25,
-        lat: 26.15,
-        radius: 0.3,
-        description: '适合建设主厂房',
-        elevation: 0
-    },
-    {
-        id: 2,
-        name: '选址区B',
-        lon: 106.26,
-        lat: 26.13,
-        radius: 0.25,
-        description: '备选厂址',
-        elevation: 0
-    }
-]
 
 // 加载DEM数据
 async function loadDEM(url: string) {

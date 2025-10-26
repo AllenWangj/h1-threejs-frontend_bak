@@ -16,7 +16,7 @@
       
       <!-- 新增切换按钮 -->
       <el-button @click="toggleTerrainMode" class="terrain-toggle-btn" type="primary">
-        {{ terrainMode === 'elevation' ? '高程地图' : '等高线地图' }}
+        {{ terrainMode === 'elevation' ? '等高线地图' : '高程地图' }}
       </el-button>
     </div>
   </div>
@@ -45,15 +45,14 @@ const terrainMode = ref('elevation')
 // 分析结果数据
 const analyzedAreas = ref<any[]>([])
 const isAnalyzing = ref(false)
-
+const defaultDemUrl = 'https://support.maxtan.cn/geoserver/h1/wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:dem_107252456638910473&format=image/tiff&subset=Long(106.2,106.3)&subset=Lat(26.1,26.2)&resx=0.001&resy=0.001'
+const defaultSatelliteUrl = 'https://static.maxtan.cn/h1-static/uploads/20251023/90f6842eff314ee4f3c52fc4.jpg'
 const demUrl = computed(() => {
-  return 'https://support.maxtan.cn/geoserver/h1/wcs?' +
-    'service=WCS&version=2.0.1&request=GetCoverage&coverageId=h1:dem_107252456638910473' +
-    '&format=image/tiff&subset=Long(106.2,106.3)&subset=Lat(26.1,26.2)&resx=0.001&resy=0.001'
+  return gis.value?.url || defaultDemUrl
 })
 
 const satelliteUrl = computed(() => {
-  return 'https://static.maxtan.cn/h1-static/uploads/20251023/90f6842eff314ee4f3c52fc4.jpg'
+  return gis.value?.satelliteUrl || defaultSatelliteUrl
 })
 
 const DEM_BOUNDS = {
