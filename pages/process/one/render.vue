@@ -351,11 +351,12 @@ async function fetchDetail() {
   }
 }
 
-// 下载当前方案
+// 下载方案
 const downloadSolution = async () => {
   try {
     const url = planExport({
-      projectId: projectId.value
+      projectId: projectId.value,
+      type: 1
     })
     const a = document.createElement('a')
     a.href = url

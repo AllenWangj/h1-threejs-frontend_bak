@@ -54,6 +54,10 @@
           <el-button :disabled="btnLoading" class="w-[65px]" type="primary" @click="playStep55Animation">步骤15</el-button>
         </el-tooltip>
       </div>
+      <div v-if="currentAcviteScheme" class="absolute top-[10px] left-[10px] z-10">
+        <!-- 下载方案 -->
+        <el-button @click="downloadSolution" type="primary">导出方案</el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -64,7 +68,7 @@ import SchemesList from '@/components/schemes-list/index.vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { getAssembleDetail } from '@/apis/project'
+import { getAssembleDetail, planExport } from '@/apis/project'
 
 // 全屏相关
 const fullscreenContainer = ref<HTMLElement | null>(null)
@@ -79,6 +83,24 @@ const tapScheme = (item) => {
   console.log('点击了现场组装方案', item)
   currentAcviteScheme.value = item.id
   loadModel()
+}
+
+// 下载方案
+const downloadSolution = async () => {
+  try {
+    const url = planExport({
+      projectId: projectId.value,
+      type: 7
+    })
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `现场组装方案.docx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  } catch (error) {
+    console.error('下载方案失败', error)
+  }
 }
 
 // 获取详情

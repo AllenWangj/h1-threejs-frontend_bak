@@ -3,6 +3,10 @@
     <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list>
     <div  v-loading="loading"  class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div class="plan-and-plan_tree" ref="three"></div>
+      <div v-if="!loading && currentAcviteScheme" class="absolute top-[10px] left-[10px] z-10">
+        <!-- 下载方案 -->
+        <el-button @click="downloadSolution" type="primary">导出方案</el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -11,7 +15,7 @@
 import { ref, onMounted } from "vue"
 import SchemesList from '@/components/schemes-list/index.vue'
 // import Threeobject from "@/threejs/three/index"
-import { getInternalLayoutDetail,planDetailInfo,planList ,createPlan} from '@/apis/project'
+import { getInternalLayoutDetail,planDetailInfo,planList ,createPlan, planExport} from '@/apis/project'
 import {useRender} from "./composables/use-render"
 // import {plan} from "./composables/plan1.ts"
 // import {plan} from "./composables/plan2"
@@ -39,6 +43,24 @@ const tapScheme = (item) => {
         loading.value = false
       })
   // console.log('点击了内部布局方案', item)
+}
+
+// 下载方案
+const downloadSolution = async () => {
+  try {
+    const url = planExport({
+      projectId: projectId.value,
+      type: 3
+    })
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `内部布局方案.docx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  } catch (error) {
+    console.error('下载方案失败', error)
+  }
 }
 
 // 获取详情

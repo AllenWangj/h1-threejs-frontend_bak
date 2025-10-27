@@ -3,16 +3,20 @@
     <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list>
     <div v-loading="loading" class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div class="three-content" ref="four"></div>
+      <div v-if="!loading && currentAcviteScheme" class="absolute top-[10px] left-[10px] z-10">
+        <!-- 下载方案 -->
+        <el-button @click="downloadSolution" type="primary">导出方案</el-button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref } from 'vue'
 import SchemesList from '@/components/schemes-list/index.vue'
 // import FourObject from "~~/threejs/four/index"
-import { planList, planDetailInfo } from '@/apis/project'
-import { useRender } from "./composables/use-render"
+import { planList, planDetailInfo, planExport } from '@/apis/project'
+import { useRender } from './composables/use-render'
 const loading = ref(true)
 const four = ref()
 const { ProcessFour } = useRender()
@@ -25,19 +29,37 @@ const schemeList = ref<any[]>([])
 const currentAcviteScheme = ref('')
 
 const tapScheme = (item) => {
-   currentAcviteScheme.value =item.id
+  currentAcviteScheme.value = item.id
   try {
     loading.value = true
-    planDetailInfo({ id: item.id }).then(async (res:any) => {
-      const { data: { layouts } } = res
+    planDetailInfo({ id: item.id }).then(async (res: any) => {
+      const {
+        data: { layouts }
+      } = res
       await processFour!.handleOriginModel(layouts)
       loading.value = false
     })
-    } catch (e) {
+  } catch (e) {
     loading.value = false
-
   }
+}
 
+// 下载方案
+const downloadSolution = async () => {
+  try {
+    const url = planExport({
+      projectId: projectId.value,
+      type: 4
+    })
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `结构设计方案.docx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  } catch (error) {
+    console.error('下载方案失败', error)
+  }
 }
 
 // 获取详情
@@ -45,14 +67,16 @@ async function fetchDetail() {
   try {
     const { data } = await planList({
       projectId: projectId.value,
-      type:4
+      type: 4
     })
     schemeList.value = data || []
     if (schemeList.value.length) {
       currentAcviteScheme.value = schemeList.value[0].id
       loading.value = true
       planDetailInfo({ id: currentAcviteScheme.value }).then(async (res) => {
-        const { data: { layouts } } = res
+        const {
+          data: { layouts }
+        } = res
         loading.value = true
         await processFour!.handleOriginModel(layouts)
         loading.value = false
@@ -71,7 +95,7 @@ onMounted(() => {
   }
   fetchDetail()
   processFour = new ProcessFour(four.value, {
-    progress: () => { }
+    progress: () => {}
   })
 })
 </script>
@@ -79,6 +103,6 @@ onMounted(() => {
 <style lang="less" scoped>
 .three-content {
   width: 100%;
-  height: 100%
+  height: 100%;
 }
 </style>
