@@ -354,13 +354,12 @@ async function fetchDetail() {
 // 下载当前方案
 const downloadSolution = async () => {
   try {
-    const currentItem = schemeList.value.find((item) => item.id === currentAcviteScheme.value)
     const url = planExport({
       projectId: projectId.value
     })
     const a = document.createElement('a')
     a.href = url
-    a.download = `${currentItem.name}.docx`
+    a.download = `地址决策方案.docx`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
