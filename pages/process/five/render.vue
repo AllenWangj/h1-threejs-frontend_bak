@@ -10,9 +10,14 @@
           {{ item.name }}
         </el-button>
       </div>
-      <div v-if="!loading &&   currentAcviteScheme" class="toolbar-content">
+      <div v-if="!loading && currentAcviteScheme" class="toolbar-content">
         <BuildInfo v-for="item in materialDataList" :key="item.value" :name="item.name" :list="item.infoList">
         </BuildInfo>
+      </div>
+
+      <div v-if="!loading && currentAcviteScheme" class="absolute top-[10px] left-[10px] z-10">
+        <!-- 下载方案 -->
+        <el-button @click="downloadSolution" type="primary">导出方案</el-button>
       </div>
     </div>
   </div>
@@ -27,7 +32,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { modeService } from './composables/mode-service'
 import { materialInfoService } from './composables/material-info-service'
-import { getPartsProductionDetail ,} from '@/apis/project'
+import { getPartsProductionDetail, planExport} from '@/apis/project'
 
 
 // 全屏相关
@@ -44,6 +49,24 @@ const tapScheme = (item) => {
    currentAcviteScheme.value  = item.id
    loadModel()
   console.log('点击了部件生产方案', item)
+}
+
+// 下载方案
+const downloadSolution = async () => {
+  try {
+    const url = planExport({
+      projectId: projectId.value,
+      type: 5
+    })
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `部件生产方案.docx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  } catch (error) {
+    console.error('下载方案失败', error)
+  }
 }
 
 // 获取详情

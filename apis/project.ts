@@ -1,5 +1,5 @@
-import { exp } from 'three/tsl'
 import { useBaseFetch } from '~~/composables/use-base-fetch'
+const BASE_URL = useRuntimeConfig().public.baseURL
 const baseUrl = '/project/'
 
 /**
@@ -195,20 +195,9 @@ export const assembleUpdateParams = (data) => useBaseFetch().post(`${baseUrl}ass
 
 export const assembleDetail = (params) => useBaseFetch().get(`${baseUrl}assemble/v1/detail`, params)
 
-// /project/packing/v1/detail
-
-// /project/
-
-
-
-
-// /project/site/v1/detail
-
-// /project/parts-production/v1/update-params
-
-// /project/
-// { 
-//     /** 荷载工况 字典 load_cases / loadCases: string /* 建筑布局 默认 0*/ 
-//     buildingLayout: string /** 构建类型 字典 build_type / buildType: string /* 材料参数 字典 material / material: string /* 目标权重 默认0 / targetWeight: string /* 自定义参数 */ 
-//     custom: string}
-
+/**
+ * 工具一导出方案
+*/
+export const planExport = (params) => {
+    return `${BASE_URL}${baseUrl}site/v1/plan/export` + '?' + new URLSearchParams(params).toString()
+}

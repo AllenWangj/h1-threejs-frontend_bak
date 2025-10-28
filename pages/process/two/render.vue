@@ -19,6 +19,8 @@
         <el-button type="primary" style="width: 100px" @click="handllePlanRestEvt">复位</el-button>
         <el-button type="primary" style="width: 100px" @click="handlleSaveEvt">保存</el-button>
         <el-button type="primary" style="width: 100px" @click="handlleOtherSaveEvt">另保存</el-button>
+        <!-- 下载方案 -->
+        <el-button @click="downloadSolution" type="primary">导出方案</el-button>
       </div>
     </div>
   </div>
@@ -27,7 +29,7 @@
 <script setup lang="ts">
 import SchemesList from '@/components/schemes-list/index.vue'
 import { useRender } from './composables/use-render'
-import { planList, planDetailInfo, removePlan, createPlan, updatePlan } from '@/apis/project'
+import { planList, planDetailInfo, removePlan, createPlan, updatePlan, planExport } from '@/apis/project'
 
 const route = useRoute()
 const projectId = ref('')
@@ -50,6 +52,25 @@ const tapScheme = (item) => {
     loading.value = false
   })
 }
+
+// 下载方案
+const downloadSolution = async () => {
+  try {
+    const url = planExport({
+      projectId: projectId.value,
+      type: 2
+    })
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `规划布局方案.docx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  } catch (error) {
+    console.error('下载方案失败', error)
+  }
+}
+
 function handllePlanRoatationEvt() {
   renderPlanLayout!.setMoveMode()
 }
