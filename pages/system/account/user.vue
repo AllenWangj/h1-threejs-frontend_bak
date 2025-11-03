@@ -62,9 +62,9 @@ const columns = reactive<TableColumn<UserItem>[]>([
   { prop: 'account', label: '账号' },
   { prop: 'intro', label: '简介' },
   {
-    prop: 'updateTime',
+    prop: 'updatedAt',
     label: '更新时间',
-    formatter: (item) => formatTime(item.updateTime)
+    formatter: (item) => formatTime(item.updatedAt)
   },
   { prop: 'updateBy', label: '更新人' },
   { prop: 'operation', label: '操作', width: 200, fixed: 'right' }

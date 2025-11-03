@@ -63,7 +63,7 @@
           </div>
           <div class="list-wrap-item-body">
             <span class="title">创建时间</span>
-            <span class="status">{{ dayjs(item.createTime).format('YYYY-MM-DD HH:mm:ss') }}</span>
+            <span class="status">{{ dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</span>
           </div>
         </div>
       </div>

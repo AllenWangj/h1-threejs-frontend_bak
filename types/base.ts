@@ -1,7 +1,7 @@
 export interface BaseItem {
-  createTime: number
+  createdAt: number
   createBy: string
-  updateTime: number
+  updatedAt: number
   updateBy: string
 }
 export interface Dict {

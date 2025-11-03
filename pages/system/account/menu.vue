@@ -62,9 +62,9 @@ const columns = reactive<TableColumn<MenuTree>[]>([
   { prop: 'code', label: '权限' },
   { prop: 'sort', label: '排序' },
   {
-    prop: 'updateTime',
+    prop: 'updatedAt',
     label: '更新时间',
-    formatter: (item) => formatTime(item.updateTime)
+    formatter: (item) => formatTime(item.updatedAt)
   },
   { prop: 'updateBy', label: '更新人' },
   { prop: 'operation', label: '操作', width: 200, fixed: 'right' }
