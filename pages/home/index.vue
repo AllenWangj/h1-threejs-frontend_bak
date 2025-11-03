@@ -50,7 +50,7 @@
               alt=""
               width="22px"
               height="22px"
-              @click="handleRemoveProject(item)"
+              @click.stop="handleRemoveProject(item)"
             />
             <img
               class="cursor-pointer"
@@ -58,7 +58,7 @@
               alt=""
               width="22px"
               height="22px"
-              @click="handleEditProject(item)"
+              @click.stop="handleEditProject(item)"
             />
           </div>
           <div class="list-wrap-item-body">
@@ -250,13 +250,12 @@ const handleRemoveProject = async (item) => {
       await removeProject({ id: item.id })
       ElMessage.success('操作成功！')
       // 刷新列表
-      handleSearchProject()
+      fetchProjectList()
     }
   } catch (error) {}
 }
 // 编辑项目
 const handleEditProject = async (item) => {
-  console.log('编辑项目')
   dialogFlag.value = true
   projectForm.id = item.id
   projectForm.name = item.name
