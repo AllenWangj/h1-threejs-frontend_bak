@@ -74,6 +74,17 @@ class BaseThree {
 
     this.animate()
   }
+  public handleScenePane(state:boolean) {
+        this.controls!.enablePan = state
+    }
+    public handleSceneEnable(state:boolean) {
+        this.controls!.enabled = state
+
+    }
+    public handleSceneScale(state:boolean) {
+        this.controls!.enableRotate = state
+
+    }
 
   /**
    * 初始化场景
