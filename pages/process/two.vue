@@ -14,7 +14,7 @@ console.log('route', route)
 
 const projectId = ref('')
 
-const isActiveTab = ref(1)
+const isActiveTab = ref(2)
 
 const tabChange = (tab: number) => {
   isActiveTab.value = tab
@@ -48,13 +48,13 @@ onMounted(() => {
   }
   if (route.path === '/process/two') {
     router.replace({
-      path: '/process/two/file',
+      path: '/process/two/form',
       query: {
         projectId: projectId.value
       }
     })
   } else if (route.path === '/process/two/file') {
-    isActiveTab.value = 1
+    // isActiveTab.value = 1
   } else if (route.path === '/process/two/form') {
     isActiveTab.value = 2
   } else if (route.path === '/process/two/render') {

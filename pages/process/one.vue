@@ -86,10 +86,10 @@ const handlePlotClick = (item) => {
   currentPlot.value = item.index
   // 跳转到地块详情页
   pageState.value = 'detail'
-  tabChange(1)
+  tabChange(2)
 }
 
-const isActiveTab = ref(1)
+const isActiveTab = ref(2)
 const tabChange = (tab: number) => {
   isActiveTab.value = tab
   if (tab === 1) {

@@ -13,7 +13,7 @@ const router = useRouter()
 const route = useRoute()
 console.log('route', route)
 
-const isActiveTab = ref(1)
+const isActiveTab = ref(2)
 
 const projectId = ref('')
 
@@ -49,13 +49,13 @@ onMounted(() => {
   }
   if (route.path === '/process/six') {
     router.replace({
-      path: '/process/six/file',
+      path: '/process/six/form',
       query: {
         projectId: projectId.value
       }
     })
   } else if (route.path === '/process/six/file') {
-    isActiveTab.value = 1
+    // isActiveTab.value = 1
   } else if (route.path === '/process/six/form') {
     isActiveTab.value = 2
   } else if (route.path === '/process/six/render') {
