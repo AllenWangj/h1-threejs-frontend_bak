@@ -45,9 +45,9 @@
           <el-descriptions-item label="栅格坐标" :span="1">({{ areaRef.centerX }},{{ areaRef.centerY }})</el-descriptions-item>
           <el-descriptions-item label="经纬度" :span="1">({{ areaRef.lon.toFixed(6) }},{{ areaRef.lat.toFixed(6) }})</el-descriptions-item>
           <el-descriptions-item label="海拔" :span="1">{{ areaRef.elevation }}</el-descriptions-item>
-          <el-descriptions-item label="坡度" :span="1">{{ areaRef.slope.toFixed(3) }}</el-descriptions-item>
+          <el-descriptions-item label="坡度" :span="1">{{ areaRef.slope.toFixed(3) }}度</el-descriptions-item>
           <el-descriptions-item label="方差" :span="1">{{ areaRef.variance.toFixed(3) }}</el-descriptions-item>
-          <el-descriptions-item label="最大坡度" :span="1">30</el-descriptions-item>
+          <el-descriptions-item label="最大坡度" :span="1">30度</el-descriptions-item>
           <el-descriptions-item label="最大方差" :span="1">13.75m</el-descriptions-item>
           <el-descriptions-item label="平缓区域" :span="1">22个</el-descriptions-item>
        
