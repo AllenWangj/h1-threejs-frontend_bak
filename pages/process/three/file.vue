@@ -5,10 +5,10 @@
       <span class="text-[16px] text-[#333] ml-[8px]">上传文件</span>
       <p class="text-[14px] text-[#999] ml-[8px]">（请上传项目相关的DWG、DXF或PDF文件，支持拖拽上传）</p>
     </div>
-    <div class="flex-1 flex px-[14px] py-[14px]">
+    <div class="flex-1 flex flex-col px-[14px] py-[14px] overflow-y-auto">
       <div
         v-loading="uploadLoading"
-        class="h-full flex-shrink-0 flex flex-col items-center justify-center w-[33.3%] min-w-[200px] border-[1px] border-[#adcdf7]"
+        class="h-[300px] flex-shrink-0 flex flex-col items-center justify-center w-[100%] min-w-[200px] border-[1px] border-[#adcdf7]"
       >
         <el-upload
           ref="uploadRef"

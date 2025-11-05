@@ -3,80 +3,62 @@
     <div class="flex-shrink-0 flex items-center h-[56px] px-[14px] border-b border-[#e4ecfd]">
       <span class="text-[16px] text-[#333] ml-[8px]">地址决策</span>
     </div>
-    <div class="flex-1 flex flex-col px-[14px] py-[14px] overflow-y-auto">
-      <el-form ref="ProjectFormRef" :model="formData" label-position="top" label-width="120px" class="w-full">
-        <div
-          class="w-full px-[14px] py-[10px] bg-[#fff] mb-[14px] rounded-[4px]"
-          v-for="item in formData.projectForm"
-          :key="item.field"
-        >
-          <el-form-item label="">
-            <template #label>
-              <div class="flex items-center">
-                <el-checkbox v-model="item.tag">{{ item.label }}</el-checkbox>
-              </div>
-            </template>
-            <ez-select
-              v-if="item.field === 'custom'"
-              v-model="item.value"
-              placeholder="请选择"
-              multiple
-              filterable
-              allow-create
-              default-first-option
-              :clearable="true"
-              style="width: 100%"
-              :options="item.options"
-            />
-            <ez-select
-              v-else-if="item.type === 'select'"
-              v-model="item.value"
-              placeholder="请选择"
-              :clearable="true"
-              style="width: 100%"
-              :options="item.options"
-            />
-            <ez-select
-              v-else-if="item.type === 'multiple'"
-              v-model="item.value"
-              placeholder="请选择"
-              :clearable="true"
-              multiple
-              style="width: 100%"
-              :options="item.options"
-            />
-            <div v-else-if="item.type === 'multiple-dynamic'" class="w-full">
-              <ez-select
-                v-model="item.value"
-                placeholder="请选择"
-                :clearable="true"
-                multiple
-                style="width: 100%"
-                :options="item.options"
-              />
-              <div v-for="(options, index) in item.valueConfig" :key="options.field">
-                <div v-if="item.value.includes(options.field)" class="flex items-center mt-[8px]">
-                  <div class="text-[#666] text-[14px] min-w-[60px] text-right mr-[15px]">
-                    {{ getArrayLabel(options.field, item.options) }}
-                  </div>
-                  <el-input v-model="options.value" oninput="value=value.replace(/[^\d]/g,'')" class="w-[200px]">
-                    <template #append>{{ options.unit }}</template>
-                  </el-input>
-                </div>
-              </div>
-            </div>
-          </el-form-item>
+
+    <div class="flex flex-1 overflow-hidden">
+      <div class="flex-grow-[1]">
+        <File />
+      </div>
+
+      <div class="flex-grow-[3] flex flex-col">
+        <div class="flex-shrink-0 flex items-center h-[56px] px-[14px] border-b border-[#e4ecfd]">
+          <img src="../../../assets/images/home/file-icon.svg" width="20" height="20" alt="" />
+          <span class="text-[16px] text-[#333] ml-[8px]">参数配置</span>
         </div>
-      </el-form>
-    </div>
-    <div class="flex items-center justify-center py-[10px]">
-      <el-button type="primary" :disabled="saveLoading" plain @click="handleReset">重置</el-button>
-      <el-button type="primary" :loading="saveLoading" @click="handleSave">保存</el-button>
-      <el-button type="primary" :loading="saveLoading" @click="handleGenerateSolution">生成方案</el-button>
+        <div class="flex-1 flex flex-col px-[14px] py-[14px] overflow-y-auto">
+          <el-form ref="ProjectFormRef" :model="formData" label-position="top" label-width="120px" class="w-full">
+            <div class="w-full px-[14px] py-[10px] bg-[#fff] mb-[14px] rounded-[4px]"
+              v-for="item in formData.projectForm" :key="item.field">
+              <el-form-item label="">
+                <template #label>
+                  <div class="flex items-center">
+                    <el-checkbox v-model="item.tag">{{ item.label }}</el-checkbox>
+                  </div>
+                </template>
+                <ez-select v-if="item.field === 'custom'" v-model="item.value" placeholder="请选择" multiple filterable
+                  allow-create default-first-option :clearable="true" style="width: 100%" :options="item.options" />
+                <ez-select v-else-if="item.type === 'select'" v-model="item.value" placeholder="请选择" :clearable="true"
+                  style="width: 100%" :options="item.options" />
+                <ez-select v-else-if="item.type === 'multiple'" v-model="item.value" placeholder="请选择" :clearable="true"
+                  multiple style="width: 100%" :options="item.options" />
+                <div v-else-if="item.type === 'multiple-dynamic'" class="w-full">
+                  <ez-select v-model="item.value" placeholder="请选择" :clearable="true" multiple style="width: 100%"
+                    :options="item.options" />
+                  <div v-for="(options, index) in item.valueConfig" :key="options.field">
+                    <div v-if="item.value.includes(options.field)" class="flex items-center mt-[8px]">
+                      <div class="text-[#666] text-[14px] min-w-[60px] text-right mr-[15px]">
+                        {{ getArrayLabel(options.field, item.options) }}
+                      </div>
+                      <el-input v-model="options.value" oninput="value=value.replace(/[^\d]/g,'')" class="w-[200px]">
+                        <template #append>{{ options.unit }}</template>
+                      </el-input>
+                    </div>
+                  </div>
+                </div>
+              </el-form-item>
+            </div>
+          </el-form>
+        </div>
+        <div class="flex items-center justify-center py-[10px]">
+          <el-button type="primary" :disabled="saveLoading" plain @click="handleReset">重置</el-button>
+          <el-button type="primary" :loading="saveLoading" @click="handleSave">保存</el-button>
+          <el-button type="primary" :loading="saveLoading" @click="handleGenerateSolution">生成方案</el-button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
+import File from './file.vue'
 import { getProjectSiteDetail, updateProjectSiteParams, generateProjectSitePlan } from '@/apis/project'
 
 const route = useRoute()

@@ -1,10 +1,10 @@
 <template>
     <div class="flex-shrink-0 flex flex-col w-[160px] flex-shrink-0 px-[14px] py-[20px] border-r border-[#adcdf7] sub-menu-sidebar">
-        <el-button type="primary" :class="{ 'is-active': isActiveTab === 1 }" @click="change(1)">
+        <!-- <el-button type="primary" :class="{ 'is-active': isActiveTab === 1 }" @click="change(1)">
             <img v-if="isActiveTab === 1" src="../../assets/images/home/shangchuan-2.svg" width="28" height="28" alt="">
             <img v-else src="../../assets/images/home/shangchuan-1.svg" width="28" height="28" alt="">
             <span class="ml-[8px] text-[16px]" :class="isActiveTab === 1 ? 'font-bold' : ''">上传文件</span>
-        </el-button>
+        </el-button> -->
         <el-button type="primary" :class="{ 'is-active': isActiveTab === 2 }" @click="change(2)">
             <img v-if="isActiveTab === 2" src="../../assets/images/home/canshu-2.svg" width="28" height="28" alt="">
             <img v-else src="../../assets/images/home/canshu-1.svg" width="28" height="28" alt="">
@@ -26,7 +26,7 @@ const props = defineProps({
     /** 1: 上传文件 2: 输入参数 3: 生产方案 */
     activeTab: {
         type: Number,
-        default: 1
+        default: 2
     }
 })
 
