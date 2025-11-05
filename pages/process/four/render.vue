@@ -7,7 +7,7 @@
         <!-- 下载方案 -->
         <el-button @click="downloadSolution" type="primary">导出方案</el-button>
           <el-button type="primary" @click="handleScenePane(false)">禁止拖动</el-button>
-        <el-button type="primary" @click="handleScenePane(true)">运行拖动</el-button>
+        <el-button type="primary" @click="handleScenePane(true)">允许拖动</el-button>
         <el-button type="primary" @click="handleSceneEnable(false)">关闭场景</el-button>
         <el-button type="primary" @click="handleSceneEnable(true)">开启场景</el-button>
         <el-button type="primary" @click="handleSceneScale(true)">允许缩放</el-button>

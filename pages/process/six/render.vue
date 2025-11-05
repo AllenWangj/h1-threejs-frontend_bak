@@ -8,6 +8,7 @@
         <el-button type="primary" @click="handleDeliveEvt">运输路线</el-button>
         <!-- 下载方案 -->
         <el-button @click="downloadSolution" type="primary">导出方案</el-button>
+        
       </div>
     </div>
   </div>

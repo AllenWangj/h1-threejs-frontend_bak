@@ -82,7 +82,7 @@ class BaseThree {
 
     }
     public handleSceneScale(state:boolean) {
-        this.controls!.enableRotate = state
+        this.controls!.enableZoom  = state
 
     }
 

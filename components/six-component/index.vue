@@ -1,5 +1,13 @@
 <template>
   <div ref="fullscreenContainer" class="w-[100%] h-[100%] ">
+    <div style="    position: absolute;left: 220px; top: 10px;">    
+      <el-button type="primary" @click="handleScenePane(false)">禁止拖动</el-button>
+        <el-button type="primary" @click="handleScenePane(true)">允许拖动</el-button>
+        <el-button type="primary" @click="handleSceneEnable(false)">关闭场景</el-button>
+        <el-button type="primary" @click="handleSceneEnable(true)">开启场景</el-button>
+        <el-button type="primary" @click="handleSceneScale(true)">允许缩放</el-button>
+        <el-button type="primary"  @click="handleSceneScale(false)">禁止缩放</el-button></div>
+
     <div ref="threeContainer" class="three-container"></div>
     <div class="toolbar-container">
 
@@ -1044,6 +1052,18 @@ function highlightMesh(mesh) {
       m.opacity = Math.max(0.15, (m.opacity || 1) * 0.4)
     }
   })
+}
+function handleScenePane(state:boolean) {
+  orbitControls!.enablePan = state
+}
+function handleSceneEnable(state:boolean) {
+  // processFour!.handleSceneEnable(state)
+  orbitControls!.enabled = state
+
+}
+function handleSceneScale(state:boolean) {
+  orbitControls!.enableZoom =state
+
 }
 </script>
 
