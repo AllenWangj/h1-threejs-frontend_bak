@@ -1,25 +1,4 @@
 <template>
-<<<<<<< HEAD
-    <div ref="container" class="w-full h-full relative">
-        <div style="position: absolute; top: 10px;left: 220px;">
-             <el-button type="primary" @click="handleScenePane(false)">禁止拖动</el-button>
-        <el-button type="primary" @click="handleScenePane(true)">允许拖动</el-button>
-        <el-button type="primary" @click="handleSceneEnable(false)">关闭场景</el-button>
-        <el-button type="primary" @click="handleSceneEnable(true)">开启场景</el-button>
-        <el-button type="primary" @click="handleSceneScale(true)">允许缩放</el-button>
-        <el-button type="primary"  @click="handleSceneScale(false)">禁止缩放</el-button>
-        </div>
-        <!-- 加载进度提示 -->
-        <div v-if="loading" class="loading-overlay">
-            <div class="loading-content">
-                <div class="loading-spinner"></div>
-                <h3>{{ loadingText }}</h3>
-                <div class="progress-bar">
-                    <div class="progress-fill" :style="{ width: loadingProgress + '%' }"></div>
-                </div>
-                <p class="progress-text">{{ loadingProgress }}%</p>
-            </div>
-=======
   <div ref="container" class="w-full h-full relative">
     <!-- 加载进度提示 -->
     <div v-if="loading" class="loading-overlay">
@@ -28,7 +7,6 @@
         <h3>{{ loadingText }}</h3>
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: loadingProgress + '%' }"></div>
->>>>>>> dev
         </div>
         <p class="progress-text">{{ loadingProgress }}%</p>
       </div>
@@ -63,23 +41,7 @@
           <span class="info-label">描述：</span>
           <span class="info-value">{{ selectedArea.description }}</span>
         </div>
-<<<<<<< HEAD
-           <div class="plan-detail">
- <el-descriptions title="位置信息" :column="2" >
-          <el-descriptions-item label="栅格坐标" :span="1">({{ areaRef.centerX }},{{ areaRef.centerY }})</el-descriptions-item>
-          <el-descriptions-item label="经纬度" :span="1">({{ areaRef.lon.toFixed(6) }},{{ areaRef.lat.toFixed(6) }})</el-descriptions-item>
-          <el-descriptions-item label="海拔" :span="1">{{ areaRef.elevation }}</el-descriptions-item>
-          <el-descriptions-item label="坡度" :span="1">{{ areaRef.slope.toFixed(3) }}度</el-descriptions-item>
-          <el-descriptions-item label="方差" :span="1">{{ areaRef.variance.toFixed(3) }}</el-descriptions-item>
-          <el-descriptions-item label="最大坡度" :span="1">30度</el-descriptions-item>
-          <el-descriptions-item label="最大方差" :span="1">13.75m</el-descriptions-item>
-          <el-descriptions-item label="平缓区域" :span="1">22个</el-descriptions-item>
-       
-        </el-descriptions>
-         </div>
-=======
       </div>
->>>>>>> dev
     </div>
   </div>
 </template>
@@ -596,41 +558,6 @@ async function init() {
       areaMarkers.push(marker)
       console.log(`✅ 添加测试标记: 位置=(${testPos.x}, ${testPos.y}, ${testPos.z})`)
     } else {
-<<<<<<< HEAD
-        // 只添加第一个推荐位置
-        const area = recommendedAreas[0]
-        const areaData = {
-            id: 1,
-            name: `推荐选址`,
-            lon: area.lon,
-            lat: area.lat,
-            radius: area.radius,
-            description: `平均坡度: ${area.slope.toFixed(3)}m, 高度方差: ${area.variance.toFixed(3)}m`,
-            elevation: area.elevation,
-            slope: area.slope,
-            variance: area.variance,
-            worldPos: area.worldPos
-        }
-        
-        console.log(`准备添加标记 ${areaData.name}:`, {
-            栅格坐标: `(${area.centerX}, ${area.centerY})`,
-            经纬度: `(${area.lon.toFixed(6)}, ${area.lat.toFixed(6)})`,
-            世界坐标: `(${area.worldPos.x.toFixed(3)}, ${area.worldPos.y.toFixed(3)}, ${area.worldPos.z.toFixed(3)})`,
-            海拔: `${area.elevation}m`,
-            坡度: `${area.slope.toFixed(3)}m`,
-            方差: `${area.variance.toFixed(3)}m`
-        })
-            areaRef.value = area
-        const marker = createAreaMarker(areaData)
-        marker.position.set(area.worldPos.x, area.worldPos.y + 0.05, area.worldPos.z)
-        marker.userData = { clickable: true, areaData }
-        marker.renderOrder = 999
-        
-        scene.add(marker)
-        areaMarkers.push(marker)
-
-        console.log(`✅ 已添加推荐选址: 海拔=${area.elevation}m, 经度=${area.lon.toFixed(6)}°E, 纬度=${area.lat.toFixed(6)}°N, 坡度=${area.slope.toFixed(3)}m, 方差=${area.variance.toFixed(3)}m`)
-=======
       // 只添加第一个推荐位置
       const area = recommendedAreas[0]
       const areaData = {
@@ -666,7 +593,6 @@ async function init() {
       console.log(
         `✅ 已添加推荐选址: 海拔=${area.elevation}m, 经度=${area.lon.toFixed(6)}°E, 纬度=${area.lat.toFixed(6)}°N, 坡度=${area.slope.toFixed(3)}m, 方差=${area.variance.toFixed(3)}m`
       )
->>>>>>> dev
     }
 
     console.log(`总共添加了 ${areaMarkers.length} 个选址标记到场景中`)
