@@ -144,7 +144,7 @@ async function fetchDetail() {
       projectId: projectId.value
     })
     console.log('获取内部布局详情', data)
-    formData.value.projectForm = (data.params || []).map((item) => {
+    formData.value.projectForm = (data.params || defData).map((item) => {
       item.label = LABLE_MAP[item.field] || item.field
       item.options = DICT_MAP.value[item.field] || []
       return item
@@ -164,4 +164,62 @@ onMounted(async () => {
   }
   await getDictMap([BuildingFunctional, BuildingBoundary, BuildingScale, ModuleLibrary])
 })
+
+
+const defData = [
+    {
+        "tag": true,
+        "type": "select",
+        "field": "functional",
+        "label": "建筑功能",
+        "value": "",
+        "options": [],
+        "valueConfig": null
+    },
+    {
+        "tag": true,
+        "type": "multiple",
+        "field": "boundary",
+        "label": "建筑边界",
+        "value": [],
+        "options": [],
+        "valueConfig": null
+    },
+    {
+        "tag": true,
+        "type": "multiple",
+        "field": "scale",
+        "label": "建筑规模",
+        "value": [],
+        "options": [],
+        "valueConfig": null
+    },
+    {
+        "tag": true,
+        "type": "select",
+        "field": "layout",
+        "label": "整体布局",
+        "value": "",
+        "options": [],
+        "valueConfig": null
+    },
+    {
+        "tag": true,
+        "type": "multiple",
+        "field": "moduleLibrary",
+        "label": "标准化功能模块",
+        "value": [],
+        "options": [],
+        "valueConfig": null
+    },
+    {
+        "tag": true,
+        "type": "select",
+        "field": "custom",
+        "label": "自定义参数",
+        "value": [],
+        "options": [],
+        "valueConfig": null
+    }
+]
 </script>

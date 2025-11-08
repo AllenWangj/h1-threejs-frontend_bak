@@ -162,7 +162,7 @@ async function fetchDetail() {
       projectId: projectId.value
     })
     console.log('获取结构设计详情', data)
-    formData.value.projectForm = (data.params || []).map((item) => {
+    formData.value.projectForm = (data.params || defData).map((item) => {
       item.label = LABLE_MAP[item.field] || item.field
       item.options = DICT_MAP.value[item.field] || []
       return item
@@ -182,4 +182,74 @@ onMounted(async () => {
   }
   await getDictMap([LoadCases, BuildType, Material])
 })
+
+
+const defData = [
+  {
+    "tag": true,
+    "type": "multiple-dynamic",
+    "field": "loadCases",
+    "label": "荷载工况",
+    "value": [],
+    "options": [],
+    "valueConfig": [
+      {
+        "type": "input",
+        "unit": "级",
+        "field": "1",
+        "value": "",
+        "valueConfig": null
+      },
+      {
+        "type": "input",
+        "unit": "度",
+        "field": "2",
+        "value": "",
+        "valueConfig": null
+      }
+    ]
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "buildingLayout",
+    "label": "建筑布局",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "multiple",
+    "field": "buildType",
+    "label": "构建类型",
+    "value": [],
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "material",
+    "label": "材料参数",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "targetWeight",
+    "label": "目标权重",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "custom",
+    "label": "自定义参数",
+    "value": [],
+    "options": [],
+    "valueConfig": null
+  }
+]
 </script>

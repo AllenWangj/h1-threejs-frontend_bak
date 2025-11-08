@@ -164,7 +164,7 @@ async function fetchDetail() {
       projectId: projectId.value
     })
     console.log('获取地址决策详情', data)
-    formData.value.projectForm = (data.params || []).map((item) => {
+    formData.value.projectForm = (data.params || defData).map((item) => {
       item.label = LABLE_MAP[item.field] || item.field
       item.options = DICT_MAP.value[item.field] || []
       item.type = 'select'
@@ -188,4 +188,75 @@ onMounted(async () => {
   }
   await getDictMap([Terrain, ClimateRegion, Transportation, Condition, Country])
 })
+
+
+const defData = [
+  {
+    "tag": true,
+    "type": "multiple-dynamic",
+    "field": "terrain",
+    "label": "地形条件",
+    "value": [],
+    "options": [],
+    "valueConfig": [
+      {
+        "type": "input",
+        "unit": "mm",
+        "field": "1",
+        "value": "",
+        "valueConfig": null
+      }
+    ]
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "climateRegion",
+    "label": "气候类型",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "traffic",
+    "label": "交通条件",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "infrastructure",
+    "label": "基础设施",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "geological",
+    "label": "地质条件",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "country",
+    "label": "所在国限制",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "custom",
+    "label": "自定义参数",
+    "value": [],
+    "options": [],
+    "valueConfig": null
+  }
+]
+
 </script>

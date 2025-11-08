@@ -153,7 +153,7 @@ async function fetchDetail() {
       projectId: projectId.value
     })
     console.log('获取部件生产详情', data)
-    formData.value.projectForm = (data.params || []).map((item) => {
+    formData.value.projectForm = (data.params || defData).map((item) => {
       item.label = LABLE_MAP[item.field] || item.field
       item.options = DICT_MAP.value[item.field] || []
       return item
@@ -173,4 +173,56 @@ onMounted(async () => {
   }
   await getDictMap([BuildingFunctional, StructuralPlan, ComponentSpecifications])
 })
+
+const defData = [
+    {
+        "tag": true,
+        "type": "select",
+        "field": "layout",
+        "label": "建筑布局",
+        "options": [],
+        "valueConfig": null
+    },
+    {
+        "tag": true,
+        "type": "select",
+        "field": "structuralPlan",
+        "label": "结构方案",
+        "options": [],
+        "valueConfig": null
+    },
+    {
+        "tag": true,
+        "type": "select",
+        "field": "componentLocation",
+        "label": "构部件位置",
+        "options": [],
+        "valueConfig": null
+    },
+    {
+        "tag": true,
+        "type": "multiple-dynamic",
+        "field": "componentSpecifications",
+        "label": "构部件规格",
+        "value": [],
+        "options": [],
+        "valueConfig": [
+            {
+                "type": "input",
+                "unit": "kg",
+                "field": "1",
+                "value": ""
+            }
+        ]
+    },
+    {
+        "tag": true,
+        "type": "select",
+        "field": "custom",
+        "label": "自定义参数",
+        "value": [],
+        "options": [],
+        "valueConfig": null
+    }
+]
 </script>

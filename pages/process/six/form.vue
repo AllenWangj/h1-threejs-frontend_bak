@@ -142,7 +142,7 @@ async function fetchDetail() {
       projectId: projectId.value
     })
     console.log('获取运输保障详情', data)
-    formData.value.projectForm = (data.params || []).map((item) => {
+    formData.value.projectForm = (data.params || defData).map((item) => {
       item.label = LABLE_MAP[item.field] || item.field
       item.options = DICT_MAP.value[item.field] || []
       return item
@@ -162,4 +162,57 @@ onMounted(async () => {
   }
   await getDictMap([Transportation, LoadingCapacity, Time])
 })
+
+
+const defData = [
+  {
+    "tag": true,
+    "type": "select",
+    "field": "transportation",
+    "label": "运载方式",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "loadingCapacity",
+    "label": "装载量",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "multiple-dynamic",
+    "field": "shippingTime",
+    "label": "运输时间",
+    "value": [],
+    "options": [],
+    "valueConfig": [
+      {
+        "type": "input",
+        "unit": "天",
+        "field": "2",
+        "value": "",
+        "valueConfig": null
+      },
+      {
+        "type": "input",
+        "unit": "小时",
+        "field": "1",
+        "value": "",
+        "valueConfig": null
+      }
+    ]
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "custom",
+    "label": "自定义参数",
+    "value": [],
+    "options": [],
+    "valueConfig": null
+  }
+]
 </script>

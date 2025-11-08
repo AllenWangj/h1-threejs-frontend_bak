@@ -148,7 +148,7 @@ async function fetchDetail() {
       projectId: projectId.value
     })
     console.log('获取现场组装详情', data)
-    formData.value.projectForm = (data.params || []).map((item) => {
+    formData.value.projectForm = (data.params || defData).map((item) => {
       item.label = LABLE_MAP[item.field] || item.field
       item.options = DICT_MAP.value[item.field] || []
       return item
@@ -168,4 +168,89 @@ onMounted(async () => {
   }
   await getDictMap([AssembleScale, Time, Workers, Machinery])
 })
+
+const defData = [
+  {
+    "tag": true,
+    "type": "select",
+    "field": "overallSize",
+    "label": "总体规模",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "multiple-dynamic",
+    "field": "completionTime",
+    "label": "完成时间",
+    "value": [],
+    "options": [],
+    "valueConfig": [
+      {
+        "type": "input",
+        "unit": "天",
+        "field": "2",
+        "value": "",
+        "valueConfig": null
+      },
+      {
+        "type": "input",
+        "unit": "小时",
+        "field": "1",
+        "value": "",
+        "valueConfig": null
+      }
+    ]
+  },
+  {
+    "tag": true,
+    "type": "multiple-dynamic",
+    "field": "worker",
+    "label": "工人数量",
+    "value": [],
+    "options": [],
+    "valueConfig": [
+      {
+        "type": "input",
+        "unit": "人",
+        "field": "1",
+        "value": "",
+        "valueConfig": null
+      }
+    ]
+  },
+  {
+    "tag": true,
+    "type": "multiple-dynamic",
+    "field": "machinery",
+    "label": "机械数量",
+    "value": [],
+    "options": [],
+    "valueConfig": [
+      {
+        "type": "input",
+        "unit": "台",
+        "field": "1",
+        "value": "",
+        "valueConfig": null
+      },
+      {
+        "type": "input",
+        "unit": "台",
+        "field": "2",
+        "value": "",
+        "valueConfig": null
+      }
+    ]
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "custom",
+    "label": "自定义参数",
+    "value": [],
+    "options": [],
+    "valueConfig": null
+  }
+]
 </script>

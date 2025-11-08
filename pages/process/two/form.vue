@@ -160,7 +160,7 @@ async function fetchDetail() {
       projectId: projectId.value
     })
     console.log('获取规划布局详情', data)
-    formData.value.projectForm = (data.params || []).map((item) => {
+    formData.value.projectForm = (data.params || defData).map((item) => {
       item.label = LABLE_MAP[item.field] || item.field
       item.options = DICT_MAP.value[item.field] || []
       return item
@@ -180,4 +180,64 @@ onMounted(async () => {
   }
   await getDictMap([ClimateRegion, FunctionalDivision, SchemaType, BuildingFunctional])
 })
+
+
+
+const defData = [
+  {
+    "tag": true,
+    "type": "select",
+    "field": "climateRegion",
+    "label": "典型目标区域",
+    "options": [],
+    "valueConfig": [
+      {
+        "type": "input",
+        "field": "1",
+        "value": ""
+      }
+    ]
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "land",
+    "label": "土地规划",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "functionalDivision",
+    "label": "功能区划",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "schemaType",
+    "label": "模式类型",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "select",
+    "field": "functionalBuilding",
+    "label": "功能模块建筑",
+    "options": [],
+    "valueConfig": null
+  },
+  {
+    "tag": true,
+    "type": "textarea",
+    "field": "custom",
+    "label": "自定义参数",
+    "value": "",
+    "options": [],
+    "valueConfig": null
+  }
+]
 </script>
