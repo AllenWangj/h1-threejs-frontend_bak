@@ -182,11 +182,11 @@ async function fetchDetail() {
 }
 
 onMounted(async () => {
+  await getDictMap([Terrain, ClimateRegion, Transportation, Condition, Country])
   if (route.query.projectId) {
     projectId.value = route.query.projectId as string
     fetchDetail()
   }
-  await getDictMap([Terrain, ClimateRegion, Transportation, Condition, Country])
 })
 
 
