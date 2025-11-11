@@ -155,41 +155,14 @@ const schemeList = ref<any[]>([])
 // 当前激活得方案id
 // const currentAcviteScheme = ref('')
 watch(() => props.planId, (newValue) => {
+  
   planDetail({ id: newValue,type:6 }).then(res => {
     const { data: { layouts } } = res
     handleLoadInitModel(layouts)
     // renderPlanLayout!.loadSceneModels(layouts)
   })
 })
-// const tapScheme = (item) => {
-//   console.log('点击了运输保障方案', item)
-//   planDetail({ planId:  item.id }).then(res => {
-//     const { data: { layouts } } = res
-//     handleLoadInitModel(layouts)
-//     // renderPlanLayout!.loadSceneModels(layouts)
-//   })
-// }
-// 获取详情
-// async function fetchDetail() {
-//   try {
-//     const { data } = await getPackingDetail({
-//       projectId: projectId.value
-//     })
-//     schemeList.value = data.plans || []
-//     if (schemeList.value.length) {
-//       currentAcviteScheme.value = schemeList.value[0].id
-//       planDetail({ planId:  currentAcviteScheme.value }).then(res => {
-//     const { data: { layouts } } = res
-//     handleLoadInitModel(layouts)
-//     // renderPlanLayout!.loadSceneModels(layouts)
-//   })
-//     }
-//     console.log('获取运输保障详情', data)
-//   } catch (error) {
-//     console.error('获取运输保障详情失败', error)
-//   } finally {
-//   }
-// }
+
 const threeContainer = ref(null)
 let scene, containerScene, camera, renderer, orbitControls, dragControls
 const containerSize = { x: 96 * 0.025, y: 96 * 0.025, z: 480 * 0.025 }
@@ -208,134 +181,10 @@ onMounted(() => {
 
   // 窗口尺寸变化
   window.addEventListener('resize', onResize)
-
   window.addEventListener('keydown', onKeyDown)
-  // 
-  // const data = []
-  // // for(let i = )
-  // let x = 7.874015808105469
-  // let y = 7.874015808105469
-  // let z = 228.34645080566406
-  // let xPos = -44.062992095947266
-  // let yPos = -44.062992095947266
-  // let zPos = -125.82677459716797
-
-  // for (let i = 0; i < 12; i++) {
-  //   for (let j = 0; j < 2; j++) {
-  //     for (let k = 0; k < 3; k++) {
-  //       data.push({
-  //         x: xPos + i * x,
-  //         y: yPos + k * y,
-  //         z: zPos + z * j,
-  //         code: '10664'
-  //       })
-  //     }
-  //   }
-  // }
-
-  // let z1 = 110.23622131347656
-  // let xPos1 = -44.062992095947266
-  // let yPos1 = -20.25252802840201
-  // let zPos1 = -185.17769140029236
-  // for (let i = 0; i < 12; i++) {
-  //   for (let j = 0; j < 3; j++) {
-  //     for (let k = 0; k < 2; k++) {
-  //       data.push({
-  //         x: xPos1 + i * x,
-  //         y: yPos1 + k * y,
-  //         z: zPos1 + z1 * j,
-  //         code: '10675'
-  //       })
-  //     }
-  //   }
-  // }
-
-  // let z2 = 15.748031616210938
-  // let xPos2 = -44.062992095947266
-  // let yPos2 = -44.062992095947266
-  // let zPos2 = 221.65679950905394
-
-  // for (let i = 0; i < 12; i++) {
-  //   for (let j = 0; j < 1; j++) {
-  //     for (let k = 0; k < 2; k++) {
-  //       data.push({
-  //         x: xPos2 + i * x,
-  //         y: yPos2 + k * y,
-  //         z: zPos2 + z2 * j,
-  //         code: '10662'
-  //       })
-  //     }
-  //   }
-  // }
-
-  // /*
-  // : 3.1496062278770296, y: 4.724409580230713, z: 110.23622131347656}
-  // */
-
-  // let x3 = 3.1496062278770296
-  // let y3 = 4.724409580230713
-
-  // let z3 = 110.23622131347656
-  // let xPos3 = -46.425196886061485
-  // let yPos3 = -21.842512493913432
-  // let zPos3 = 145.6196798877915
-
-  // for (let i = 0; i < 30; i++) {
-  //   for (let j = 0; j < 1; j++) {
-  //     for (let k = 0; k < 3; k++) {
-  //       data.push({
-  //         x: xPos3 + i * x3,
-  //         y: yPos3 + k * y3,
-  //         z: zPos3 + j * z3,
-  //         code: '10629'
-  //       })
-  //     }
-  //   }
-  // }
-
-  // let xPos4 = -46.425196886061485
-  // let yPos4 = -6.0734851066986835
-  // let zPos4 = -184.88188934326172
-  // for (let i = 0; i < 15; i++) {
-  //   for (let j = 0; j < 4; j++) {
-  //     for (let k = 0; k < 3; k++) {
-  //       data.push({
-  //         x: xPos4 + i * x3,
-  //         y: yPos4 + k * y3,
-  //         z: zPos4 + j * z3,
-  //         code: '10629'
-  //       })
-  //     }
-  //   }
-  // }
-
-  // let xPos5 = 3.330709695783071
-  // let yPos5 = -3.3753340537627423
-  // let zPos5 = -185.17769140029236
-  // for (let i = 0; i < 6; i++) {
-  //   for (let j = 0; j < 3; j++) {
-  //     for (let k = 0; k < 2; k++) {
-  //       data.push({
-  //         x: xPos5 + i * x,
-  //         y: yPos5 + k * y,
-  //         z: zPos5 + z1 * j,
-  //         code: '10675'
-  //       })
-  //     }
-  //   }
-  // }
-  // console.log("data",data)
-  // handleLoadInitModel(data)
-  //   /**
-  //    * {
-  //   "x": 7.874015808105469,
-  //   "y": 7.874015808105469,
-  //   "z": 110.23622131347656
-  // }
-  //    * */
-  //   console.log('data', data)
+  
   if (props.planId != -1) {
-    planDetail({ planId: props.planId }).then(res => {
+    planDetail({ id: props.planId }).then(res => {
       const { data: { layouts } } = res
       handleLoadInitModel(layouts)
       // renderPlanLayout!.loadSceneModels(layouts)

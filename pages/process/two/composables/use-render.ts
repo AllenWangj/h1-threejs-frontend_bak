@@ -161,7 +161,7 @@ class RenderPlanLayout extends BaseThree {
   public async loadSceneModels(data: any): Promise<void> {
     console.log("data",data)
     this.handleClearnJunk(this.wrapper)
-    // debugger
+    // 
     this.loadDefaultScene()
         try {
       // 1. 提取所有模型的 code
