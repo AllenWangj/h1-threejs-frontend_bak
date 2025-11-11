@@ -261,9 +261,10 @@ const defData = [
   },
   {
     "tag": true,
-    "type": "select",
+    "type": "multiple",
     "field": "functionalBuilding",
     "label": "功能模块建筑",
+    "value": [],
     "options": [],
     "valueConfig": null
   },

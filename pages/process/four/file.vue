@@ -128,6 +128,13 @@ function createdUploadFile() {
    * @param {File} file - 上传的文件对象
    */
   const uploadFile = (file: any) => {
+    const isPDF = file.name.includes('.pdf')
+    const isDWG = file.name.includes('.dwg')
+    const isDXF = file.name.includes('.dxf')
+    if (!isPDF && !isDWG && !isDXF) {
+      ElMessage.error('请上传PDF、DWG或DXF文件')
+      return false
+    }
     currentFile.value = file.name
     submitFile(file)
   }
