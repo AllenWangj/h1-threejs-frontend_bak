@@ -342,6 +342,7 @@ function createdUploadFile() {
   color: #ffffff;
   line-height: 33px;
   margin-left: auto;
+  cursor: pointer;
 
   span {
     margin-left: 10px;

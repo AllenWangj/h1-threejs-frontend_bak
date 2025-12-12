@@ -68,7 +68,7 @@
         </div>
       </div>
     </div>
-    <div class="relative flex-1 ml-[118px] home-background" v-loading="detailLoading">
+    <div class="relative flex-1 ml-[118px] home-background" v-loading="detailLoading" element-loading-background="rgba(0,0,0,0.5)">
       <div
         v-for="item in projectDetailList"
         :key="item.id"
@@ -149,7 +149,7 @@
               :class="projectForm.types.includes(type.id) ? 'is-active' : ''"
               @click="handleSelectType(type.id)"
             >
-              <img :src="type.src" alt="" width="101" height="101" />
+              <img :src="type.icon" alt="" width="101" height="101" />
               <span class="text-[13px]">{{ type.name }}</span>
             </div>
             <!-- 占位 -->
@@ -175,6 +175,14 @@ import ProjectStep4 from '../../assets/images/home/icon-project-step-4.png'
 import ProjectStep5 from '../../assets/images/home/icon-project-step-5.png'
 import ProjectStep6 from '../../assets/images/home/icon-project-step-6.png'
 import ProjectStep7 from '../../assets/images/home/icon-project-step-7.png'
+
+import IconProjectItem1 from '../../assets/images/home/icon-project-item-1.png'
+import IconProjectItem2 from '../../assets/images/home/icon-project-item-2.png'
+import IconProjectItem3 from '../../assets/images/home/icon-project-item-3.png'
+import IconProjectItem4 from '../../assets/images/home/icon-project-item-4.png'
+import IconProjectItem5 from '../../assets/images/home/icon-project-item-5.png'
+import IconProjectItem6 from '../../assets/images/home/icon-project-item-6.png'
+import IconProjectItem7 from '../../assets/images/home/icon-project-item-7.png'
 
 import { getProjectList, createProject, removeProject, getProjectDetail, updateProject } from '~~/apis/project'
 import dayjs from 'dayjs'
@@ -270,42 +278,49 @@ const typesList = [
     id: 1,
     name: '选址决策',
     src: ProjectStep1,
+    icon: IconProjectItem1,
     path: '/process/one'
   },
   {
     id: 2,
     name: '规划布局',
     src: ProjectStep2,
+    icon: IconProjectItem2,
     path: '/process/two'
   },
   {
     id: 3,
     name: '内部布局',
     src: ProjectStep3,
+    icon: IconProjectItem3,
     path: '/process/three'
   },
   {
     id: 4,
     name: '结构设计',
     src: ProjectStep4,
+    icon: IconProjectItem4,
     path: '/process/four'
   },
   {
     id: 5,
     name: '部件生产',
     src: ProjectStep5,
+    icon: IconProjectItem5,
     path: '/process/five'
   },
   {
     id: 6,
     name: '运输保障',
     src: ProjectStep6,
+    icon: IconProjectItem6,
     path: '/process/six'
   },
   {
     id: 7,
     name: '现场组装',
     src: ProjectStep7,
+    icon: IconProjectItem7,
     path: '/process/seven'
   }
 ]
@@ -679,8 +694,10 @@ onMounted(() => {
     }
 
     .add-project-type-item.is-active {
-      background: #398eff;
-      border: 1px solid #398eff;
+      background: #114e8e;
+      box-shadow: inset 0px 0px 27px 0px #0796fd;
+      border-radius: 6px;
+      border: 1px solid #3a78c0;
     }
   }
 
@@ -711,7 +728,12 @@ onMounted(() => {
       bottom: 0;
       border-radius: 16px; /* 继承父元素圆角 */
       padding: 2px; /* 边框宽度 */
-      background: linear-gradient(180deg, rgba(185, 221, 255, 1), rgba(65, 158, 255, 1), rgba(185, 221, 255, 1)); /* 渐变样式 */
+      background: linear-gradient(
+        180deg,
+        rgba(185, 221, 255, 1),
+        rgba(65, 158, 255, 1),
+        rgba(185, 221, 255, 1)
+      ); /* 渐变样式 */
       -webkit-mask:
         linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
