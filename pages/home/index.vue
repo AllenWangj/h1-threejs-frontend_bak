@@ -223,6 +223,7 @@ const handleStepClick = (path, status) => {
 
 // 搜索项目
 const handleSearchProject = () => {
+  if (!searchText.value.trim()) return
   fetchProjectList()
 }
 
