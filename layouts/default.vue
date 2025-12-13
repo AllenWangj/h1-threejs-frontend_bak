@@ -33,10 +33,11 @@ const stepNameMap = {
   '/process/four': '结构设计',
   '/process/five': '部件生产',
   '/process/six': '运输保障',
-  '/process/seven': '现场组装'
+  '/process/seven': '现场组装',
+  '/model-library': '模型库'
 }
 watchEffect(() => {
-  showBreadcrumb.value = route.path.includes('/process/')
+  showBreadcrumb.value = route.path.includes('/process/') || route.path === '/model-library'
   const currentProjectCache = JSON.parse(sessionStorage.getItem('currentProject') || '{}')
   homePageName.value = currentProjectCache.name || '首页'
   const key = Object.keys(stepNameMap).find((key) => route.path.includes(key))

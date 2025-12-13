@@ -114,7 +114,7 @@
           </div>
         </div>
       </div>
-      <div class="h-[50%] w-[25%] min-w-[250px]">
+      <div class="h-[50%] w-[25%] min-w-[250px]" @click="handleModelLibraryClick()">
         <div class="home-main-item">
           <div class="relative h-[100%]">
             <img class="home-main-item-bg" src="../../assets/images/home/icon-project-step-bg.png" alt="" />
@@ -186,7 +186,6 @@ import IconProjectItem7 from '../../assets/images/home/icon-project-item-7.png'
 
 import { getProjectList, createProject, removeProject, getProjectDetail, updateProject } from '~~/apis/project'
 import dayjs from 'dayjs'
-import path from 'path'
 
 definePageMeta({
   permissions: 'home'
@@ -219,6 +218,10 @@ const handleStepClick = (path, status) => {
     return
   }
   router.push({ path, query: { projectId: currentProject.value.id } })
+}
+
+const handleModelLibraryClick = () => {
+  router.push({ path: '/model-library' })
 }
 
 // 搜索项目
