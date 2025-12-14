@@ -6,11 +6,12 @@
       <div v-if="showBreadcrumb" class="px-[72px] pb-[10px]">
         <el-breadcrumb :separator-icon="ArrowRight">
           <el-breadcrumb-item :to="{ path: '/' }">{{ homePageName }}</el-breadcrumb-item>
+          <el-breadcrumb-item v-if="listPageName" :to="{ path: listPagePath, query: listPageQuery }">{{ listPageName }}</el-breadcrumb-item>
           <el-breadcrumb-item disabled>{{ detailPageName }}</el-breadcrumb-item>
         </el-breadcrumb>
       </div>
       <el-main class="flex p-0 mt-[10px]">
-        <div class="flex-1 flex-col flex shadow-sm min-w-[1000px] overflow-auto px-[32px] pt-0 pb-[20px]">
+        <div class="flex-1 flex-col flex shadow-sm min-w-[1000px] overflow-auto">
           <slot />
         </div>
       </el-main>
@@ -26,7 +27,11 @@ const route = useRoute()
 const showBreadcrumb = ref(false)
 const homePageName = ref('')
 const detailPageName = ref('')
+const listPageName = ref('')
+const listPagePath = ref('')
+const listPageQuery = ref({})
 const stepNameMap = {
+  '/process/list-one': '地块列表',
   '/process/one': '地址决策',
   '/process/two': '规划布局',
   '/process/three': '内部布局',
@@ -42,6 +47,15 @@ watchEffect(() => {
   homePageName.value = currentProjectCache.name || '首页'
   const key = Object.keys(stepNameMap).find((key) => route.path.includes(key))
   detailPageName.value = stepNameMap[key] || ''
+  if (route.path.includes('/process/one')) {
+    listPageName.value = stepNameMap['/process/list-one'] || ''
+    listPagePath.value = '/process/list-one'
+    listPageQuery.value  = route.query
+  } else {
+    listPageName.value = ''
+    listPagePath.value = ''
+    listPageQuery.value = {}
+  }
 })
 </script>
 

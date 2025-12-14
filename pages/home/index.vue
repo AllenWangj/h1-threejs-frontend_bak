@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full flex pt-[70px] px-[6%]">
+  <div class="w-full h-full flex pt-[70px] px-[6%] pb-[20px]">
     <!-- 项目列表 -->
     <div class="w-[436px] rounded-[4px] flex flex-col items-center home-side-bar">
       <div class="w-[100%] side-bar-search-box">
@@ -283,7 +283,7 @@ const typesList = [
     name: '选址决策',
     src: ProjectStep1,
     icon: IconProjectItem1,
-    path: '/process/one'
+    path: '/process/list-one'
   },
   {
     id: 2,
