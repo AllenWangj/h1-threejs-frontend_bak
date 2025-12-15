@@ -92,7 +92,7 @@ class BaseThree {
   private initScene(): void {
     this.scene = new Three.Scene()
     // this.scene.background = new THREE.Color(0x87ceeb)
-    this.scene.background = new Three.Color(0x87ceeb)
+    this.scene.background = new Three.Color(0x88CEEB )
   }
 
   /**

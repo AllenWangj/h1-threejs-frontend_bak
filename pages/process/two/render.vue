@@ -9,101 +9,114 @@
     <div v-loading="loading" class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div class="plan-and-plan_tree" ref="renderRef"></div>
       <div class="opt">
-        <el-button type="primary" style="width: 100px" @click="handllePlanRoatationEvt">移动</el-button>
-        <el-button type="primary" style="width: 100px" @click="handllePlanScaleEvt">旋转</el-button>
-        <el-button type="primary" style="width: 100px" @click="handllePlanRestEvt">复位</el-button>
-        <el-button type="primary" style="width: 100px" @click="handlleSaveEvt">保存</el-button>
-        <el-button type="primary" style="width: 100px" @click="handlleOtherSaveEvt">另保存</el-button>
-        <el-button @click="downloadSolution" type="primary">导出方案</el-button>
+        <div class="opt-content">
+          <p class="opt-btn" @click="handllePlanRestEvt">
+            <span>复位</span>
+          </p>
+          <p class="opt-btn" @click="handllePlanRoatationEvt">
+            <span>移动</span>
+          </p>
+          <p class="opt-btn" @click="handllePlanScaleEvt">
+            <span>旋转</span>
+          </p>
+          <!-- <p class="opt-btn">
+            <span>复位</span>
+          </p> -->
+        </div>
+        <el-button style="background-color: #3A78C0;width: 118px;border-radius: 30px;" type="primary" @click="handlleOtherSaveEvt"
+          size="large">另保存</el-button>
+        <el-button style="background-color: #3A78C0;width: 118px;border-radius: 30px;" type="primary" @click="handlleSaveEvt"
+          size="large">保存</el-button>
+        <el-button style="background-color: #3A78C0;width: 110px;border-radius: 30px;background: linear-gradient( 180deg, #C7EEFF 0%, #4FF396 100%);color:#09488A" type="primary" @click="downloadSolution"
+          size="large">导出方案</el-button>
       </div>
       <div class="model-list">
-        <el-popover class="box-item" placement="left">
-          <template #reference>
-            <el-button type="primary" style="width: 100px;margin-bottom: 10px;margin-left: 0px;"
-              @click="handleAddModel('02_75_10137')">建筑一</el-button>
-          </template>
-          <img src="/assets/02_75_10137.png" />
-        </el-popover>
-        <el-popover class="box-item" placement="left">
-          <template #reference>
-            <el-button type="primary" style="width: 100px;margin-bottom: 10px;margin-left: 0px;"
-              @click="handleAddModel('02_75_10110')">建筑二</el-button>
-          </template>
-          <img src="/assets/02_75_10137.png" />
-        </el-popover>
-        <el-popover class="box-item" placement="left">
-          <template #reference>
-            <el-button type="primary" style="width: 100px;margin-bottom: 10px;margin-left: 0px;"
-              @click="handleAddModel('02_75_10106')">建筑三</el-button>
-          </template>
-          <img src="/assets/02_75_10106.png" />
-        </el-popover>
-        <el-popover class="box-item" placement="left">
-          <template #reference>
-            <el-button type="primary" style="width: 100px;margin-bottom: 10px;margin-left: 0px;"
-              @click="handleAddModel('02_75_10145')">建筑四</el-button>
+        <ModelWrapper  @click="handleAddModel('02_75_10137')">
+           <img  :src="image1" />
+           <p style="margin:0px;text-align:center;color:#fff;font-weight:400px;margin-top:3px;font-size:18px">建筑一</p>
+        </ModelWrapper>
 
-          </template>
-          <img src="/assets/02_75_10145.png" />
-        </el-popover>
-        <el-popover class="box-item" placement="left">
-          <template #reference>
-            <el-button type="primary" style="width: 100px;margin-bottom: 10px;margin-left: 0px;"
-              @click="handleAddModel('02_75_10140')">建筑五</el-button>
-          </template>
-          <img src="/assets/02_75_10140.png" />
-        </el-popover>
-        <el-popover class="box-item" placement="left">
-          <template #reference>
-            <el-button type="primary" style="width: 100px;margin-bottom: 10px;margin-left: 0px;"
-              @click="handleAddModel('02_75_10126')">建筑六</el-button>
-          </template>
-          <img src="/assets/02_75_10126.png" />
-        </el-popover>
-        <el-popover class="box-item" placement="left">
-          <template #reference>
-            <el-button type="primary" style="width: 100px;margin-bottom: 10px;margin-left: 0px;"
-              @click="handleAddModel('02_75_10125')">建筑七</el-button>
-          </template>
-          <img src="/assets/02_75_10125.png" />
-        </el-popover>
-        <!-- <el-button type="primary" style="width: 100px;margin-bottom: 10px;margin-left: 0px;" @click="handleAddModel('02_75_10137')">建筑一</el-button> -->
+                <ModelWrapper   @click="handleAddModel('02_75_10110')">
+           <img  :src="image2" />
+           <p style="margin:0px;text-align:center;color:#fff;font-weight:400px;margin-top:3px;font-size:18px">建筑二</p>
+        </ModelWrapper>
+
+        <ModelWrapper   @click="handleAddModel('02_75_10106')">
+           <img  :src="image3" />
+           <p style="margin:0px;text-align:center;color:#fff;font-weight:400px;margin-top:3px;font-size:18px">
+            建筑三</p>
+        </ModelWrapper>
+
+
+         <ModelWrapper   @click="handleAddModel('02_75_10145')">
+           <img  :src="image4" />
+           <p style="margin:0px;text-align:center;color:#fff;font-weight:400px;margin-top:3px;font-size:18px">
+            建筑四</p>
+        </ModelWrapper>
+        
+
+          <ModelWrapper   @click="handleAddModel('02_75_10140')">
+           <img  :src="image5" />
+           <p style="margin:0px;text-align:center;color:#fff;font-weight:400px;margin-top:3px;font-size:18px">
+            建筑五</p>
+        </ModelWrapper>
+
+         <ModelWrapper   @click="handleAddModel('02_75_10126')">
+           <img  :src="image6" />
+           <p style="margin:0px;text-align:center;color:#fff;font-weight:400px;margin-top:3px;font-size:18px">
+            建筑六</p>
+        </ModelWrapper>
+
+          <ModelWrapper   @click="handleAddModel('02_75_10125')">
+           <img  :src="image7" />
+           <p style="margin:0px;text-align:center;color:#fff;font-weight:400px;margin-top:3px;font-size:18px">
+            建筑七</p>
+        </ModelWrapper>
       </div>
       <div class="plan-detail">
-        <el-descriptions title="方案信息" :column="2">
-          <el-descriptions-item label="方案名称" :span="1"> {{ currentPlan.name }}</el-descriptions-item>
-          <el-descriptions-item label="方案评分" :span="1"> {{ currentPlan.score }}</el-descriptions-item>
-          <el-descriptions-item label="方案创建时间" :span="1">{{ formatTime(currentPlan.createTime, 'YYYY-MM-DD HH:mm:ss')
+        <div class="plan-base">
+          <el-descriptions title="方案信息" :column="1">
+            <el-descriptions-item label="方案名称" :span="1"> {{ currentPlan.name }}</el-descriptions-item>
+
+            <el-descriptions-item label="方案评分" :span="1"> {{ currentPlan.score }}</el-descriptions-item>
+            <el-descriptions-item label="方案创建时间" :span="1">{{ formatTime(currentPlan.updatedAt, 'YYYY-MM-DD HH:mm:ss')
             }}</el-descriptions-item>
-        </el-descriptions>
-        <el-descriptions title="地块信息" :column="2">
-          <el-descriptions-item label="经纬度" :span="1"> 31.2304°N, 121.4737°E</el-descriptions-item>
-          <el-descriptions-item label="地块面积" :span="1"> 250mx250m</el-descriptions-item>
-          <el-descriptions-item label="海拔" :span="1">1200m</el-descriptions-item>
-          <el-descriptions-item label="功能区别" :span="1">集中式</el-descriptions-item>
-          <el-descriptions-item label="模式类型" :span="1">临时</el-descriptions-item>
-          <el-descriptions-item label="功能模块布局" :span="1">办公、生活、卫勤、指挥、仓库</el-descriptions-item>
-
-        </el-descriptions>
+          </el-descriptions>
 
 
-        <el-descriptions title="建筑信息" :column="2">
-          <el-descriptions-item label="办公" :span="1"> 3栋</el-descriptions-item>
-          <el-descriptions-item label="生活" :span="1"> 6栋</el-descriptions-item>
-          <el-descriptions-item label="卫勤" :span="1"> 2栋</el-descriptions-item>
-          <el-descriptions-item label="指挥" :span="1"> 6栋</el-descriptions-item>
-          <el-descriptions-item label="仓库" :span="1"> 2栋</el-descriptions-item>
-
-        </el-descriptions>
-
+          <el-descriptions title="建筑信息" :column="2">
+            <el-descriptions-item label="办公" :span="1"> 3栋</el-descriptions-item>
+            <el-descriptions-item label="生活" :span="1"> 6栋</el-descriptions-item>
+            <el-descriptions-item label="卫勤" :span="1"> 2栋</el-descriptions-item>
+            <el-descriptions-item label="指挥" :span="1"> 6栋</el-descriptions-item>
+            <el-descriptions-item label="仓库" :span="1"> 2栋</el-descriptions-item>
+          </el-descriptions>
+        </div>
+        <div class="plan-construct">
+          <el-descriptions title="地块信息" :column="2">
+            <el-descriptions-item label="经纬度" :span="2"> 31.2304°N, 121.4737°E</el-descriptions-item>
+            <el-descriptions-item label="地块面积" :span="2"> 250mx250m</el-descriptions-item>
+            <el-descriptions-item label="海拔" :span="1">1200m</el-descriptions-item>
+            <el-descriptions-item label="功能区别" :span="1">集中式</el-descriptions-item>
+            <el-descriptions-item label="模式类型" :span="2">临时</el-descriptions-item>
+            <el-descriptions-item label="功能模块布局" :span="2">办公、生活、卫勤、指挥、仓库</el-descriptions-item>
+          </el-descriptions>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
 import SchemesList from '@/components/schemes-list/index.vue'
+import ModelWrapper from "@/components/model-wrapper/index.vue"
 import { useRender } from './composables/use-render'
+import image1 from "/assets/02_75_10137.png"
+import image2 from "/assets/02_75_10110.png"
+import image3 from "/assets/02_75_10106.png"
+import image4 from "/assets/02_75_10145.png"
+import image5 from "/assets/02_75_10140.png"
+import image6 from "/assets/02_75_10126.png"
+import image7 from "/assets/02_75_10125.png"
 const { formatTime } = useUtils()
 import { planList, planDetailInfo, removePlan, createPlan, updatePlan, planExport } from '@/apis/project'
 const route = useRoute()
@@ -165,7 +178,7 @@ async function fetchDetail(isLoadFirst = true) {
       type: '2'
     })
     schemeList.value = data || []
-    if (schemeList.value.length>0  && isLoadFirst) {
+    if (schemeList.value.length > 0 && isLoadFirst) {
       currentAcviteScheme.value = schemeList.value[0].id
       currentPlan.value = schemeList.value[0]
 
@@ -265,6 +278,36 @@ function handleAddModel(code: string) {
   position: absolute;
   top: 10px;
   left: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+   justify-content: center;
+    width: 100%;
+  .opt-content {
+    width: 436px;
+    height: 40px;
+ 
+    border-radius: 8px;
+    border: 1px solid #3A78C0;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    .opt-btn {
+      flex: 1;
+      text-align: center;
+      color: #fff;
+      line-height: 38px;
+      height: 38px;
+      cursor: pointer;
+         background: #568FCC;
+      &:hover {
+        background: #568FCC90
+
+      }
+    }
+
+  }
+
 }
 
 .model-list {
@@ -280,14 +323,29 @@ function handleAddModel(code: string) {
   // top: 380px;
   left: 20px;
   bottom: 20px;
-  width: 380px;
+  width: 510px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  background: rgba(0, 0, 0, 0.3);
+  background: #568FCC;
   padding: 10px 10px 0;
-  border: 1px solid #ccc;
   border-radius: 8px;
+  border: 1px solid #3A78C0;
+  display: flex;
+  flex-direction: row;
+
+  .plan-base,
+  .plan-construct {
+    width: calc(512px / 2);
+  }
+
+  & ::v-deep {
+
+    .el-descriptions__label,
+    .el-descriptions__content {
+      color: #CEE6FF !important;
+    }
+  }
 
   & ::v-deep {
     .el-descriptions__body {
@@ -300,5 +358,11 @@ function handleAddModel(code: string) {
       color: #fff;
     }
   }
+}
+</style>
+<style>
+.plan-label,
+.plan-content {
+  color: #CEE6FF !important;
 }
 </style>

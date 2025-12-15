@@ -1,13 +1,13 @@
 <template>
-  <div class="mb-[10px]">
-    <div class="text-[14px] text-[#fff] text-center mb-[4px]">{{props.name}}</div>
+  <div class="mb-[10px]" style="display: flex;flex-direction: row;">
+    <div class="text-[14px] text-[#fff] text-center mb-[4px]" style="width: 60px;">{{props.name}}</div>
     <table>
       <thead>
         <tr>
           <th class="w-[50px]">编号</th>
-          <th class="w-[64px]">规格(mm)</th>
-          <th class="w-[64px]">长度(mm)</th>
-          <th class="w-[60px]">数量(个)</th>
+          <th class="w-[74px]">规格(mm)</th>
+          <th class="w-[94px]">长度(mm)</th>
+          <th class="w-[100px]">数量(个)</th>
           <th class="w-[60px]">材质</th>
           <th class="w-[60px]">重量(kg)</th>
         </tr>
