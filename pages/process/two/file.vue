@@ -5,23 +5,11 @@
       <p class="text-[18px] text-[#69AAEE] ml-[4px]">（请上传项目相关的DWG、DXF或PDF文件，支持拖拽上传）</p>
     </div>
     <div class="flex-1 flex flex-col px-[54px] pb-[14px] overflow-y-auto">
-      <div
-        v-loading="uploadLoading"
-        class="h-[300px] flex-shrink-0 flex flex-col items-center justify-center w-[100%] min-w-[200px] bg-[#114E8E] rounded-[8px] border-[1px] border-[#3A78C0]"
-      >
-        <el-upload
-          ref="uploadRef"
-          :file-list="updateFileList"
-          :on-exceed="handleExceed"
-          :limit="1"
-          accept=".pdf,.dwg,.dxf"
-          action=""
-          :drag="true"
-          :auto-upload="false"
-          :on-change="uploadFile"
-          :show-file-list="false"
-          class="w-[100%] h-[100%]"
-        >
+      <div v-loading="uploadLoading"
+        class="h-[300px] flex-shrink-0 flex flex-col items-center justify-center w-[100%] min-w-[200px] bg-[#114E8E] rounded-[8px] border-[1px] border-[#3A78C0]">
+        <el-upload ref="uploadRef" :file-list="updateFileList" :on-exceed="handleExceed" :limit="1"
+          accept=".pdf,.dwg,.dxf" action="" :drag="true" :auto-upload="false" :on-change="uploadFile"
+          :show-file-list="false" :file-size="10" class="w-[100%] h-[100%]">
           <div class="w-[100%] h-[100%] flex flex-col items-center justify-center px-[14px]">
             <img src="../../../assets/images/home/tianjiashangchuan.svg" width="90" height="110" alt="" />
             <div v-if="currentFile">
@@ -41,32 +29,25 @@
             <span class="text-[18px] text-[#69AAEE] ml-[4px]">({{ fileList.length }}个)</span>
           </span>
         </div>
-        <div
-          v-for="item in fileList"
-          :key="item.id"
-          class="file-item"
-        >
+        <div v-for="item in fileList" :key="item.id" class="file-item">
           <img src="../../../assets/images/icon-pdf.svg" alt="pdf" class="w-[26px] h-[26px]" />
           <div class="flex-1 flex flex-col px-[14px]">
             <span class="text-[18px] text-[#69AAEE] font-bold">{{ item.name }}</span>
             <div class="flex items-center mt-[4px]">
-              <span class="text-[15px] text-[#69AAEE] mr-[20px]">{{ formatTime(item.updatedAt, 'YYYY-MM-DD HH:mm:ss') }}</span>
+              <span class="text-[15px] text-[#69AAEE] mr-[20px]">{{ formatTime(item.updatedAt, 'YYYY-MM-DD HH:mm:ss')
+                }}</span>
               <span class="text-[15px] text-[#69AAEE]">{{ formatFileSize(item.size || 0) }}</span>
             </div>
           </div>
-          <img
-            src="../../../assets/images/home/icon-project-item-delete.png"
-            alt="remove"
-            class="cursor-pointer w-[20px] h-[20px]"
-            @click="handleRemoveFile(item)"
-          />
+          <img src="../../../assets/images/home/icon-project-item-delete.png" alt="remove"
+            class="cursor-pointer w-[20px] h-[20px]" @click="handleRemoveFile(item)" />
         </div>
       </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { getPlanLayout, updatePlanLayoutFiles,remove} from '@/apis/project'
+import { getPlanLayout, updatePlanLayoutFiles, remove } from '@/apis/project'
 import { genFileId } from 'element-plus'
 
 const route = useRoute()
@@ -80,7 +61,6 @@ const pageLoading = ref(false)
 const updateFileList = ref([])
 const fileList = ref([])
 const currentFile = ref('')
-
 const handleRemoveFile = async (file) => {
   try {
     await ElMessageBox.confirm('确定删除该文件吗？', '提示', {
@@ -132,6 +112,11 @@ function createdUploadFile() {
    * @param {File} file - 上传的文件对象
    */
   const uploadFile = (file: any) => {
+    const fileSize = parseFloat((file.size / 1024 / 1024).toFixed(2))
+    if (fileSize > 10) {
+      ElMessage.error(`文件【${file.name}】大小为${fileSize}M，超过10M限制，无法上传！`)
+      return false
+    }
     const isPDF = file.name.includes('.pdf')
     const isDWG = file.name.includes('.dwg')
     const isDXF = file.name.includes('.dxf')
