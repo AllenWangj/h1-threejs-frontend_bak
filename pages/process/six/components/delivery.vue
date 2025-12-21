@@ -28,17 +28,14 @@
         </div>
       </div>
       <div v-if="routePoints.length > 0" class="info-content">
+        <div class="info-label-header">{{ transportMode === 'ground' ? '陆运路线' : '空运路线' }}</div>
         <div class="info-item">
           <span class="info-label">总距离：</span>
           <span class="info-value">{{ totalDistance.toFixed(2) }} km</span>
         </div>
-        <div class="info-item">
+        <div v-if="transportMode === 'ground'" class="info-item">
           <span class="info-label">海拔变化：</span>
           <span class="info-value">{{ minElevation }}m - {{ maxElevation }}m</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">路径点数：</span>
-          <span class="info-value">{{ routePoints.length }} 个</span>
         </div>
       </div>
       <div v-else class="info-content">
@@ -46,13 +43,29 @@
       </div>
     </div>
 
+    <!-- 运输方式选择 -->
+    <div v-if="!loading" class="mode-selector">
+      <button 
+        :class="['mode-btn', { active: transportMode === 'ground' }]"
+        @click="switchTransportMode('ground')"
+      >
+        🚚 陆运
+      </button>
+      <button 
+        :class="['mode-btn', { active: transportMode === 'air' }]"
+        @click="switchTransportMode('air')"
+      >
+        ✈️ 空运
+      </button>
+    </div>
+
     <!-- 动画提示 -->
-    <div v-if="isAnimating" class="animation-hint">🚚 运输中... {{ animationProgress }}%</div>
+    <div v-if="isAnimating" class="animation-hint">{{ transportMode === 'air' ? '✈️' : '🚚' }} 运输中...</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import * as THREE from 'three'
 import { fromArrayBuffer } from 'geotiff'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -68,12 +81,13 @@ const loadingText = ref('正在初始化...')
 const loadingProgress = ref(0)
 
 // 路线相关状态
-const routePoints = ref<Array<{ x: number; y: number; z: number; elevation: number; lon: number; lat: number }>>([])
+const routePoints = ref<Array<{ x: number; y: number; z: number; elevation: number; lon: number; lat: number }>>([]);
+const airRoutePoints = ref<Array<{ x: number; y: number; z: number; elevation: number; lon: number; lat: number }>>([]);
 const totalDistance = ref(0)
 const minElevation = ref(0)
 const maxElevation = ref(0)
 const isAnimating = ref(false)
-const animationProgress = ref(0)
+const transportMode = ref<'ground' | 'air'>('ground') // 陆运或空运
 
 let scene: THREE.Scene
 let camera: THREE.PerspectiveCamera
@@ -165,13 +179,13 @@ function worldToGeo(worldX: number, worldZ: number) {
 }
 
 // 创建路线点标记
-function createRouteMarker(index: number) {
-  // 只在起点和终点创建标记，中间点太多就不显示了
-  if (index !== 0 && index !== routePoints.value.length - 1) {
+function createRouteMarker(index: number, totalPoints: number) {
+  // 只在起点和终点创建标记
+  if (index !== 0 && index !== totalPoints - 1) {
     return null
   }
 
-  const geometry = new THREE.SphereGeometry(0.08, 16, 16)
+  const geometry = new THREE.SphereGeometry(0.12, 16, 16)
   const material = new THREE.MeshBasicMaterial({
     color: index === 0 ? 0x00ff00 : 0xff0000,
     depthTest: false
@@ -205,50 +219,67 @@ function drawRoute() {
   // 清除旧标记
   routeMarkers.forEach((marker) => {
     scene.remove(marker)
-    marker.geometry.dispose()
+    if (marker.geometry) marker.geometry.dispose()
     if (marker.material instanceof THREE.Material) {
       marker.material.dispose()
     }
   })
   routeMarkers = []
 
-  if (routePoints.value.length === 0) return
+  const points = transportMode.value === 'ground' ? routePoints.value : airRoutePoints.value
+  if (points.length === 0) return
   
-  // 绘制路线点标记
-  routePoints.value.forEach((point, index) => {
-    const marker = createRouteMarker(index)
-    if (marker) {
-      marker.position.set(point.x, point.y + 0.05, point.z)
-      scene.add(marker)
-      routeMarkers.push(marker)
-    }
-  })
+  // 根据运输模式确定高度偏移
+  const heightOffset = transportMode.value === 'air' ? 0.3 : 0.05
+  
+  // 绘制路线点标记（起始点）
+  const startMarker = createRouteMarker(0, points.length)
+  if (startMarker) {
+    const startPoint = points[0]
+    startMarker.position.set(startPoint.x, startPoint.y + 0.05, startPoint.z)
+    scene.add(startMarker)
+    routeMarkers.push(startMarker)
+  }
+  
+  const endMarker = createRouteMarker(points.length - 1, points.length)
+  if (endMarker) {
+    const endPoint = points[points.length - 1]
+    endMarker.position.set(endPoint.x, endPoint.y + 0.05, endPoint.z)
+    scene.add(endMarker)
+    routeMarkers.push(endMarker)
+  }
 
-  if (routePoints.value.length < 2) return
+  if (points.length < 2) return
 
-  // 创建完整路线（半透明背景）- 增加高度偏移确保可见
+  // 创建完整路线（半透明背景）
   const allPoints: THREE.Vector3[] = []
-  routePoints.value.forEach((point) => {
+  points.forEach((point) => {
     allPoints.push(new THREE.Vector3(point.x, point.y + 0.05, point.z))
   })
 
-  console.log('📍 路线点示例:', allPoints.slice(0, 3))
-
   const bgGeometry = new THREE.BufferGeometry().setFromPoints(allPoints)
+  const lineColor = transportMode.value === 'ground' ? 0xffff00 : 0xff0000 // 陆运黄色，空运红色
+  const opacity = transportMode.value === 'air' ? 1.0 : 0.6 // 空运更不透明
+  
+  // 为空运线条创建更粗的线条效果（使用双线或增加透明度）
   const bgMaterial = new THREE.LineBasicMaterial({
-    color: 0xffff00, // 改为黄色更明显
-    linewidth: 3,
+    color: lineColor,
     transparent: true,
-    opacity: 0.6,
-    depthTest: true, // 改为true使其与地形正确遮挡
-    depthWrite: false
+    opacity: opacity,
+    depthTest: true,
+    depthWrite: false,
+    fog: false,
+    linewidth: transportMode.value === 'air' ? 3 : 1 // 尝试增加线条宽度
   })
 
   routeLine = new THREE.Line(bgGeometry, bgMaterial)
   routeLine.renderOrder = 999
   scene.add(routeLine)
-
-  console.log('✅ 路线绘制完成')
+  
+  console.log(`✅ 路线绘制完成 (${transportMode.value === 'ground' ? '陆运' : '空运'}，点数: ${points.length})`, {
+    mostHighPoint: Math.max(...points.map(p => p.y)),
+    mostLowPoint: Math.min(...points.map(p => p.y))
+  })
 
   // 计算统计信息
   calculateRouteStats()
@@ -263,6 +294,9 @@ function drawRoute() {
 function updateAnimatedLine() {
   if (!isAnimating.value || routePoints.value.length < 2) return
 
+  const points = transportMode.value === 'ground' ? routePoints.value : airRoutePoints.value
+  if (points.length < 2) return
+
   // 清除旧的动画线
   if (animatedLine) {
     scene.remove(animatedLine)
@@ -273,14 +307,13 @@ function updateAnimatedLine() {
   }
 
   // 计算当前应该绘制到哪个点
-  const totalPoints = routePoints.value.length
+  const totalPoints = points.length
   const currentPointIndex = Math.floor(routeAnimationProgress * (totalPoints - 1))
   const segmentProgress = routeAnimationProgress * (totalPoints - 1) - currentPointIndex
 
   if (currentPointIndex >= totalPoints - 1) {
     // 动画完成
     isAnimating.value = false
-    animationProgress.value = 100
 
     // 移除移动标记
     if (movingMarker) {
@@ -293,20 +326,23 @@ function updateAnimatedLine() {
   // 创建动画路线点
   const animPoints: THREE.Vector3[] = []
 
+  // 根据运输模式确定高度偏移
+  const heightOffset = transportMode.value === 'air' ? 0.3 : 0.05
+  
   // 添加已完成的点
   for (let i = 0; i <= currentPointIndex; i++) {
-    const p = routePoints.value[i]
-    animPoints.push(new THREE.Vector3(p.x, p.y + 0.05, p.z))
+    const p = points[i]
+    animPoints.push(new THREE.Vector3(p.x, p.y + heightOffset, p.z))
   }
 
   // 添加当前段的插值点
   if (currentPointIndex < totalPoints - 1) {
-    const p1 = routePoints.value[currentPointIndex]
-    const p2 = routePoints.value[currentPointIndex + 1]
+    const p1 = points[currentPointIndex]
+    const p2 = points[currentPointIndex + 1]
 
     const interpolatedPoint = new THREE.Vector3(
       p1.x + (p2.x - p1.x) * segmentProgress,
-      p1.y + (p2.y - p1.y) * segmentProgress + 0.05,
+      p1.y + (p2.y - p1.y) * segmentProgress + heightOffset,
       p1.z + (p2.z - p1.z) * segmentProgress
     )
     animPoints.push(interpolatedPoint)
@@ -314,8 +350,9 @@ function updateAnimatedLine() {
     // 更新或创建移动标记
     if (!movingMarker) {
       const geometry = new THREE.SphereGeometry(0.1, 16, 16)
+      const markerColor = transportMode.value === 'ground' ? 0x00ffff : 0xff6600
       const material = new THREE.MeshBasicMaterial({
-        color: 0x00ffff,
+        color: markerColor,
         depthTest: true
       })
       movingMarker = new THREE.Mesh(geometry, material)
@@ -323,35 +360,36 @@ function updateAnimatedLine() {
       scene.add(movingMarker)
     }
     movingMarker.position.copy(interpolatedPoint)
-    movingMarker.position.y += 0.08
+    movingMarker.position.y += 0.12
   }
 
   // 创建动画线
   const animGeometry = new THREE.BufferGeometry().setFromPoints(animPoints)
+  const lineColor = transportMode.value === 'ground' ? 0xff0000 : 0xff6600
+  const animOpacity = transportMode.value === 'air' ? 1.0 : 1.0
   const animMaterial = new THREE.LineBasicMaterial({
-    color: 0xff0000, // 改为红色更明显
-    linewidth: 5,
+    color: lineColor,
+    transparent: true,
+    opacity: animOpacity,
     depthTest: true,
-    depthWrite: false
+    depthWrite: false,
+    fog: false
   })
 
   animatedLine = new THREE.Line(animGeometry, animMaterial)
   animatedLine.renderOrder = 1000
   scene.add(animatedLine)
-
-  // 更新进度
-  animationProgress.value = Math.round(routeAnimationProgress * 100)
 }
 
 // 切换动画
 function toggleAnimation() {
-  if (routePoints.value.length < 2) return
+  const points = transportMode.value === 'ground' ? routePoints.value : airRoutePoints.value
+  if (points.length < 2) return
 
   isAnimating.value = !isAnimating.value
 
   if (isAnimating.value) {
     routeAnimationProgress = 0
-    animationProgress.value = 0
   } else {
     // 停止动画，移除移动标记
     if (movingMarker) {
@@ -371,7 +409,8 @@ function toggleAnimation() {
 
 // 计算路线统计信息
 function calculateRouteStats() {
-  if (routePoints.value.length < 2) {
+  const points = transportMode.value === 'ground' ? routePoints.value : airRoutePoints.value
+  if (points.length < 2) {
     totalDistance.value = 0
     minElevation.value = 0
     maxElevation.value = 0
@@ -382,9 +421,9 @@ function calculateRouteStats() {
   let minElev = Infinity
   let maxElev = -Infinity
 
-  for (let i = 0; i < routePoints.value.length - 1; i++) {
-    const p1 = routePoints.value[i]
-    const p2 = routePoints.value[i + 1]
+  for (let i = 0; i < points.length - 1; i++) {
+    const p1 = points[i]
+    const p2 = points[i + 1]
 
     // 计算地理距离（使用经纬度）
     const lat1 = p1.lat
@@ -482,10 +521,6 @@ function generateAutoRoute() {
   controlPoints.push({ lon: endLon, lat: endLat })
 
   console.log('控制点数量:', controlPoints.length)
-  console.log('控制点示例:', controlPoints.slice(0, 2).map(p => ({
-    lon: p.lon.toFixed(6),
-    lat: p.lat.toFixed(6)
-  })))
 
   // 使用 Catmull-Rom 样条插值生成平滑路径点
   const numInterpolatedPoints = 200
@@ -522,30 +557,88 @@ function generateAutoRoute() {
     })
   }
 
-  console.log('生成的路径点数量:', points.length)
-  console.log('前3个点:', points.slice(0, 3).map(p => ({
-    lon: p.lon.toFixed(6),
-    lat: p.lat.toFixed(6),
-    elevation: p.elevation.toFixed(1)
-  })))
-
   routePoints.value = points
+  
+  // 生成空运路线（和陆运相同路径，但高度更高）
+  generateAirRoute(points)
+  
   drawRoute()
 
   console.log(`✅ 自动生成平滑路线完成，共 ${points.length} 个路径点`)
-  console.log('起点:', { lon: startLon.toFixed(6), lat: startLat.toFixed(6), elevation: points[0].elevation.toFixed(1) })
-  console.log('终点:', {
-    lon: endLon.toFixed(6),
-    lat: endLat.toFixed(6),
-    elevation: points[points.length - 1].elevation.toFixed(1)
-  })
 
   // 自动开始播放动画
   setTimeout(() => {
-    if (routePoints.value.length >= 2) {
+    const currentPoints = transportMode.value === 'ground' ? routePoints.value : airRoutePoints.value
+    if (currentPoints.length >= 2) {
       toggleAnimation()
     }
   }, 1000)
+}
+
+// 生成空运路线（和陆运相同路径，但有起飞降落弧度）
+function generateAirRoute(groundPoints: Array<{ x: number; y: number; z: number; elevation: number; lon: number; lat: number }>) {
+  const airPoints: Array<{ x: number; y: number; z: number; elevation: number; lon: number; lat: number }> = []
+  
+  // 找到陆运路线的最高点
+  let maxGroundY = -Infinity
+  groundPoints.forEach(p => {
+    if (p.y > maxGroundY) maxGroundY = p.y
+  })
+  
+  // 空运巡航高度（在最高点基础上抬高）
+  const cruiseHeight = maxGroundY + 0.5
+  const totalPoints = groundPoints.length
+  
+  groundPoints.forEach((point, i) => {
+    const progress = i / (totalPoints - 1)
+    
+    // 使用正弦函数生成起飞降落弧度
+    // 起点和终点高度为地面高度，中间达到巡航高度
+    const arcProgress = Math.sin(progress * Math.PI)
+    const currentHeight = point.y + arcProgress * (cruiseHeight - point.y)
+    
+    airPoints.push({
+      x: point.x,
+      y: currentHeight,
+      z: point.z,
+      elevation: currentHeight,
+      lon: point.lon,
+      lat: point.lat
+    })
+  })
+  
+  airRoutePoints.value = airPoints
+  console.log(`✅ 空运路线生成完成，共 ${airPoints.length} 个路径点，巡航高度: ${cruiseHeight.toFixed(3)}`)
+}
+
+// 切换运输模式
+function switchTransportMode(mode: 'ground' | 'air') {
+  if (transportMode.value === mode) return
+  
+  isAnimating.value = false
+  
+  // 清除旧的动画
+  if (movingMarker) {
+    scene.remove(movingMarker)
+    movingMarker = null
+  }
+  if (animatedLine) {
+    scene.remove(animatedLine)
+    animatedLine.geometry.dispose()
+    if (animatedLine.material instanceof THREE.Material) {
+      animatedLine.material.dispose()
+    }
+    animatedLine = null
+  }
+  
+  // 切换模式
+  transportMode.value = mode
+  
+  // 重新绘制路线
+  routeAnimationProgress = 0
+  drawRoute()
+  
+  console.log(`🖄 切换运输模式为: ${mode === 'ground' ? '陆运' : '空运'}`)
 }
 
 // Catmull-Rom 样条插值函数
@@ -1026,5 +1119,48 @@ onUnmounted(() => {
   color: #999;
   font-size: 14px;
   font-style: italic;
+}
+
+.mode-selector {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.mode-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.mode-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.mode-btn.active {
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  border-color: #1976d2;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+.info-label-header {
+  font-size: 13px;
+  color: #2196f3;
+  font-weight: bold;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
 }
 </style>
