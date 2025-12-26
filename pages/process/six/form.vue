@@ -7,19 +7,12 @@
 
       <div class="form-page-body">
         <div class="flex-grow-[1]">
-          <File :type="6" />
+          <File :source="6" />
         </div>
 
         <div class="flex-grow-[3] flex flex-col">
           <div class="px-[14px] py-[14px]">
-            <el-form
-              ref="ProjectFormRef"
-              :model="formData"
-              size="large"
-              label-position="top"
-              label-width="120px"
-              class="w-full"
-            >
+            <el-form ref="ProjectFormRef" :model="formData" size="large" label-position="top" label-width="120px" class="w-full">
               <div
                 class="w-full px-[14px] py-[10px] mb-[14px] rounded-[4px]"
                 v-for="item in formData.projectForm"
@@ -45,7 +38,7 @@
                   <template v-if="item.field === 'custom'">
                     <!-- 显示JSON字符串，并按格式换行缩进 -->
                     <div class="w-[100%]">
-                      <pre v-if="item.value" class="text-[#69AAEE] text-[16px]">{{ item.value }}</pre>
+                      <pre v-if="item.value"  class="text-[#69AAEE] text-[16px]">{{ item.value }}</pre>
                     </div>
                   </template>
                   <ez-select
@@ -76,20 +69,30 @@
                     />
                     <div v-for="(options, index) in item.valueConfig" :key="options.field">
                       <div v-if="item.value.includes(options.field)" class="flex items-center mt-[8px]">
+                        <div class="text-[#666] text-[14px] min-w-[80px] text-right mr-[15px]">
+                          {{ getArrayLabel(options.field, item.options) }}
+                        </div>
+                        <el-input v-model="options.value" @input="handleInputFilter(options, $event)" class="w-[200px]">
+                          <template #append>{{ options.unit }}</template>
+                        </el-input>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else-if="item.type === 'select-dynamic'" class="w-full">
+                    <ez-select
+                      v-model="item.value"
+                      placeholder="请选择"
+                      :clearable="true"
+                      style="width: 100%"
+                      :options="item.options"
+                    />
+                    <div v-for="(options, index) in item.valueConfig" :key="options.field">
+                      <div v-if="item.value === options.field" class="flex items-center mt-[8px]">
                         <div class="text-[#69AAEE] text-[16px] min-w-[60px] text-right mr-[15px]">
                           {{ getArrayLabel(options.field, item.options) }}
                         </div>
-                        <el-input v-model="options.value" oninput="value=value.replace(/[^\d]/g,'')" class="w-[200px]">
+                        <el-input v-model="options.value" @input="handleInputFilter(options, $event)" class="w-[200px]">
                           <template #append>{{ options.unit }}</template>
-                        </el-input>
-                        <!-- 可以输入数字和小数点得正则 -->
-                        <el-input
-                          v-if="options.unit2"
-                          v-model="options.value2"
-                          oninput="value=value.replace(/[^\d.]/g,'')"
-                          class="w-[200px] ml-[10px]"
-                        >
-                          <template #append>{{ options.unit2 }}</template>
                         </el-input>
                       </div>
                     </div>
@@ -157,6 +160,13 @@ const formData = ref({
 })
 const initProjectForm = ref({})
 
+// 处理输入限制
+const handleInputFilter = (options: any, value: string) => {
+  const regex = options.regex || /[^\d]/g
+  const filtered = value.replace(regex, '')
+  options.value = filtered
+}
+
 // 处理文件选择
 const handleFileChange = (file: any, item: any) => {
   const rawFile = file.raw
@@ -210,7 +220,7 @@ const handleGenerateSolution = async () => {
     const params = JSON.parse(JSON.stringify(formData.value.projectForm))
     await generatePackingPlan({
       projectId: projectId.value,
-      type: 6,
+      source: 6,
       params
     })
     ElMessageBox.alert('方案生成中，请稍后去生成方案中查看', '温馨提示', {

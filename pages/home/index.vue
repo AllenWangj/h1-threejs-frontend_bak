@@ -50,7 +50,7 @@
               alt=""
               width="22px"
               height="22px"
-              @click="handleRemoveProject(item)"
+              @click.stop="handleRemoveProject(item)"
             />
             <img
               class="cursor-pointer"
@@ -58,12 +58,12 @@
               alt=""
               width="22px"
               height="22px"
-              @click="handleEditProject(item)"
+              @click.stop="handleEditProject(item)"
             />
           </div>
           <div class="list-wrap-item-body">
             <span class="title">创建时间</span>
-            <span class="status">{{ dayjs(item.createTime).format('YYYY-MM-DD HH:mm:ss') }}</span>
+            <span class="status">{{ dayjs(item.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</span>
           </div>
         </div>
       </div>
@@ -250,13 +250,12 @@ const handleRemoveProject = async (item) => {
       await removeProject({ id: item.id })
       ElMessage.success('操作成功！')
       // 刷新列表
-      handleSearchProject()
+      fetchProjectList()
     }
   } catch (error) {}
 }
 // 编辑项目
 const handleEditProject = async (item) => {
-  console.log('编辑项目')
   dialogFlag.value = true
   projectForm.id = item.id
   projectForm.name = item.name
@@ -399,10 +398,10 @@ async function fetchProjectDetail(id: number) {
           status = data.structuralDesignStatus
           break
         case 5:
-          status = data.packingStatus
+          status = data.partsProductionStatus
           break
         case 6:
-          status = data.partsProductionStatus
+          status = data.packingStatus
           break
         case 7:
           status = data.assembleStatus

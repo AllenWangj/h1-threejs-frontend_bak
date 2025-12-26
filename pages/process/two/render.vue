@@ -120,6 +120,20 @@
             <el-descriptions-item label="位置信息" :span="1"> 31.3304°N, 121.1737°E</el-descriptions-item>
 
 
+        <el-descriptions title="方案信息" :column="2" >
+          <el-descriptions-item label="方案评分" :span="1"> {{ currentPlan.name }}</el-descriptions-item>
+          <el-descriptions-item label="方案评分" :span="1"> {{ currentPlan.score }}</el-descriptions-item>
+          <el-descriptions-item label="方案创建时间" :span="1">{{ dayjs(currentPlan.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</el-descriptions-item>
+        </el-descriptions>
+           <el-descriptions title="地块信息" :column="2" >
+          <el-descriptions-item label="经纬度" :span="1"> 31.2304°N, 121.4737°E</el-descriptions-item>
+          <el-descriptions-item label="地块面积" :span="1"> 250mx250m</el-descriptions-item>
+          <el-descriptions-item label="海拔" :span="1">1200m</el-descriptions-item>
+          <el-descriptions-item label="功能区别" :span="1">集中式</el-descriptions-item>
+          <el-descriptions-item label="模式类型" :span="1">临时</el-descriptions-item>
+          <el-descriptions-item label="功能模块布局" :span="1">办公、生活、卫勤、指挥、仓库</el-descriptions-item>
+
+        </el-descriptions>
             
                <el-descriptions-item label="模块名称" :span="1"> 生产区</el-descriptions-item>
             <el-descriptions-item label="位置信息" :span="1"> 31.73404°N, 121.41737°E</el-descriptions-item>
@@ -148,6 +162,7 @@ import image6 from "/assets/02_75_10126.png"
 import image7 from "/assets/02_75_10125.png"
 const { formatTime } = useUtils()
 import { planList, planDetailInfo, removePlan, createPlan, updatePlan, planExport } from '@/apis/project'
+import dayjs from 'dayjs'
 const route = useRoute()
 const projectId = ref('')
 const schemeList = ref<any[]>([])
@@ -176,7 +191,7 @@ const downloadSolution = async () => {
   try {
     const url = planExport({
       projectId: projectId.value,
-      type: 2
+      source: 2
     })
     const a = document.createElement('a')
     a.href = url
@@ -204,7 +219,7 @@ async function fetchDetail(isLoadFirst = true) {
   try {
     const { data } = await planList({
       projectId: projectId.value,
-      type: '2'
+      source: 2
     })
     schemeList.value = data || []
     if (schemeList.value.length > 0 && isLoadFirst) {
@@ -257,7 +272,7 @@ function handlleOtherSaveEvt() {
       const result = schemeList.value.find((ele) => ele.id === currentAcviteScheme.value)!
       const data = {
         id: result.id,
-        type: '2',
+        source: 2,
         projectId: projectId.value,
         name: value,
         layouts: JSON.stringify(position)

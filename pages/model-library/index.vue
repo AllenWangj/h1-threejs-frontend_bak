@@ -102,7 +102,7 @@ const columns = reactive<TableColumn<ModelItem>[]>([
   { prop: 'length', label: '长度', formatter: (row) => `${row.length}mm` },
   { prop: 'width', label: '宽度', formatter: (row) => `${row.width}mm` },
   { prop: 'height', label: '高度', formatter: (row) => `${row.height}mm` },
-  { prop: 'createTime', label: '创建时间', formatter: (row) => dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') },
+  { prop: 'createdAt', label: '创建时间', formatter: (row) => dayjs(row.createdAt).format('YYYY-MM-DD HH:mm:ss') },
   { prop: 'operation', label: '操作', width: 200, fixed: 'right' }
 ])
 const tableRef = ref()

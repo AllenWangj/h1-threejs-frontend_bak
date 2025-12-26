@@ -79,6 +79,20 @@
             <el-descriptions-item label="功能模块布局" :span="2">办公</el-descriptions-item>
           </el-descriptions>
 
+       <div class="plan-detail">
+        <el-descriptions title="方案信息" :column="2" >
+          <el-descriptions-item label="方案评分" :span="1"> {{ currentPlan.name }}</el-descriptions-item>
+          <el-descriptions-item label="方案评分" :span="1"> {{ currentPlan.score }}</el-descriptions-item>
+          <el-descriptions-item label="方案创建时间" :span="1">{{ dayjs(currentPlan.createdAt).format('YYYY-MM-DD HH:mm:ss') }}</el-descriptions-item>
+        </el-descriptions>
+           <el-descriptions title="结构信息" :column="2" >
+          <el-descriptions-item label="建筑类型" :span="1">仓储</el-descriptions-item>
+          <el-descriptions-item label="建筑边界" :span="1">1m</el-descriptions-item>
+          <el-descriptions-item label="建筑规模" :span="1">10平米</el-descriptions-item>
+          <el-descriptions-item label="标准功能模块" :span="1">供电</el-descriptions-item>
+          <el-descriptions-item label="门" :span="1">2个</el-descriptions-item>
+          <el-descriptions-item label="窗" :span="1">3个</el-descriptions-item>
+        </el-descriptions>
       </div>
     </div>
   </div>
@@ -91,6 +105,10 @@ import SchemesList from '@/components/schemes-list/index.vue'
 import { getInternalLayoutDetail, planDetailInfo, planList, createPlan, planExport } from '@/apis/project'
 import { useRender } from "./composables/use-render"
 const { formatTime } = useUtils()
+import dayjs from "dayjs"
+// import {plan} from "./composables/plan1.ts"
+// import {plan} from "./composables/plan2"
+// import {plan} from "./composables/a"
 
 const three = ref()
 const { ProcessThree } = useRender()
@@ -120,7 +138,7 @@ const downloadSolution = async () => {
   try {
     const url = planExport({
       projectId: projectId.value,
-      type: 3
+      source: 3
     })
     const a = document.createElement('a')
     a.href = url
@@ -138,7 +156,7 @@ async function fetchDetail() {
   try {
     const { data } = await planList({
       projectId: projectId.value,
-      type: 3
+      source:3
     })
     schemeList.value = data || []
     if (schemeList.value.length > 0) {

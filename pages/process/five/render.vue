@@ -13,6 +13,8 @@
         </ModelWrapper>
         <!-- <el-button v-for="item in materialDataList" :key="item.value"
           :type="hideModel.includes(item.value) ? 'info' : 'primary'" @click="playStepAnimation(item.value)">
+        <el-button v-for="item in materialDataList" :key="item.value"
+          :source="hideModel.includes(item.value) ? 'info' : 'primary'" @click="playStepAnimation(item.value)">
           {{ item.name }}
         </el-button> -->
       </div>
@@ -24,6 +26,7 @@
       <div v-if="!loading && currentAcviteScheme" class="absolute top-[10px] left-[10px] z-10" style="width: 100%;">
         <!-- 下载方案 -->
         <!-- <el-button @click="downloadSolution" type="primary">导出方案</el-button>
+       <el-button @click="downloadSolution" type="primary">导出设计</el-button>
        <el-button type="primary" @click="handleScenePane(false)">禁止拖动</el-button>
         <el-button type="primary" @click="handleScenePane(true)">允许拖动</el-button>
         <el-button type="primary" @click="handleSceneEnable(false)">关闭场景</el-button>
@@ -106,7 +109,7 @@ const downloadSolution = async () => {
   try {
     const url = planExport({
       projectId: projectId.value,
-      type: 5
+      source: 5
     })
     const a = document.createElement('a')
     a.href = url
@@ -124,7 +127,7 @@ async function fetchDetail() {
   try {
     const { data } = await getPartsProductionDetail({
       projectId: projectId.value,
-      type: 5
+      source: 5
     })
     schemeList.value = data || []
     if (schemeList.value.length > 0) {
