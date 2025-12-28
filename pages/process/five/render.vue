@@ -84,7 +84,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { modeService } from './composables/mode-service'
 import { materialInfoService } from './composables/material-info-service'
-import { getPartsProductionDetail, planExport ,downProjectCreate} from '@/apis/project'
+import { getPartsProductionDetail, planExport ,downProjectCreate,design} from '@/apis/project'
 import ModelWrapper from "@/components/model-wrapper/index.vue"
 
 
@@ -111,9 +111,11 @@ const downloadSolution = async () => {
       id: projectId.value,
       // source: 5
     })
+    design({id:projectId.value})
+    debugger
     const a = document.createElement('a')
     a.href = url
-    a.download = `部件生成方案.docx`
+    a.download = `部件生成方案.zip`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
