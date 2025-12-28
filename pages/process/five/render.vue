@@ -106,22 +106,37 @@ const tapScheme = (item) => {
 
 // 下载方案
 const downloadSolution = async () => {
-  try {
+  // try {
     const url = downProjectCreate({
       id: currentAcviteScheme.value ,
       // source: 5
     })
-    // design({id:currentAcviteScheme.value })
+    design({id:currentAcviteScheme.value }).then(async (response:any)=>{
+        const fileBlob = response;
+        const blobUrl =fileBlob;
+        debugger
+    // 创建 a 标签用于下载
+    const aTag = document.createElement("a");
+    aTag.href = blobUrl;
+    // 设置下载文件名（可自定义）
+    aTag.download = "生产部件.doc";
+    // 触发点击下载
+    aTag.click();
+    // 释放 Blob URL 资源（避免内存泄漏）
+    URL.revokeObjectURL(blobUrl);
+    })
     // debugger
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `部件生成方案.zip`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  } catch (error) {
-    console.error('下载方案失败', error)
-  }
+    // const a = document.createElement('a')
+    // a.href = url
+    // a.download = `部件生成方案.zip`
+    // document.body.appendChild(a)
+    // a.click()
+    // document.body.removeChild(a)
+  // }
+  
+  // catch (error) {
+  //   console.error('下载方案失败', error)
+  // }
 }
 
 // 获取详情
