@@ -108,10 +108,10 @@ const tapScheme = (item) => {
 const downloadSolution = async () => {
   try {
     const url = downProjectCreate({
-      id: projectId.value,
+      id: currentAcviteScheme.value ,
       // source: 5
     })
-    // design({id:projectId.value})
+    // design({id:currentAcviteScheme.value })
     // debugger
     const a = document.createElement('a')
     a.href = url
