@@ -84,7 +84,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { modeService } from './composables/mode-service'
 import { materialInfoService } from './composables/material-info-service'
-import { getPartsProductionDetail, planExport } from '@/apis/project'
+import { getPartsProductionDetail, planExport ,downProjectCreate} from '@/apis/project'
 import ModelWrapper from "@/components/model-wrapper/index.vue"
 
 
@@ -107,9 +107,9 @@ const tapScheme = (item) => {
 // 下载方案
 const downloadSolution = async () => {
   try {
-    const url = planExport({
-      projectId: projectId.value,
-      source: 5
+    const url = downProjectCreate({
+      id: projectId.value,
+      // source: 5
     })
     const a = document.createElement('a')
     a.href = url

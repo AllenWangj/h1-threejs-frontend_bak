@@ -201,3 +201,9 @@ export const assembleDetail = (params) => useBaseFetch().get(`${baseUrl}assemble
 export const planExport = (params) => {
     return `${BASE_URL}${baseUrl}site/v1/plan/export` + '?' + new URLSearchParams(params).toString()
 }
+// /project/parts-production/v1/design
+
+export const downProjectCreate = (params) => {
+    return `${BASE_URL}${baseUrl}parts-production/v1/design` + '?' + new URLSearchParams(params).toString()
+}
+
