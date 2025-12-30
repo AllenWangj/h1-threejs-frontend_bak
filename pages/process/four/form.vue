@@ -140,6 +140,14 @@ const TargetWeightOptions = [
   }
 ]
 
+
+const defaultOptions = [
+  {
+    label: '默认',
+    value: '0'
+  }
+]
+
 const customOptions = []
 
 // label映射
@@ -156,7 +164,7 @@ const DICT_MAP = computed(() => {
   return {
     loadCases: dictMap.value.get(LoadCases) || [],
     buildingLayout: BuildingLayoutOptions || [],
-    buildType: dictMap.value.get(BuildType) || [],
+    buildType: [...defaultOptions, ...(dictMap.value.get(BuildType) || [])],
     material: dictMap.value.get(Material) || [],
     targetWeight: TargetWeightOptions || [],
     custom: customOptions || []

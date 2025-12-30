@@ -266,7 +266,7 @@ onMounted(async () => {
 const defData = [
   {
     "tag": true,
-    "type": "select",
+    "type": "multiple",
     "field": "transportation",
     "label": "运载方式",
     "options": [],

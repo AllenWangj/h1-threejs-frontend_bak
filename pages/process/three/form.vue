@@ -147,9 +147,9 @@ const defaultOptions = [
 
 // label映射
 const LABLE_MAP = {
-  functional: '建筑功能',
+  functional: '建筑功能(建筑类型)',
   boundary: '建筑边界',
-  scale: '建筑规模',
+  scale: '建筑规模(小区保障规模)',
   layout: '整体布局',
   moduleLibrary: '标准化功能模块',
   custom: '自定义参数'
@@ -273,7 +273,7 @@ const defData = [
     "tag": true,
     "type": "select",
     "field": "functional",
-    "label": "建筑功能",
+    "label": "建筑功能(建筑类型)",
     "value": "",
     "options": [],
     "valueConfig": null
@@ -298,7 +298,7 @@ const defData = [
     "tag": true,
     "type": "select",
     "field": "scale",
-    "label": "建筑规模",
+    "label": "建筑规模(小区保障规模)",
     "value": [],
     "options": [],
     "valueConfig": null
@@ -314,7 +314,7 @@ const defData = [
   },
   {
     "tag": true,
-    "type": "multiple",
+    "type": "select",
     "field": "moduleLibrary",
     "label": "标准化功能模块",
     "value": [],
