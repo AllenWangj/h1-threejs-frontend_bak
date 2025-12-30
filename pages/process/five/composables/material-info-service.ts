@@ -220,11 +220,13 @@ export const materialInfoService = (): any[] => {
     {
         name: '梁',
         value: 9,
-        infoList: beamData
+        infoList: beamData,
+        state:true
     },
     {
         name: '连接器',
         value: 10,
-        infoList: connectorData
+        infoList: connectorData,
+        state:true
     }]
 }

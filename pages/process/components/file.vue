@@ -122,6 +122,11 @@ function createdUploadFile() {
       ElMessage.error('请上传PDF、DWG或DXF文件')
       return false
     }
+    // 文件大小
+    if (file.size > 1024 * 1024 * 10) {
+      ElMessage.error('文件大小不能超过10MB')
+      return false
+    }
     currentFile.value = file.name
     submitFile(file)
   }
