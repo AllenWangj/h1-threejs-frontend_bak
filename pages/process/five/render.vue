@@ -320,7 +320,7 @@ async function playStepAnimation(value) {
     default:
       break
   }
-
+  debugger
   settingModelStatus(models, value)
 }
 

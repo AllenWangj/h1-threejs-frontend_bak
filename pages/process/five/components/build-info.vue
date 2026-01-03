@@ -5,7 +5,7 @@
       <thead>
         <tr>
           <th class="w-[90px]">编号</th>
-          <th class="w-[74px]">规格(mm)</th>
+          <th class="w-[104px]">规格(mm)</th>
           <th class="w-[74px]">长度(mm)</th>
           <th class="w-[70px]">数量(个)</th>
           <th class="w-[70px]">材质</th>

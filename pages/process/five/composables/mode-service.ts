@@ -75,7 +75,7 @@ export const modeService = () => {
             ...names11,
             ...names12
         ]
-
+        debugger
         return names
     }
     /** 屋顶模型名 */
@@ -115,6 +115,7 @@ export const modeService = () => {
             'Group_883',
             'Group_673'
         ]
+        debugger
         const names = [...names1, ...names2, ...names3, ...names4, ...names5, ...names6]
         return names
     }

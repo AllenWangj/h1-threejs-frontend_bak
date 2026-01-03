@@ -445,6 +445,9 @@ function loadModel() {
 const btnLoading = ref(false)
 
 async function playStep1Animation() {
+ if(btnLoading.value) {
+  return
+ }
   btnLoading.value = true
   hiddenModel([
     '底柱',
@@ -485,6 +488,9 @@ async function playStep1Animation() {
 // }
 
 async function playStep2Animation() {
+   if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel([
   //   '地板托架',
@@ -541,6 +547,9 @@ async function playStep2Animation() {
   btnLoading.value = false
 }
 async function playStepNew21Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel([
   //   // '地板托架',
@@ -597,6 +606,9 @@ async function playStepNew21Animation() {
   btnLoading.value = false
 }
 async function playStepNew22Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel([
   //   // '地板托架',
@@ -655,6 +667,9 @@ async function playStepNew22Animation() {
 }
 
 async function playStepNew2Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel([
   //   '柱',
@@ -709,6 +724,9 @@ async function playStepNew2Animation() {
   btnLoading.value = false
 }
 async function playStepNew221Animation() {
+  if(btnLoading.value) {
+  return
+ }
   btnLoading.value = true
   // hiddenModel([
   //   // '柱',
@@ -765,6 +783,9 @@ async function playStepNew221Animation() {
 }
 
 async function playStep3Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel([
   //   // '柱',
@@ -818,6 +839,9 @@ async function playStep3Animation() {
 }
 
 async function playStep41Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel([
   //   '地板托架（顶）',
@@ -869,6 +893,9 @@ async function playStep41Animation() {
 }
 
 async function playStep42Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel([
   //   // '地板托架（顶）',
@@ -919,6 +946,9 @@ async function playStep42Animation() {
   btnLoading.value = false
 }
 async function playStep43Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel([
   //   // '地板托架（顶）',
@@ -969,6 +999,9 @@ async function playStep43Animation() {
   btnLoading.value = false
 }
 async function playStep44Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel([
   //   // '地板托架（顶）',
@@ -1020,6 +1053,9 @@ async function playStep44Animation() {
 }
 
 async function playStep45Animation() {
+  if(btnLoading.value) {
+  return
+ }
   btnLoading.value = true
   hiddenModel([
     '地板托架（顶）',
@@ -1046,6 +1082,9 @@ async function playStep45Animation() {
 }
 
 async function playStep51Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel(['内装饰墙板', '门窗', '外墙板檩条', '外墙面板', '柱装饰板', '屋面板'])
   // // 需要先显示上一步的部件以免未执行第上一步
@@ -1102,6 +1141,9 @@ async function playStep51Animation() {
   btnLoading.value = false
 }
 async function playStep52Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel(['外墙板檩条', '外墙面板', '柱装饰板', '屋面板'])
   // // 需要先显示上一步的部件以免未执行第上一步
@@ -1158,6 +1200,9 @@ async function playStep52Animation() {
   btnLoading.value = false
 }
 async function playStep53Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel(['外墙面板', '柱装饰板', '屋面板'])
   // // 需要先显示上一步的部件以免未执行第上一步
@@ -1329,6 +1374,9 @@ async function playStep53Animation2() {
   btnLoading.value = false
 }
 async function playStep54Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel(['柱装饰板', '屋面板'])
   // // 需要先显示上一步的部件以免未执行第上一步
@@ -1386,6 +1434,9 @@ async function playStep54Animation() {
   btnLoading.value = false
 }
 async function playStep55Animation() {
+  if(btnLoading.value) {
+  return
+ }
   // btnLoading.value = true
   // hiddenModel(['屋面板'])
   // // 需要先显示上一步的部件以免未执行第上一步
@@ -1666,6 +1717,9 @@ async function playStep55Animation4() {
   btnLoading.value = false
 }
 async function playStep5Animation() {
+  if(btnLoading.value) {
+  return
+ }
   btnLoading.value = true
   hiddenModel(['内装饰墙板', '门窗', '外墙板檩条', '外墙面板', '柱装饰板', '屋面板'])
   // 需要先显示上一步的部件以免未执行第上一步

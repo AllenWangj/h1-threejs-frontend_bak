@@ -3,7 +3,7 @@ export const materialInfoService = (): any[] => {
     const windowData = [
         {
             no: 'LT1',
-            spec: '窗1210',
+            spec: '宽度 ±2mm，高度 ±1mm',
             length: 2900,
             quantity: 23,
             material: 'Q235B',
@@ -14,9 +14,9 @@ export const materialInfoService = (): any[] => {
     const doorData = [
         {
             no: 'LT1',
-            spec: '门1021',
+            spec: '宽度 ±13mm，高度 ±11mm',
             length: Math.floor(Math.random() *10000) ,
-            quantity: Math.floor(Math.random() *20),
+            quantity: 1,
             material: 'Q235B',
             weight: 52.052
         }
@@ -25,9 +25,9 @@ export const materialInfoService = (): any[] => {
     const housePanelData = [
         {
             no: 'LT1',
-            spec: '屋面板',
-            length: Math.floor(Math.random() *10000) ,
-            quantity: Math.floor(Math.random() *20),
+            spec: '宽度 ±8mm，高度 ±6mm',
+            length:2000 ,
+            quantity:15,
             material: 'Q235B',
             weight: 52.052
         }
@@ -37,9 +37,9 @@ export const materialInfoService = (): any[] => {
     const roofPanelData = [
         {
             no: 'LT1',
-            spec: '屋顶',
-            length:  Math.floor(Math.random() *10000) ,
-            quantity: Math.floor(Math.random() *20),
+            spec: '宽度 ±18mm，高度 ±16mm',
+            length: 2600 ,
+            quantity: 1,
             material: 'Q235B',
             weight: 52.052
         }
@@ -49,15 +49,15 @@ export const materialInfoService = (): any[] => {
     const wallData = [
         {
             no: 'LT1',
-            spec: '内墙',
-            length: Math.floor(Math.random() *10000) ,
-            quantity: Math.floor(Math.random() *20),
+            spec: '宽度 ±28mm，高度 ±36mm',
+            length: 1800 ,
+            quantity: 20,
             material: 'Q235B',
             weight: 52.052
         },
         {
             no: '屋架',
-            spec: '外墙3200',
+            spec: '宽度 ±28mm，高度 ±36mm',
             length: 6000,
             quantity: 4,
             material: 'Q235B',
@@ -65,15 +65,7 @@ export const materialInfoService = (): any[] => {
         },
         {
             no: 'QL1',
-            spec: '外墙3204a',
-            length: 2600,
-            quantity: 20,
-            material: 'Q235B',
-            weight: 22.4
-        },
-        {
-            no: 'QL1',
-            spec: '外墙3209',
+            spec: '宽度 ±28mm，高度 ±36mm',
             length: 2600,
             quantity: 20,
             material: 'Q235B',
@@ -106,7 +98,7 @@ export const materialInfoService = (): any[] => {
     const columnData = [
         {
             no: 'GKZ1',
-            spec: '脚柱1',
+            spec: '宽度 ±3mm，高度 ±1mm',
             length: 5800,
             quantity: 10,
             material: 'Q235B',
@@ -114,7 +106,7 @@ export const materialInfoService = (): any[] => {
         },
         {
             no: 'GZ1短',
-            spec: '刚框柱1',
+            spec: '宽度 ±3mm，高度 ±1mm',
             length: 450,
             quantity: 10,
             material: 'Q235B',
@@ -172,36 +164,30 @@ export const materialInfoService = (): any[] => {
     return [
     {
         name: '门',
-        value: 2,
+        value: 1,
         infoList: doorData.map(ele =>{
             return {
                 ...ele,
-                length:Math.floor(Math.random() *10000) ,
-                quantity:Math.floor(Math.random() *20) ,
 
             }
         })
     },
     {
         name: '屋面板',
-        value: 3,
+        value: 20,
         infoList: housePanelData.map(ele =>{
             return {
                 ...ele,
-                length:Math.floor(Math.random() *10000) ,
-                quantity:Math.floor(Math.random() *20) ,
 
             }
         })
     },
     {
         name: '屋顶',
-        value: 4,
+        value: 1,
         infoList: roofPanelData.map(ele =>{
             return {
                 ...ele,
-                length:Math.floor(Math.random() *10000) ,
-                quantity:Math.floor(Math.random() *20) ,
 
             }
         })
@@ -230,26 +216,22 @@ export const materialInfoService = (): any[] => {
             }
         })
     },
-    {
-        name: '顶底板',
-        value: 7,
-        infoList: floorData.map(ele =>{
-            return {
-                ...ele,
-                length:Math.floor(Math.random() *10000) ,
-                quantity:Math.floor(Math.random() *20) ,
+    // {
+    //     name: '顶底板',
+    //     value: 7,
+    //     infoList: floorData.map(ele =>{
+    //         return {
+    //             ...ele,
 
-            }
-        })
-    },
+    //         }
+    //     })
+    // },
     {
         name: '柱',
         value: 8,
         infoList: columnData.map(ele =>{
             return {
                 ...ele,
-                length:Math.floor(Math.random() *10000) ,
-                quantity:Math.floor(Math.random() *20) ,
 
             }
         })

@@ -95,6 +95,7 @@ import { materialInfoService } from './composables/material-info-service'
 import BuildInfo from './build-info.vue'
 const { formatTime } = useUtils()
 import dayjs from 'dayjs'
+const { baseURL } = useRuntimeConfig().public
 
 const loading = ref(true)
 const four = ref()
@@ -128,20 +129,45 @@ const tapScheme = (item) => {
 
 // 下载方案
 const downloadSolution = async () => {
-  try {
-    const url = planExport({
-      projectId: projectId.value,
-      source: 4
-    })
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `结构设计方案.docx`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  } catch (error) {
-    console.error('下载方案失败', error)
-  }
+  const { token } = useAuth()
+  const res = await fetch(`${baseURL}/project/structural-design/v1/export?planId=${  currentAcviteScheme.value  }`, {
+    method: 'GET',
+    headers: {
+      'access-token': token.value
+    }
+  })
+
+  if (!res.ok) throw new Error('下载失败')
+
+  // 转成 Blob
+  const blob = await res.blob()
+
+  // 创建临时 URL
+  const url = window.URL.createObjectURL(blob)
+  // 创建 a 标签触发下载
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'design.zip' // 文件名
+  document.body.appendChild(a)
+  a.click()
+
+  // 清理
+  document.body.removeChild(a)
+  window.URL.revokeObjectURL(url)
+  // try {
+  //   const url = planExport({
+  //     projectId: projectId.value,
+  //     source: 4
+  //   })
+  //   const a = document.createElement('a')
+  //   a.href = url
+  //   a.download = `结构设计方案.docx`
+  //   document.body.appendChild(a)
+  //   a.click()
+  //   document.body.removeChild(a)
+  // } catch (error) {
+  //   console.error('下载方案失败', error)
+  // }
 }
 const materialDataList = ref(materialInfoService())
 console.log("materialDataList",materialDataList)
