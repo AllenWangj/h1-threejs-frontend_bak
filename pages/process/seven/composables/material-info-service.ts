@@ -3,9 +3,9 @@ export const materialInfoService = (): any[] => {
     const windowData = [
         {
             no: 'LT1',
-            spec: '宽度 ±2mm，高度 ±1mm',
-            length: 2900,
-            quantity: 23,
+            spec: 'W05',
+            length: 1200,
+            quantity: 1,
             material: 'Q235B',
             weight: 52.052
         }
@@ -14,7 +14,7 @@ export const materialInfoService = (): any[] => {
     const doorData = [
         {
             no: 'LT1',
-            spec: '宽度 ±13mm，高度 ±11mm',
+            spec: 'D04',
             length: Math.floor(Math.random() *10000) ,
             quantity: 1,
             material: 'Q235B',
@@ -25,7 +25,7 @@ export const materialInfoService = (): any[] => {
     const housePanelData = [
         {
             no: 'LT1',
-            spec: '宽度 ±8mm，高度 ±6mm',
+            spec: 'F01',
             length:2000 ,
             quantity:8,
             material: 'Q235B',
@@ -49,25 +49,41 @@ export const materialInfoService = (): any[] => {
     const wallData = [
         {
             no: 'LT1',
-            spec: '宽度 ±28mm，高度 ±36mm',
+            spec: 'Q01',
             length: 9000 ,
-            quantity: 8,
+            quantity: 6,
             material: 'Q235B',
             weight: 52.052
         },
         {
-            no: '屋架',
-            spec: '宽度 ±28mm，高度 ±36mm',
+            no: 'LT02',
+            spec: 'Q03',
             length: 9000,
-            quantity: 3,
+            quantity: 2,
             material: 'Q235B',
-            weight: null
+            weight: 31.24
         },
         {
-            no: 'QL1',
-            spec: '宽度 ±28mm，高度 ±36mm',
-            length: 9000,
-            quantity: 8,
+            no: 'LT03',
+            spec: 'Q04',
+            length: 5000,
+            quantity: 2,
+            material: 'Q235B',
+            weight: 22.4
+        },
+        {
+            no: 'LT04',
+            spec: 'Q05',
+            length: 5000,
+            quantity: 2,
+            material: 'Q235B',
+            weight: 22.4
+        },
+         {
+            no: 'LT05',
+            spec: 'Q08',
+            length: 5000,
+            quantity: 1,
             material: 'Q235B',
             weight: 22.4
         },
@@ -76,9 +92,9 @@ export const materialInfoService = (): any[] => {
     const groundData = [
         {
             no: 'LT1',
-            spec: '地板1',
+            spec: 'F03',
             length: 2900,
-            quantity: 20,
+            quantity: 10,
             material: 'Q235B',
             weight: 52.052
         },
@@ -98,7 +114,7 @@ export const materialInfoService = (): any[] => {
     const columnData = [
         {
             no: 'GKZ1',
-            spec: '宽度 ±3mm，高度 ±1mm',
+            spec: 'M01',
             length: 5800,
             quantity: 8,
             material: 'Q235B',
@@ -106,7 +122,7 @@ export const materialInfoService = (): any[] => {
         },
         {
             no: 'GZ1短',
-            spec: '宽度 ±3mm，高度 ±1mm',
+            spec: 'M02',
             length: 5800,
             quantity: 8,
             material: 'Q235B',
@@ -162,6 +178,18 @@ export const materialInfoService = (): any[] => {
 
 
     return [
+        {
+            name: '窗',
+        value: 1,
+        infoList: windowData.map(ele =>{
+            return {
+                ...ele,
+
+            }
+        })
+            
+        }
+        ,
     {
         name: '门',
         value: 1,
