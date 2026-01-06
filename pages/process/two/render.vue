@@ -95,7 +95,7 @@
             <el-descriptions-item label="海拔" :span="1">1200m</el-descriptions-item>
             <el-descriptions-item label="功能区划" :span="1">{{functionalDivision}}</el-descriptions-item>
             <el-descriptions-item label="模式类型" :span="2">{{ schemaType }}</el-descriptions-item>
-            <el-descriptions-item label="功能模块布局" :span="2">办公、生活、卫勤、指挥、仓库</el-descriptions-item>
+            <el-descriptions-item label="功能模块布局" :span="2">{{ functionalBuilding }}</el-descriptions-item>
           </el-descriptions>
         
         </div>
@@ -232,6 +232,7 @@ async function fetchDetail(isLoadFirst = true) {
 }
 const schemaType  = ref("")
 const functionalDivision = ref("")
+const functionalBuilding = ref("")
 onMounted(() => {
   if (route.query.projectId) {
     projectId.value = route.query.projectId as string
@@ -254,6 +255,16 @@ onMounted(() => {
       const {options,value} = functionalDivisionResult
       functionalDivision.value = options.find(ele=>ele.value == value).label
     }
+
+     const ffunctionalBuildingResult =   params.find(ele =>'functionalBuilding' === ele.field)
+    if(ffunctionalBuildingResult) {
+      const {options,value} = ffunctionalBuildingResult
+      functionalBuilding.value = options.find(ele=>ele.value == value).label
+    }
+
+
+// const functionalBuilding = ref("")
+
   })
 })
 function handlleSaveEvt() {
