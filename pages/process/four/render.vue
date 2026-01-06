@@ -130,7 +130,7 @@ const tapScheme = (item) => {
 // 下载方案
 const downloadSolution = async () => {
   const { token } = useAuth()
-  const res = await fetch(`${baseURL}/project/structural-design/v1/export?planId=${  currentAcviteScheme.value  }`, {
+  const res = await fetch(`${baseURL}/project/structural-design/v1/export?planId=${currentAcviteScheme.value}`, {
     method: 'GET',
     headers: {
       'access-token': token.value
@@ -147,27 +147,12 @@ const downloadSolution = async () => {
   // 创建 a 标签触发下载
   const a = document.createElement('a')
   a.href = url
-  a.download = 'design.zip' // 文件名
   document.body.appendChild(a)
   a.click()
 
   // 清理
   document.body.removeChild(a)
   window.URL.revokeObjectURL(url)
-  // try {
-  //   const url = planExport({
-  //     projectId: projectId.value,
-  //     source: 4
-  //   })
-  //   const a = document.createElement('a')
-  //   a.href = url
-  //   a.download = `结构设计方案.docx`
-  //   document.body.appendChild(a)
-  //   a.click()
-  //   document.body.removeChild(a)
-  // } catch (error) {
-  //   console.error('下载方案失败', error)
-  // }
 }
 const materialDataList = ref(materialInfoService())
 console.log("materialDataList",materialDataList)
