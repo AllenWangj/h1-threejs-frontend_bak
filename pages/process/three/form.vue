@@ -296,7 +296,7 @@ const defData = [
   },
   {
     "tag": true,
-    "type": "select",
+    "type": "multiple-dynamic",
     "field": "scale",
     "label": "建筑规模(小区保障规模)",
     "value": [],
