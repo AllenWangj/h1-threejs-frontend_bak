@@ -62,10 +62,10 @@
         </div>
         <div class="plan-construct">
           <el-descriptions title="结构信息" :column="2">
-            <el-descriptions-item label="建筑类型" :span="2">{{ functional }}</el-descriptions-item>
-            <el-descriptions-item label="建筑边界" :span="2">{{ boundary }}</el-descriptions-item>
+            <el-descriptions-item label="建筑类型" :span="2" v-if="!!functional">{{ functional }}</el-descriptions-item>
+            <el-descriptions-item label="建筑边界" :span="2" v-if="!!boundary">{{ boundary }}</el-descriptions-item>
             <el-descriptions-item label="建筑规模" :span="2">{{ info.structureInfo.scale  }}</el-descriptions-item>
-            <el-descriptions-item label="标准功能模块" :span="2">{{ moduleLibrary }}</el-descriptions-item>
+            <el-descriptions-item label="标准功能模块" :span="2" v-if="!!moduleLibrary">{{ moduleLibrary }}</el-descriptions-item>
             <el-descriptions-item label="门" :span="2">{{ info.structureInfo.doorCount }}个</el-descriptions-item>
             <el-descriptions-item label="窗" :span="2">{{ info.structureInfo.windowCount }}个</el-descriptions-item>
           </el-descriptions>
@@ -74,9 +74,9 @@
           <el-descriptions-item label="经纬度" :span="2">{{ info.locationInfo.latitudeAndLongitude }}</el-descriptions-item>
           <el-descriptions-item label="面积" :span="1"> {{ info.locationInfo.areaDimensions }}</el-descriptions-item>
           <el-descriptions-item label="海拔" :span="1">{{ info.locationInfo.altitude }}</el-descriptions-item>
-          <el-descriptions-item label="功能区划" :span="1">{{ functionalDivision}}</el-descriptions-item>
+          <el-descriptions-item label="功能区划" :span="1" v-if="!!functionalDivision">{{ functionalDivision}}</el-descriptions-item>
           <!-- <el-descriptions-item label="模式类型" :span="2">{{info.locationInfo.modeType }}</el-descriptions-item> -->
-          <el-descriptions-item label="功能模块布局" :span="2">{{ functionalBuilding
+          <el-descriptions-item label="功能模块布局" :span="2" v-if="!!functionalBuilding">{{ functionalBuilding
             }}</el-descriptions-item>
         </el-descriptions>
       </div>

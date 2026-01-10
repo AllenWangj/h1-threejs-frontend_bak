@@ -69,10 +69,10 @@
           </div>
           <div class="plan-construct">
             <el-descriptions title="结构信息" :column="2">
-              <el-descriptions-item label="建筑类型" :span="2">{{ functional }}</el-descriptions-item>
-              <el-descriptions-item label="建筑边界" :span="2">{{ boundary }}</el-descriptions-item>
+              <el-descriptions-item label="建筑类型" :span="2" v-if="!!functional">{{ functional }}</el-descriptions-item>
+              <el-descriptions-item label="建筑边界" :span="2" v-if="!!boundary">{{ boundary }}</el-descriptions-item>
               <el-descriptions-item label="建筑面积" :span="2">{{  info.buildingScale }}</el-descriptions-item>
-              <el-descriptions-item label="标准功能模块" :span="2">{{  moduleLibrary }}</el-descriptions-item>
+              <el-descriptions-item label="标准功能模块" :span="2" v-if="!!moduleLibrary">{{  moduleLibrary }}</el-descriptions-item>
               <el-descriptions-item label="门" :span="1">{{  info.doorCount }}个</el-descriptions-item>
               <el-descriptions-item label="窗" :span="1">{{  info.windowCount }}个</el-descriptions-item>
             </el-descriptions>
