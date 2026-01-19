@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-scrm",
+  "name": "h1-threejs-frontend",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,23 +14,24 @@
     "@types/three": "^0.179.0",
     "cross-env": "^7.0.3",
     "less": "^4.3.0",
-    "nuxt": "^3.17.3",
+    "nuxt": "^3.19.2",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1"
   },
   "dependencies": {
-    "@ez-ui/icons": "^1.2.4",
-    "@ez-ui/nuxt": "^0.4.0",
-    "@sino/fetch": "^0.1.2",
-    "@sino/i18n": "^0.4.0",
-    "@sino/normalize": "^0.2.0",
-    "@sino/nuxt-exclude-pages": "^0.4.0",
+    "@aws-sdk/client-s3": "^3.893.0",
+    "@maxtan/ez-ui": "^0.12.1",
+    "@maxtan/ez-ui-icons": "^1.4.0",
+    "@maxtan/ez-ui-nuxt": "^0.5.2",
+    "@maxtan/fetch": "^1.2.0",
+    "@maxtan/normalize": "^0.2.0",
+    "@maxtan/nuxt-exclude-pages": "^0.5.0",
     "@vueuse/nuxt": "^13.2.0",
     "dayjs": "^1.11.13",
     "element-plus": "^2.9.10",
-    "ez-ui": "^0.9.0",
     "file-saver": "^2.0.5",
+    "geotiff": "2.1.4-beta.0",
     "three": "^0.180.0",
     "vue": "^3.5.14"
   }

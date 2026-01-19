@@ -82,7 +82,7 @@ class Three {
         }
     }
 
-    protected calculateGroupDimensions(group) {
+    protected calculateGroupDimensions(group, isLoadBox = false) {
         // 创建包围盒
         const box = new THREE.Box3();
 
@@ -96,14 +96,39 @@ class Three {
         const center = new THREE.Vector3();
         box.getCenter(center);
         const rect = new THREE.Vector3()
-         box.getSize(rect)
-         const maxDim = Math.max(size.x, size.y, size.z);
+        box.getSize(rect)
+        const maxDim = Math.max(size.x, size.y, size.z);
+
+
+        const box1 = new THREE.Box3().setFromObject(group);
+        const size1 = box1.getSize(new THREE.Vector3());
+        const center1 = box1.getCenter(new THREE.Vector3());
+        // const min = new THREE.Vector3();
+
+        console.log("min", rect)
+        // 创建一个与边界匹配的立方体
+        const boundingGeometry = new THREE.BoxGeometry(size1.x, size1.y, size1.z);
+        // 使用EdgesGeometry提取边缘
+        const edgesGeometry = new THREE.EdgesGeometry(boundingGeometry);
+        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 });
+
+        const boundingBox = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+        // 定位到组的中心
+        boundingBox.position.copy(new THREE.Vector3(0, 0, 0));
+        if (isLoadBox) {
+            //   this.scene!.add(boundingBox)
+
+
+        }
         return {
             width: size.x,    // X轴方向尺寸
             height: size.y,   // Y轴方向尺寸
             depth: size.z,    // Z轴方向尺寸
-            center: center ,
-            size:rect   // 大小
+            center: center,
+            size: rect,
+            maxDim,  // 大小
+            position: box1.min,
+
         };
     };
     protected loadGLTFResource(url: string, loadGltfCbk?: (progress: number) => void): Promise<GLTF> {
@@ -117,6 +142,9 @@ class Three {
                     const progress = Math.round((xhr.loaded / xhr.total) * 100);
                     loadGltfCbk && loadGltfCbk(progress)
                 }, err => {
+                    console.log("err--", err)
+                    console.log("url--", url)
+
                     reject(err || '加载出错')
                 }
             )
@@ -128,10 +156,10 @@ class Three {
  * @param {THREE.Group} group - 要释放的GLTF模型组
  * @param {THREE.Scene} scene - 场景对象
  */
-   protected disposeGLTFGroup(group:THREE.Group) {
-        group.parent.remove(group)                             
+    protected disposeGLTFGroup(group: THREE.Group) {
+        group.parent.remove(group)
         // 2. 递归遍历所有子对象并释放资源
-        group.traverse((object:THREE.Mesh) => {
+        group.traverse((object: THREE.Mesh) => {
             // 释放几何体
             if (object.geometry) {
                 object.geometry.dispose();
@@ -156,7 +184,7 @@ class Three {
      * 释放材质及其关联的纹理
      * @param {THREE.Material} material - 要释放的材质
      */
-    protected disposeMaterial(material:THREE.Material) {
+    protected disposeMaterial(material: THREE.Material) {
         // 释放材质本身
         material.dispose();
         // 释放材质上的纹理
@@ -166,17 +194,17 @@ class Three {
             }
         }
     }
-    protected calculateTransformMatrix(position:THREE.Vector3) {
+    protected calculateTransformMatrix(position: THREE.Vector3) {
         // const angle = THREE.MathUtils.degToRad(deg);
-            
+
         // 2. 创建旋转矩阵 - 沿自定义轴旋转
         const matrix = new THREE.Matrix4()
         // 创建一个单位矩阵
         // const matrix = new THREE.Matrix4();
-        
+
         // 平移参数：x=100, y=100, z=100
         const translation = position.clone();
-        
+
         // 旋转参数：沿X轴旋转90度（转换为弧度）
         // const rotationX = THREE.MathUtils.degToRad(deg);
         // 先应用旋转，再应用平移
@@ -188,20 +216,20 @@ class Three {
     }
     protected convertDpToNdc(dpX: number, dpY: number) {
         // 转换为标准化设备坐标
-       // 获取渲染器元素的边界矩形
-       const rect = this.renderer.domElement.getBoundingClientRect();
-       // 计算相对于渲染器的dp坐标
-       const relativeX = dpX - rect.left;
-       const relativeY = dpY - rect.top;
-       // 转换为0-1范围的坐标
-       const normalizedX = relativeX / rect.width;
-       const normalizedY = relativeY / rect.height;
-       // 转换为Three.js的标准化设备坐标(-1到1)
-       return {
-           x: normalizedX * 2 - 1,
-           y: -(normalizedY * 2 - 1)
-       };
-   }
+        // 获取渲染器元素的边界矩形
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        // 计算相对于渲染器的dp坐标
+        const relativeX = dpX - rect.left;
+        const relativeY = dpY - rect.top;
+        // 转换为0-1范围的坐标
+        const normalizedX = relativeX / rect.width;
+        const normalizedY = relativeY / rect.height;
+        // 转换为Three.js的标准化设备坐标(-1到1)
+        return {
+            x: normalizedX * 2 - 1,
+            y: -(normalizedY * 2 - 1)
+        };
+    }
 
 }
 export default Three

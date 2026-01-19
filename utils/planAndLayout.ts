@@ -26,6 +26,7 @@ class PlanAndLayout extends Three {
     private previousMousePosition: THREE.Vector2 = new THREE.Vector2() //记录初始化移动位置
     private raycasterSaveData: THREE.Object3D[] = []
     private isDrag = true
+    private isStopDrag = true //停止移动
     constructor(node: HTMLElement, option?: IOptipn) {
         super(node)
         this.option = Object.assign({
@@ -116,7 +117,7 @@ class PlanAndLayout extends Three {
             let selectObject = object
             let stop = false
             // selectObject.name.indexOf("Group") == -1 ||
-            while ( !stop) {
+            while (!stop) {
                 // 代表没有找到目标元素
                 selectObject = selectObject.parent
                 if (selectObject.parent.parent.name === this.wrapperName) {
@@ -132,6 +133,20 @@ class PlanAndLayout extends Three {
             // 代表找到了这个模型，需要移动了
             this.currentStartMoveMode = selectObject
             this.controls.enabled = false
+            // 需要记录按下的时候位置信息，方便复位
+            this.currentStartMoveMode.parent.userData.position = new THREE.Vector3(
+                this.currentStartMoveMode.parent.position.x,
+                this.currentStartMoveMode.parent.position.y,
+                this.currentStartMoveMode.parent.position.z,
+
+            )
+
+            this.currentStartMoveMode.parent.userData.rotation = new THREE.Vector3(
+                this.currentStartMoveMode.parent.rotation.x,
+                this.currentStartMoveMode.parent.rotation.y,
+                this.currentStartMoveMode.parent.rotation.z,
+            )
+            this.isStopDrag = false
             if (this.isDrag) {
                 this.handleMousePosition(event)
             } else {
@@ -145,7 +160,6 @@ class PlanAndLayout extends Three {
         const mouseX = (event.clientX - rect.left)
         const mouseY = (event.clientY - rect.top)
         const worldPos = this.getWorldPositionFromScreen(mouseX, mouseY)
-        // console.log("worldPos===",worldPos)
         const parent = this.currentStartMoveMode.parent
         const x = worldPos.x
         const y = worldPos.y
@@ -167,43 +181,62 @@ class PlanAndLayout extends Three {
     private handleOnMouseUp(event: MouseEvent) {
         // 鼠标抬起
         this.controls.enabled = true
-        if (this.isDrag) {
-            this.handleOnMouseMove(event)
+        if (this.isStopDrag) {
+            return
         }
-        this.currentStartMoveMode = null
+        if (this.isDrag) {
+            this.isStopDrag = true
+            this.handleOnMouseMove(event)
+        } else {
+            this.isStopDrag = true
+        }
+        // this.currentStartMoveMode = null
     }
     private handleOnMouseMove(event: MouseEvent) {
         // 鼠标移动
         if (!this.currentStartMoveMode) {
             return
         }
+        if (this.isStopDrag) {
+            return
+        }
         if (this.isDrag) {
             this.handleMousePosition(event)
         } else {
             this.handleMouseRotation(event)
+
         }
         return
 
     }
     private handleScenMode() {
         // 加载默认场景数据
-        Set75.forEach(ele => {
+        Set75.forEach((ele, index) => {
             this.loadGLTFResource(ele.url).then(res => {
-                const group = res.scene.children[0] as THREE.Group
-                const size = this.calculateGroupDimensions(group)
-                const xPos = ele.position.x
-                const yPos = ele.position.y
-                const x = xPos
-                const y = yPos
-                const z = ele.position.z
-                group.name = ele.groupName
-                group.rotation.z = ele.deg * Math.PI / 180
-                const pivot = new THREE.Object3D();
-                pivot.position.set(x + size.width / 2, y + size.height / 2, z)
-                group.position.set(-size.width / 2, -size.height / 2, z)
-                pivot.add(group)
-                this.wrapper.add(pivot)
-                this.raycasterSaveData.push(pivot)
+                if (index == 0) {
+                    const xPos = ele.position.x
+                    const yPos = ele.position.y
+                    const group =res.scenes[0]
+                    const size = this.calculateGroupDimensions(group)
+                    group.position.set(xPos, yPos, 0)
+                    this.wrapper.add(group)
+                } else {
+                    const group = res.scene.children[0] as THREE.Group
+                    const size = this.calculateGroupDimensions(group)
+                    const xPos = ele.position.x
+                    const yPos = ele.position.y
+                    const x = xPos
+                    const y = yPos
+                    const z = ele.position.z
+                    group.name = ele.groupName
+                    group.rotation.z = ele.deg * Math.PI / 180
+                    const pivot = new THREE.Object3D();
+                    pivot.position.set(x + size.width / 2, y + size.height / 2, z)
+                    group.position.set(-size.width / 2, -size.height / 2, z)
+                    pivot.add(group)
+                    this.wrapper.add(pivot)
+                    this.raycasterSaveData.push(pivot)
+                }
             })
         })
     }
@@ -236,7 +269,6 @@ class PlanAndLayout extends Three {
                 target.parent.remove(target)
 
             } else {
-                console.log("target---", target, ele)
             }
         })
     }
@@ -261,6 +293,41 @@ class PlanAndLayout extends Three {
             const distance = 0; // 距离相机的距离
             return this.camera.position.clone().add(direction.multiplyScalar(distance));
         }
+    }
+    public handleThreeIsDrag() {
+        // 设置移动
+
+        this.isDrag = true
+        this.currentStartMoveMode = null
+    }
+    public handleThreeIsNotDrag() {
+        // 设置旋转
+        this.currentStartMoveMode = null
+        this.isDrag = false
+    }
+    public handleRestPosition() {
+        // 复位
+        if (this.currentStartMoveMode) {
+            if (this.isDrag) {
+                const position = this.currentStartMoveMode.parent.userData.position
+                this.currentStartMoveMode.parent.position.set(
+                    position.x,
+                    position.y,
+                    position.z,
+                )
+            } else {
+                const rotation = this.currentStartMoveMode.parent.userData.rotation
+                this.currentStartMoveMode.parent.rotation.set(
+                    rotation.x,
+                    rotation.y,
+                    rotation.z,
+                )
+            }
+
+        }
+    }
+    public handleDeleteMode() {
+        this.currentStartMoveMode.parent.parent.remove(this.currentStartMoveMode.parent)
     }
 }
 export default PlanAndLayout
