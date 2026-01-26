@@ -15,7 +15,7 @@ class IFC extends BaseThree {
     public async handleLoad(element) {
         const promiseAll = []
         const urlData = []
-        const codes = element.map(e=>e.element_encode.slice(0, 9)+"01")
+        const codes = element.map(e=>e.element_encode.slice(0, 9)+"010101")
         console.log("'codes",codes)
          await getModelMap(codes)
         element.forEach(ele => {
