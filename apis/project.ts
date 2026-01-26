@@ -223,5 +223,10 @@ export const design = (params) => {
     return  createInstance.get(`${BASE_URL}${baseUrl}parts-production/v1/design`,params)
 }
 
+export const algorithmGenerate = (data) => useBaseFetch().post(`${baseUrl}plan/v1/algorithm/generate`, data)
+// export const algorithmGenerate = (data) => useBaseFetch().post(`${baseUrl}plan/v1/algorithm/generate`, data)
+
+
+
 
 
