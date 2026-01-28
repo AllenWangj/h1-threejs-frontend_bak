@@ -2,10 +2,9 @@
   <div class="flex flex-shrink-0 w-[100%] h-[100%] relative">
     <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list>
     <!-- v-loading="loading" :element-loading-text="loadingText" -->
-    <div ref="fullscreenContainer" 
-      class="flex-1 relative border border-[1px] border-[#adcdf7]">
+    <div ref="fullscreenContainer" class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div ref="threeContainer" class="three-container" />
-  </div>
+    </div>
   </div>
 </template>
 
@@ -18,9 +17,9 @@ import SchemesList from '@/components/schemes-list/index.vue'
 // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 // import { modeService } from './composables/mode-service'
 // import { materialInfoService } from './composables/material-info-service'
-import { getPartsProductionDetail ,algorithmGenerate,planDetail} from '@/apis/project'
+import { getPartsProductionDetail, algorithmGenerate, planDetail } from '@/apis/project'
 // import ModelWrapper from "@/components/model-wrapper/index.vue"
-import {useRender} from "./ifc/index"
+import { useRender } from "./ifc/index"
 
 // 全屏相关
 const fullscreenContainer = ref<HTMLElement | null>(null)
@@ -37,9 +36,29 @@ const tapScheme = (item) => {
   // loadModel()
   console.log('点击了部件生成方案', item)
   // algorithmGenerate({})
-     planDetail({id:currentAcviteScheme.value }).then(res=>{
-        console.log("res----",res)
-      })
+  planDetail({ id: currentAcviteScheme.value }).then(res => {
+    // console.log("res----", res)
+      const { data: { layouts, status } } = res
+        if (status == 1) {
+          ElMessage({
+            type: 'warning',
+            message: '待处理'
+          })
+        } else if (status == 2) {
+          ElMessage({
+            type: 'warning',
+            message: '方案生成中'
+          })
+        } else if (status == 3) {
+          opt?.handleLoad(layouts)
+
+        } else {
+          ElMessage({
+            type: 'error',
+            message: '方案生成失败'
+          })
+        }
+  })
 }
 
 // 下载方案
@@ -70,13 +89,13 @@ const downloadSolution = async () => {
   // document.body.removeChild(a)
   // window.URL.revokeObjectURL(url)
 }
-
+let ifcObject: any = null
 // 获取详情
 async function fetchDetail() {
   try {
-      algorithmGenerate({  projectId: projectId.value,}).then(res=>{
-        console.log("----",res)
-      })
+    // algorithmGenerate({  projectId: projectId.value,}).then(res=>{
+    //   console.log("----",res)
+    // })
     const { data } = await getPartsProductionDetail({
       projectId: projectId.value,
       source: 5
@@ -85,12 +104,31 @@ async function fetchDetail() {
     if (schemeList.value.length > 0) {
       currentAcviteScheme.value = schemeList.value[0].id
       // loadModel()
-      planDetail({id:"141658339091267725"}).then(res=>{
-        console.log("res----",res)
-        const {data:{layouts}} = res
-        const IfcRender = useRender()
-        const ifc = new IfcRender.IFC(threeContainer.value)
-        // ifc.handleLoad(layouts)
+      planDetail({ id: currentAcviteScheme.value }).then(res => {
+        console.log("res----", res)
+        const { data: { layouts, status } } = res
+        if (status == 1) {
+          ElMessage({
+            type: 'warning',
+            message: '待处理'
+          })
+        } else if (status == 2) {
+          ElMessage({
+            type: 'warning',
+            message: '方案生成中'
+          })
+        } else if (status == 3) {
+          opt?.handleLoad(layouts)
+
+        } else {
+          ElMessage({
+            type: 'error',
+            message: '方案生成失败'
+          })
+        }
+        // const IfcRender = useRender()
+        // const ifc = new IfcRender.IFC(threeContainer.value)
+
       })
     }
     console.log('获取部件生产详情', data)
@@ -111,11 +149,14 @@ async function fetchDetail() {
 
 const threeContainer = ref(null)
 // let scene, camera, renderer, controls, animationId
-
+let opt: any | null = null
 onMounted(() => {
   if (route.query.projectId) {
     projectId.value = route.query.projectId as string
   }
+  const IfcRender = useRender()
+  const ifc = new IfcRender.IFC(threeContainer.value)
+  opt = ifc
   fetchDetail();
 
   // initThree()
