@@ -241,13 +241,12 @@ async function fetchDetail() {
     })
     console.log('获取部件生产详情', data)
     // data.params ||
-    paramsData = data.params
     if (data.params && data.params.length > 0) {
       const { type } = data.params[0]
 
       if (type == 'input') {
         status.value = true
-
+      paramsData = null
         nextTick(() => {
           formData.value.projectForm = (defData).map((item, index) => {
             // item.label = LABLE_MAP[item.field] || item.field
@@ -258,6 +257,7 @@ async function fetchDetail() {
         })
 
       } else {
+        paramsData = data.params
         status.value = false
         nextTick(() => {
           formData.value.projectForm = (data.params || defData).map((item) => {
@@ -271,6 +271,7 @@ async function fetchDetail() {
       }
     } else {
       status.value = false
+      paramsData = null
       nextTick(() => {
         formData.value.projectForm = (data.params || defData).map((item) => {
           item.label = LABLE_MAP[item.field] || item.field
@@ -402,7 +403,7 @@ const defData = [
     "label": "模块尺寸",
     "options": [],
     "valueConfig": null,
-    "value":[]
+    
   },
   {
     "tag": true,
@@ -590,7 +591,7 @@ watch(() => status.value, (newValue) => {
       return item
     })
   } else {
-    formData.value.projectForm = (paramsData || defData).map((item) => {
+    formData.value.projectForm = (paramsData || defData1).map((item) => {
       item.label = LABLE_MAP[item.field] || item.field
       item.options = DICT_MAP.value[item.field] || []
       return item
