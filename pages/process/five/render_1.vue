@@ -159,12 +159,12 @@ onMounted(() => {
   // opt = ifc
   // fetchDetail();
 
-  initThree()
-  loadModel()
-  animate()
+  // initThree()
+  // loadModel()
+  // animate()
 
-  窗口变化刷新
-  window.addEventListener('resize', onResize)
+  // 窗口变化刷新
+  // window.addEventListener('resize', onResize)
 })
 
 onBeforeUnmount(() => {
