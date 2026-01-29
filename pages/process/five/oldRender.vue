@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-shrink-0 w-[100%] h-[100%] relative">
-    <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list>
+    <!-- <schemes-list :list="schemeList" :current="currentAcviteScheme" @tap-scheme="tapScheme"></schemes-list> -->
     <div ref="fullscreenContainer" v-loading="loading" :element-loading-text="loadingText"
       class="flex-1 relative border border-[1px] border-[#adcdf7]">
       <div ref="threeContainer" class="three-container" />
@@ -24,15 +24,6 @@
       </div>
 
       <div v-if="!loading && currentAcviteScheme" class="absolute top-[10px] left-[10px] z-10" style="width: 100%;">
-        <!-- 下载方案 -->
-        <!-- <el-button @click="downloadSolution" type="primary">导出方案</el-button>
-       <el-button @click="downloadSolution" type="primary">导出设计</el-button>
-       <el-button type="primary" @click="handleScenePane(false)">禁止拖动</el-button>
-        <el-button type="primary" @click="handleScenePane(true)">允许拖动</el-button>
-        <el-button type="primary" @click="handleSceneEnable(false)">关闭场景</el-button>
-        <el-button type="primary" @click="handleSceneEnable(true)">开启场景</el-button>
-        <el-button type="primary" @click="handleSceneScale(true)">允许缩放</el-button>
-        <el-button type="primary"  @click="handleSceneScale(false)">禁止缩放</el-button> -->
         <div class="opt">
           <div class="opt-content">
             <p class="opt-btn" @click="handleScenePane(false)">
@@ -76,7 +67,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount,watch } from 'vue'
 import SchemesList from '@/components/schemes-list/index.vue'
 import BuildInfo from './components/build-info.vue'
 import * as THREE from 'three'
@@ -86,8 +77,15 @@ import { modeService } from './composables/mode-service'
 import { materialInfoService } from './composables/material-info-service'
 import { getPartsProductionDetail } from '@/apis/project'
 import ModelWrapper from "@/components/model-wrapper/index.vue"
+const props = defineProps<{
+  id: string
+}>()
 
-
+watch(()=>props.id,(newValue) =>{
+   currentAcviteScheme.value =newValue
+  debugger
+   loadModel()
+})
 // 全屏相关
 const fullscreenContainer = ref<HTMLElement | null>(null)
 useFullScreenResize(fullscreenContainer, onResize)
@@ -168,7 +166,10 @@ onMounted(() => {
   if (route.query.projectId) {
     projectId.value = route.query.projectId as string
   }
-  fetchDetail();
+   currentAcviteScheme.value = props.id
+
+  // loadModel()
+  // fetchDetail();
 
   initThree()
   // loadModel()
@@ -248,6 +249,7 @@ function loadModel() {
   loader.load(
     '/models/tool5/scene.gltf', // 替换成你自己的路径
     async (gltf) => {
+      debugger
       if (lastMesh) {
         lastMesh.traverse((object) => {
           object.geometry?.dispose()
@@ -320,7 +322,6 @@ async function playStepAnimation(value) {
     default:
       break
   }
-  debugger
   settingModelStatus(models, value)
 }
 
