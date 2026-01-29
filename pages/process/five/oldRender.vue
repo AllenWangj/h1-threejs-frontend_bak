@@ -81,10 +81,13 @@ const props = defineProps<{
   id: string
 }>()
 
-watch(()=>props.id,(newValue) =>{
+watch(()=>props.id,(newValue,oldValue) =>{
    currentAcviteScheme.value =newValue
-  debugger
+  if(oldValue && newValue)
+ {
    loadModel()
+
+ }
 })
 // 全屏相关
 const fullscreenContainer = ref<HTMLElement | null>(null)
@@ -167,14 +170,9 @@ onMounted(() => {
     projectId.value = route.query.projectId as string
   }
    currentAcviteScheme.value = props.id
-
-  // loadModel()
-  // fetchDetail();
-
   initThree()
-  // loadModel()
   animate()
-
+   loadModel()
   // 窗口变化刷新
   window.addEventListener('resize', onResize)
 })

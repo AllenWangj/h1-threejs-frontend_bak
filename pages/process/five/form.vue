@@ -174,14 +174,18 @@ const handleFileChange = (file: any, item: any) => {
 
 const handleReset = () => {
   if (status.value) {
-    formData.value.projectForm = (defData).map((item) => {
+    formData.value.projectForm = (initData).map((item) => {
       // item.label = LABLE_MAP[item.field] || item.field
       // item.options = DICT_MAP.value[item.field] || []
+      // item.value
       return item
     })
+    debugger
   } else {
     formData.value = JSON.parse(JSON.stringify(initProjectForm.value))
   }
+    // formData.value = JSON.parse(JSON.stringify(initProjectForm.value))
+
 }
 
 const handleSave = async () => {
@@ -583,6 +587,7 @@ const defData = [
   //   "valueConfig": null
   // }
 ]
+const initData = defData.map(ele =>({...ele}))
 watch(() => status.value, (newValue) => {
   if (newValue) {
     formData.value.projectForm = (defData).map((item) => {
