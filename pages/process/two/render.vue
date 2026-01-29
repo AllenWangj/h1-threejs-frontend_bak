@@ -93,9 +93,9 @@
             <el-descriptions-item label="经纬度" :span="2"> 31.2304°N, 121.4737°E</el-descriptions-item>
             <el-descriptions-item label="地块面积" :span="2"> 250mx250m</el-descriptions-item>
             <el-descriptions-item label="海拔" :span="1">1200m</el-descriptions-item>
-            <el-descriptions-item label="功能区划" :span="1">{{functionalDivision}}</el-descriptions-item>
-            <el-descriptions-item label="模式类型" :span="2">{{ schemaType }}</el-descriptions-item>
-            <el-descriptions-item label="功能模块布局" :span="2">{{ functionalBuilding }}</el-descriptions-item>
+            <el-descriptions-item label="功能区划" :span="1" v-if="!!functionalDivision">{{functionalDivision}}</el-descriptions-item>
+            <el-descriptions-item label="模式类型" :span="2" v-if="!!schemaType">{{ schemaType }}</el-descriptions-item>
+            <el-descriptions-item label="功能模块布局" :span="2" v-if="!!functionalBuilding">{{ functionalBuilding }}</el-descriptions-item>
           </el-descriptions>
         
         </div>
