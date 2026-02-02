@@ -37,6 +37,13 @@ const currentAcviteScheme = ref('')
 const tapScheme = (item) => {
   currentAcviteScheme.value = item.id
   // loadModel()
+  const {type} = item
+  if(type == 3) {
+    isNew.value =true
+  }else {
+    isNew.value =false
+
+  }
   console.log('点击了部件生成方案', item)
   // algorithmGenerate({})
 //   planDetail({ id: currentAcviteScheme.value }).then(res => {
