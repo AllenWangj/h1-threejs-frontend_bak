@@ -124,7 +124,29 @@ const LABLE_MAP = {
   structuralPlan: '结构方案',
   componentLocation: '构部件位置',
   componentSpecifications: '构部件规格',
-  custom: '自定义参数'
+  custom: '自定义参数',
+  n: '模块个数',
+  'material-1': '第一种材料',
+  'material-2': '第二种材料',
+  'module-size': '模块尺寸',
+  column_predefined: '柱',
+  beam_predefined: '横梁',
+  beam_predefined1: '纵梁',
+  slab_a: '底板横梁',
+  slab_a1: '底板横梁护板',
+  slab_a2: '地板',
+  slab_a3: '地板横向支撑板',
+  slab_a4: '地砖',
+  slab_a5: '顶板',
+  slab_a6: '底梁支撑板',
+  slab_a7: '地板纵向支撑条',
+  door: '门',
+  window: '窗',
+  wall_predefined_profile_input_1: '内饰墙板',
+  wl7l: '外墙',
+  column2: '外包板',
+  column3: '挂檩',
+  column4: '连接件'
 }
 // 字典映射
 const DICT_MAP = computed(() => {
@@ -170,18 +192,14 @@ const handleFileChange = (file: any, item: any) => {
 
 const handleReset = () => {
   if (status.value) {
-    formData.value.projectForm = (initData).map((item) => {
-      // item.label = LABLE_MAP[item.field] || item.field
-      // item.options = DICT_MAP.value[item.field] || []
-      // item.value
+    formData.value.projectForm = JSON.parse(JSON.stringify(defData)).map((item) => {
+      item.label = LABLE_MAP[item.field] || item.label || item.field
+      item.options = DICT_MAP.value[item.field] || item.options || []
       return item
     })
-    debugger
   } else {
     formData.value = JSON.parse(JSON.stringify(initProjectForm.value))
   }
-    // formData.value = JSON.parse(JSON.stringify(initProjectForm.value))
-
 }
 
 const handleSave = async () => {
@@ -248,9 +266,9 @@ async function fetchDetail() {
         status.value = true
         paramsData = null
         nextTick(() => {
-          formData.value.projectForm = (defData).map((item, index) => {
-            // item.label = LABLE_MAP[item.field] || item.field
-            // item.options = DICT_MAP.value[item.field] || []
+          formData.value.projectForm = JSON.parse(JSON.stringify(defData)).map((item, index) => {
+            item.label = LABLE_MAP[item.field] || item.label || item.field
+            item.options = DICT_MAP.value[item.field] || item.options || []
             item.value = data.params[index].value
             return item
           })
@@ -273,9 +291,9 @@ async function fetchDetail() {
       status.value = false
       paramsData = null
       nextTick(() => {
-        formData.value.projectForm = (data.params || defData).map((item) => {
-          item.label = LABLE_MAP[item.field] || item.field
-          item.options = DICT_MAP.value[item.field] || []
+        formData.value.projectForm = JSON.parse(JSON.stringify(data.params || defData1)).map((item) => {
+          item.label = LABLE_MAP[item.field] || item.label || item.field
+          item.options = DICT_MAP.value[item.field] || item.options || []
           return item
         })
       })
@@ -308,301 +326,267 @@ const formDataList = computed(() => {
 
 const defData1 = [
   {
-    "tag": true,
-    "type": "select",
-    "field": "layout",
-    "label": "建筑布局",
-    "options": [],
-    "valueConfig": null
+    tag: true,
+    type: 'select',
+    field: 'layout',
+    label: '建筑布局',
+    options: [],
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "select",
-    "field": "structuralPlan",
-    "label": "结构方案",
-    "options": [],
-    "valueConfig": null
+    tag: true,
+    type: 'select',
+    field: 'structuralPlan',
+    label: '结构方案',
+    options: [],
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "select",
-    "field": "componentLocation",
-    "label": "构部件位置",
-    "options": [],
-    "valueConfig": null
+    tag: true,
+    type: 'select',
+    field: 'componentLocation',
+    label: '构部件位置',
+    options: [],
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "multiple-dynamic",
-    "field": "componentSpecifications",
-    "label": "构部件规格",
-    "value": [],
-    "options": [],
-    "valueConfig": [
+    tag: true,
+    type: 'multiple-dynamic',
+    field: 'componentSpecifications',
+    label: '构部件规格',
+    value: [],
+    options: [],
+    valueConfig: [
       {
-        "type": "input",
-        "unit": "kg",
-        "field": "1",
-        "value": ""
+        type: 'input',
+        unit: 'kg',
+        field: '1',
+        value: ''
       }
     ]
   },
   {
-    "tag": true,
-    "type": "select",
-    "field": "custom",
-    "label": "自定义参数",
-    "value": '',
-    "options": [],
-    "valueConfig": null
+    tag: true,
+    type: 'select',
+    field: 'custom',
+    label: '自定义参数',
+    value: '',
+    options: [],
+    valueConfig: null
   }
 ]
 const defData = [
   {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "n",
-    "label": "模块个数",
-    "options": [],
-    "valueConfig": null,
+    tag: true,
+    type: 'inputNumber',
+    field: 'n',
+    label: '模块个数',
+    options: [],
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "input",
-    "field": "material-1",
-    "label": "第一种材料",
-    "options": [],
-    'disabled': true,
-    "value": "Q355B",
-    "valueConfig": null
+    tag: true,
+    type: 'input',
+    field: 'material-1',
+    label: '第一种材料',
+    options: [],
+    disabled: true,
+    value: 'Q355B',
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "input",
-    "field": "material-2",
-    "label": "第二种材料",
-    'disabled': true,
-    "value": "Q235B",
-    "valueConfig": null
+    tag: true,
+    type: 'input',
+    field: 'material-2',
+    label: '第二种材料',
+    disabled: true,
+    value: 'Q235B',
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "input",
-    "field": "module-size",
-    "label": "模块尺寸",
-    "value": "[3.6, 8.4, 3]",
-    'disabled': true,
-    "valueConfig": null,
-
+    tag: true,
+    type: 'input',
+    field: 'module-size',
+    label: '模块尺寸',
+    value: '[3.6, 8.4, 3]',
+    disabled: true,
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "column_predefined",
-    "label": "柱",
-    "options": [],
-    "valueConfig": null
-  },
-
-  {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "beam_predefined",
-    "label": "横梁",
-    "options": [],
-    "valueConfig": null
+    tag: true,
+    type: 'inputNumber',
+    field: 'column_predefined',
+    label: '柱',
+    options: [],
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "beam_predefined1",
-    "label": "纵梁",
-    "options": [],
-    "valueConfig": null
-  },
-
-  {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "beam_predefined1",
-    "label": "纵梁",
-    "options": [],
-    "valueConfig": null
-  },
-
-  {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "slab_a",
-    "label": "底板横梁",
-    "options": [],
-    "valueConfig": null
+    tag: true,
+    type: 'inputNumber',
+    field: 'beam_predefined',
+    label: '横梁',
+    options: [],
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "slab_a1",
-    "label": "底板横梁护板",
-    "options": [],
-    "valueConfig": null
+    tag: true,
+    type: 'inputNumber',
+    field: 'beam_predefined1',
+    label: '纵梁',
+    options: [],
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "slab_a2",
-    "label": "地板",
-    "options": [],
-    "valueConfig": null
-  }, {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "slab_a3",
-    "label": "地板横向支撑板",
-    "options": [],
-    "valueConfig": null
-  }, {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "slab_a4",
-    "label": "地砖",
-    "options": [],
-    "valueConfig": null
-  }, {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "slab_a5",
-    "label": "顶板",
-    "options": [],
-    "valueConfig": null
-  }, {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "slab_a6",
-    "label": "底梁支撑板",
-    "options": [],
-    "valueConfig": null
+    tag: true,
+    type: 'inputNumber',
+    field: 'slab_a',
+    label: '底板横梁',
+    options: [],
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "slab_a7",
-    "label": "地板纵向支撑条",
-    "options": [],
-    "valueConfig": null
-  }, {
-    "tag": true,
-    "type": "select",
-    "field": "door",
-    "label": "门",
-    "value": 1,
-    "options": [
-      { "value": 1, "label": "900*2100" },
-      { "value": 2, "label": "1000*2100" },
-      { "value": 3, "label": "1000*2200" },
-      { "value": 4, "label": "1100*2100" },
-      { "value": 5, "label": "1100*2200" },
+    tag: true,
+    type: 'inputNumber',
+    field: 'slab_a1',
+    label: '底板横梁护板',
+    options: [],
+    valueConfig: null
+  },
+  {
+    tag: true,
+    type: 'inputNumber',
+    field: 'slab_a2',
+    label: '地板',
+    options: [],
+    valueConfig: null
+  },
+  {
+    tag: true,
+    type: 'inputNumber',
+    field: 'slab_a3',
+    label: '地板横向支撑板',
+    options: [],
+    valueConfig: null
+  },
+  {
+    tag: true,
+    type: 'inputNumber',
+    field: 'slab_a4',
+    label: '地砖',
+    options: [],
+    valueConfig: null
+  },
+  {
+    tag: true,
+    type: 'inputNumber',
+    field: 'slab_a5',
+    label: '顶板',
+    options: [],
+    valueConfig: null
+  },
+  {
+    tag: true,
+    type: 'inputNumber',
+    field: 'slab_a6',
+    label: '底梁支撑板',
+    options: [],
+    valueConfig: null
+  },
+  {
+    tag: true,
+    type: 'inputNumber',
+    field: 'slab_a7',
+    label: '地板纵向支撑条',
+    options: [],
+    valueConfig: null
+  },
+  {
+    tag: true,
+    type: 'select',
+    field: 'door',
+    label: '门',
+    value: 1,
+    options: [
+      { value: 1, label: '900*2100' },
+      { value: 2, label: '1000*2100' },
+      { value: 3, label: '1000*2200' },
+      { value: 4, label: '1100*2100' },
+      { value: 5, label: '1100*2200' }
     ],
-    "valueConfig": null
-  }, {
-    "tag": true,
-    "type": "select",
-    "field": "window",
-    "label": "窗",
-    "value": 1,
-    "options": [
-      { "value": 1, "label": "1200*1000" },
-      { "value": 2, "label": "1200*1100" },
-      { "value": 3, "label": "1300*1000" },
-      { "value": 4, "label": "1300*1100" },
-      { "value": 5, "label": "1300*1200" },
-    ],
-    "valueConfig": null
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "wall_predefined_profile_input_1",
-    "label": "内饰墙板",
-    "options": [],
-    "valueConfig": null
-  }, {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "wl7l",
-    "label": "外墙",
-    "options": [],
-    "valueConfig": null
+    tag: true,
+    type: 'select',
+    field: 'window',
+    label: '窗',
+    value: 1,
+    options: [
+      { value: 1, label: '1200*1000' },
+      { value: 2, label: '1200*1100' },
+      { value: 3, label: '1300*1000' },
+      { value: 4, label: '1300*1100' },
+      { value: 5, label: '1300*1200' }
+    ],
+    valueConfig: null
   },
   {
-    "tag": true,
-    "type": "select",
-    "field": "column2",
-    "label": "外包板",
-    "options": [
-      { "value": 1, "label": "2400" },
-      { "value": 2, "label": "3000" },
-      { "value": 3, "label": "3600" },
-    ],
-    "valueConfig": null
-  }, {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "column3",
-    "label": "挂檩",
-    "options": [],
-    "valueConfig": null
-  }, {
-    "tag": true,
-    "type": "inputNumber",
-    "field": "column4",
-    "label": "连接件",
-    "options": [],
-    "valueConfig": null
+    tag: true,
+    type: 'inputNumber',
+    field: 'wall_predefined_profile_input_1',
+    label: '内饰墙板',
+    options: [],
+    valueConfig: null
   },
-
-
-
-
-
-
-  // {
-  //   "tag": true,
-  //   "type": "multiple-dynamic",
-  //   "field": "componentSpecifications",
-  //   "label": "构部件规格",
-  //   "value": [],
-  //   "options": [],
-  //   "valueConfig": [
-  //     {
-  //       "type": "input",
-  //       "unit": "kg",
-  //       "field": "1",
-  //       "value": ""
-  //     }
-  //   ]
-  // },
-  // {
-  //   "tag": true,
-  //   "type": "select",
-  //   "field": "custom",
-  //   "label": "自定义参数",
-  //   "value": '',
-  //   "options": [],
-  //   "valueConfig": null
-  // }
+  {
+    tag: true,
+    type: 'inputNumber',
+    field: 'wl7l',
+    label: '外墙',
+    options: [],
+    valueConfig: null
+  },
+  {
+    tag: true,
+    type: 'select',
+    field: 'column2',
+    label: '外包板',
+    options: [
+      { value: 1, label: '2400' },
+      { value: 2, label: '3000' },
+      { value: 3, label: '3600' }
+    ],
+    valueConfig: null
+  },
+  {
+    tag: true,
+    type: 'inputNumber',
+    field: 'column3',
+    label: '挂檩',
+    options: [],
+    valueConfig: null
+  },
+  {
+    tag: true,
+    type: 'inputNumber',
+    field: 'column4',
+    label: '连接件',
+    options: [],
+    valueConfig: null
+  }
 ]
 const initData = defData.map(ele =>({...ele}))
 watch(() => status.value, (newValue) => {
   if (newValue) {
-    formData.value.projectForm = (defData).map((item) => {
-      // item.label = LABLE_MAP[item.field] || item.field
-      // item.options = DICT_MAP.value[item.field] || []
+    formData.value.projectForm = JSON.parse(JSON.stringify(defData)).map((item) => {
+      item.label = LABLE_MAP[item.field] || item.label || item.field
+      item.options = DICT_MAP.value[item.field] || item.options || []
       return item
     })
   } else {
-    formData.value.projectForm = (paramsData || defData1).map((item) => {
-      item.label = LABLE_MAP[item.field] || item.field
-      item.options = DICT_MAP.value[item.field] || []
+    formData.value.projectForm = JSON.parse(JSON.stringify(paramsData || defData1)).map((item) => {
+      item.label = LABLE_MAP[item.field] || item.label || item.field
+      item.options = DICT_MAP.value[item.field] || item.options || []
       return item
     })
   }
