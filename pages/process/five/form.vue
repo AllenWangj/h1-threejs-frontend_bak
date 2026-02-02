@@ -23,7 +23,7 @@
                     <div class="flex items-center">
                       <span v-if="status">{{ item.label }}</span>
                       <el-checkbox v-else size="large" v-model="item.tag" class="checkbox-class">{{ item.label
-                      }}</el-checkbox>
+                        }}</el-checkbox>
                       <template v-if="item.field === 'custom'">
                         <el-upload class="ml-[20px]" accept=".json" :auto-upload="false" :show-file-list="false"
                           :on-change="(e) => handleFileChange(e, item)">
@@ -40,16 +40,12 @@
                   </template>
                   <ez-select v-else-if="item.type === 'select'" v-model="item.value" placeholder="请选择" :clearable="true"
                     style="width: 100%" :options="item.options" />
-                  <el-input-number v-else-if="item.type === 'inputNumber'" v-model="item.value" placeholder="请选择"
+                  <el-input-number v-else-if="item.type === 'inputNumber'" v-model="item.value" placeholder="请输入"
                     :clearable="true" style="width: 100%" :controls="false" />
-                  <el-input v-else-if="item.type === 'input'" v-model="item.value" placeholder="请选择" :clearable="true"
-                    style="width: 100%" :controls="false" />
+                  <el-input :disabled="item.disabled" v-else-if="item.type === 'input'" v-model="item.value"
+                    placeholder="请选择" :clearable="true" style="width: 100%" :controls="false" />
                   <ez-select v-else-if="item.type === 'multiple'" v-model="item.value" placeholder="请选择"
                     :clearable="true" multiple style="width: 100%" :options="item.options" />
-
-                  <el-select v-else-if="item.type === 'multiple-create'" v-model="item.value" filterable allow-create
-                    multiple placeholder="请输入">
-                  </el-select>
                   <div v-else-if="item.type === 'multiple-dynamic'" class="w-full">
                     <ez-select v-model="item.value" placeholder="请选择" :clearable="true" multiple style="width: 100%"
                       :options="item.options" />
@@ -94,7 +90,7 @@ import {
   algorithmGenerate
 } from '@/apis/project'
 import { ref, computed } from "vue"
-const status = ref(false)
+const status = ref(true)
 const route = useRoute()
 
 const projectId = ref('')
@@ -246,7 +242,7 @@ async function fetchDetail() {
 
       if (type == 'input') {
         status.value = true
-      paramsData = null
+        paramsData = null
         nextTick(() => {
           formData.value.projectForm = (defData).map((item, index) => {
             // item.label = LABLE_MAP[item.field] || item.field
@@ -360,22 +356,11 @@ const defData1 = [
 const defData = [
   {
     "tag": true,
-    "type": "input",
-    "field": "encode",
-    "label": "编码说明",
-    "value":"",
-    // "options": [],
-    "valueConfig": null
-  },
-  {
-    "tag": true,
     "type": "inputNumber",
     "field": "n",
     "label": "模块个数",
     "options": [],
     "valueConfig": null,
-  
-
   },
   {
     "tag": true,
@@ -383,8 +368,8 @@ const defData = [
     "field": "material-1",
     "label": "第一种材料",
     "options": [],
-    "value":"Q355B",
-
+    'disabled': true,
+    "value": "Q355B",
     "valueConfig": null
   },
   {
@@ -392,18 +377,19 @@ const defData = [
     "type": "input",
     "field": "material-2",
     "label": "第二种材料",
-    "value":"Q235B",
-    "options": [],
+    'disabled': true,
+    "value": "Q235B",
     "valueConfig": null
   },
   {
     "tag": true,
-    "type": "multiple-create",
+    "type": "input",
     "field": "module-size",
     "label": "模块尺寸",
-    "options": [],
+    "value": "[3.6, 8.4, 3]",
+    'disabled': true,
     "valueConfig": null,
-    
+
   },
   {
     "tag": true,
@@ -501,17 +487,31 @@ const defData = [
     "valueConfig": null
   }, {
     "tag": true,
-    "type": "inputNumber",
+    "type": "select",
     "field": "door",
     "label": "门",
-    "options": [],
+    "value": 1,
+    "options": [
+      { "value": 1, "label": "900*2100" },
+      { "value": 2, "label": "1000*2100" },
+      { "value": 3, "label": "1000*2200" },
+      { "value": 4, "label": "1100*2100" },
+      { "value": 5, "label": "1100*2200" },
+    ],
     "valueConfig": null
   }, {
     "tag": true,
-    "type": "inputNumber",
+    "type": "select",
     "field": "window",
     "label": "窗",
-    "options": [],
+    "value": 1,
+    "options": [
+      { "value": 1, "label": "1200*1000" },
+      { "value": 2, "label": "1200*1100" },
+      { "value": 3, "label": "1300*1000" },
+      { "value": 4, "label": "1300*1100" },
+      { "value": 5, "label": "1300*1200" },
+    ],
     "valueConfig": null
   },
   {
@@ -531,10 +531,14 @@ const defData = [
   },
   {
     "tag": true,
-    "type": "inputNumber",
+    "type": "select",
     "field": "column2",
     "label": "外包板",
-    "options": [],
+    "options": [
+      { "value": 1, "label": "2400" },
+      { "value": 2, "label": "3000" },
+      { "value": 3, "label": "3600" },
+    ],
     "valueConfig": null
   }, {
     "tag": true,
