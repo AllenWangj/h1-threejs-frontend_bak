@@ -23,11 +23,8 @@ import NewRender from './newRender.vue'
 // import { materialInfoService } from './composables/material-info-service'
 import { getPartsProductionDetail, algorithmGenerate, planDetail } from '@/apis/project'
 // import ModelWrapper from "@/components/model-wrapper/index.vue"
-import { useRender } from "./ifc/index"
 // 全屏相关
 
-const fullscreenContainer = ref<HTMLElement | null>(null)
-useFullScreenResize(fullscreenContainer, onResize)
 const { baseURL } = useRuntimeConfig().public
 const route = useRoute()
 const projectId = ref('')
