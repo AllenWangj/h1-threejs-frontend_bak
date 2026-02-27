@@ -1,4 +1,5 @@
 export const modeService = () => {
+    // 该服务负责返回“模型名称集合”，用于按类别批量筛选/显隐
     /** 窗户模型名 */
     const windowData = () => {
         const names = new Array(23).fill(0).map((_, i) => `<组件#66>${i !== 0 ? '_' + i : ''}`)
@@ -14,6 +15,7 @@ export const modeService = () => {
     }
     /** 屋面板模型名 */
     const roofData = () => {
+        // 该类别来源复杂：包含编号组件与部分 Group 命名对象
         const names12 = new Array(32).fill(0).map((_, i) => `<组件#10>${i !== 0 ? '_' + i : ''}`)
         const names1 = new Array(19).fill(0).map((_, i) => `<组件#12>${i !== 0 ? '_' + i : ''}`)
         const names2 = [
@@ -75,7 +77,7 @@ export const modeService = () => {
             ...names11,
             ...names12
         ]
-        debugger
+        // 汇总返回，供业务层一次性匹配
         return names
     }
     /** 屋顶模型名 */
@@ -115,7 +117,7 @@ export const modeService = () => {
             'Group_883',
             'Group_673'
         ]
-        debugger
+        // 墙体由组件编号 + Group 命名混合构成
         const names = [...names1, ...names2, ...names3, ...names4, ...names5, ...names6]
         return names
     }
@@ -178,7 +180,7 @@ export const modeService = () => {
             'Group_812',
             'Group_779'
         ]
-        // 钢筋
+        // 钢筋/托件等配套构件
         const names1 = new Array(315).fill(0).map((_, i) => `<组件#15>${i !== 0 ? '_' + i : ''}`)
         const names2 = new Array(522).fill(0).map((_, i) => `<组件#16>${i !== 0 ? '_' + i : ''}`)
         const names3 = new Array(72).fill(0).map((_, i) => `<组件#31>${i !== 0 ? '_' + i : ''}`)
@@ -313,6 +315,7 @@ export const modeService = () => {
     }
 
     return {
+        // 对外按类别暴露模型名生成器
         windowData,
         doorData,
         roofData,

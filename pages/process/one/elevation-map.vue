@@ -97,6 +97,8 @@ const loadingText = ref('正在初始化...')
 const loadingProgress = ref(0)
 const selectedArea = ref<any>(null)
 const areaShapeType = ref<'circle' | 'square'>('circle')
+
+// Three.js 核心对象
 let scene: THREE.Scene
 let camera: THREE.PerspectiveCamera
 let renderer: THREE.WebGLRenderer
@@ -108,6 +110,7 @@ let areaMeshes: THREE.Mesh[] = []
 let cachedAnalysisData: any = null
 
 const TERRAIN_SIZE = 8
+// DEM 经纬度边界（缺省时使用默认测试范围）
 const DEM_BOUNDS = computed(() => {
   return (
     props.demBounds || {
@@ -157,7 +160,7 @@ function geoToWorld(
   const worldX = (x - 0.5) * TERRAIN_SIZE
   const worldZ = (y - 0.5) * TERRAIN_SIZE
 
-  // 获取该位置的高程
+  // 读取对应像素高程，并归一化到地形高度尺度
   const rasterX = Math.floor(x * (width - 1))
   const rasterY = Math.floor(y * (height - 1))
   const rasterIndex = rasterY * width + rasterX
@@ -177,7 +180,7 @@ function calculateSlope(raster: Float32Array, width: number, height: number, x: 
   const index = y * width + x
   const current = raster[index]
 
-  // 计算周围8个方向的高度差
+  // 使用 8 邻域高度差近似局部坡度
   const diffs = [
     Math.abs(current - raster[(y - 1) * width + (x - 1)]), // 左上
     Math.abs(current - raster[(y - 1) * width + x]), // 上
@@ -206,11 +209,12 @@ function calculateAreaSlope(
   let count = 0
   const heights: number[] = []
 
+  // 以像素半径扫描候选区域
   const radiusPixels = Math.floor(radius)
 
   for (let dy = -radiusPixels; dy <= radiusPixels; dy++) {
     for (let dx = -radiusPixels; dx <= radiusPixels; dx++) {
-      // 只计算圆形范围内的点
+      // 仅统计圆形区域内像素
       if (dx * dx + dy * dy <= radiusPixels * radiusPixels) {
         const x = centerX + dx
         const y = centerY + dy
@@ -219,7 +223,7 @@ function calculateAreaSlope(
           const slope = calculateSlope(raster, width, height, x, y)
           totalSlope += slope
 
-          // 收集高度值用于计算方差
+          // 收集高度样本，用于衡量区域平整度（标准差）
           const index = y * width + x
           heights.push(raster[index])
 
@@ -233,7 +237,7 @@ function calculateAreaSlope(
 
   const avgSlope = totalSlope / count
 
-  // 计算高度方差（用于判断区域是否真正平坦）
+  // 计算高度标准差（越小越平坦）
   const avgHeight = heights.reduce((a, b) => a + b, 0) / heights.length
   const variance = heights.reduce((sum, h) => sum + Math.pow(h - avgHeight, 2), 0) / heights.length
 
@@ -284,15 +288,15 @@ function analyzeFlatAreas(
     radius: number
   }> = []
 
-  // 步长：每隔一定距离采样一个点
+  // 步长采样：平衡分析精度与计算开销
   const step = Math.max(Math.floor(minRadius / 3), 3)
 
-  // 扫描整个地形，寻找平缓区域
+  // 扫描地形寻找候选平缓区域
   for (let y = minRadius + 5; y < height - minRadius - 5; y += step) {
     for (let x = minRadius + 5; x < width - minRadius - 5; x += step) {
       const { slope, variance } = calculateAreaSlope(raster, width, height, x, y, minRadius)
 
-      // 同时满足：坡度小 + 高度方差小（真正平坦的区域）
+      // 同时满足：坡度小 + 高差小
       if (slope < maxSlope && variance < maxVariance) {
         const index = y * width + x
         const elevation = raster[index]
@@ -311,13 +315,13 @@ function analyzeFlatAreas(
   console.log(`找到 ${candidates.length} 个候选平缓区域`)
 
   if (candidates.length === 0) {
-    console.warn('未找到符合条件的区域，尝试大幅放宽条件...')
+    console.warn('未找到符合条件的区域，尝试放宽阈值...')
     // 大幅放宽条件重新搜索
     for (let y = minRadius + 5; y < height - minRadius - 5; y += step) {
       for (let x = minRadius + 5; x < width - minRadius - 5; x += step) {
         const { slope, variance } = calculateAreaSlope(raster, width, height, x, y, minRadius)
 
-        // 放宽到10倍
+        // 阈值放宽到 10 倍，避免极端地形下无结果
         if (slope < maxSlope * 10 && variance < maxVariance * 10) {
           const index = y * width + x
           const elevation = raster[index]
@@ -336,7 +340,7 @@ function analyzeFlatAreas(
     console.log(`大幅放宽条件后找到 ${candidates.length} 个候选区域`)
   }
 
-  // 按综合评分排序
+  // 按综合评分排序（坡度与平整度各占 50%）
   candidates.forEach((c) => {
     // 评分 = 坡度分数(50%) + 方差分数(50%)
     const slopeScore = 1 - Math.min(c.slope / maxSlope, 1)
@@ -346,12 +350,12 @@ function analyzeFlatAreas(
 
   candidates.sort((a, b) => b['score'] - a['score'])
 
-  // 只选择得分最高的一个
+  // 取前 N 个（当前业务默认 1 个）
   const selectedAreas = candidates.slice(0, numRecommendations)
 
   console.log(`最终推荐 ${selectedAreas.length} 个选址区域`)
 
-  // 转换为地理坐标和世界坐标
+  // 转换为地理坐标 + Three 世界坐标
   return selectedAreas.map((area, index) => {
     const lonFraction = area.x / (width - 1)
     const latFraction = area.y / (height - 1)
@@ -446,7 +450,7 @@ function createAreaMarker(areaData: any) {
     areaMeshes.push(edge)
   }
 
-  // 文字标签 - 使用Sprite自动面向相机
+  // 文字标签：使用 Sprite，始终朝向相机
   const canvas = document.createElement('canvas')
   canvas.width = 256
   canvas.height = 64
@@ -488,7 +492,7 @@ async function init() {
     loadingProgress.value = 10
     loadingText.value = '初始化3D场景...'
 
-    // 创建场景
+    // 初始化场景与相机
     scene = new THREE.Scene()
     scene.background = new THREE.Color(0x87ceeb)
 
@@ -497,18 +501,18 @@ async function init() {
     camera.position.set(0, 3, 5)
     camera.lookAt(0, 0, 0)
 
-    // 创建渲染器
+    // 初始化 WebGL 渲染器
     renderer = new THREE.WebGLRenderer({ antialias: true })
     renderer.setSize(container.value.clientWidth, container.value.clientHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1))
     container.value.appendChild(renderer.domElement)
 
-    // 添加控制器
+    // 添加轨道控制器
     controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.dampingFactor = 0.05
 
-    // 添加光照
+    // 添加环境光 + 平行光
     const ambientLight = new THREE.AmbientLight(0x404040, 0.3)
     scene.add(ambientLight)
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.0)
@@ -518,12 +522,13 @@ async function init() {
     loadingProgress.value = 30
     loadingText.value = '加载DEM高程数据...'
 
-    // 加载DEM数据
+    // 加载并解析 DEM 栅格
     const dem = await loadDEM(props.demUrl)
 
     loadingProgress.value = 50
     loadingText.value = '处理地形数据...'
 
+    // 降采样以限制网格规模
     const step = Math.ceil(Math.sqrt((dem.width * dem.height) / (150 * 150)))
     const width = Math.floor(dem.width / step)
     const height = Math.floor(dem.height / step)
@@ -540,7 +545,7 @@ async function init() {
     loadingProgress.value = 65
     loadingText.value = '生成3D地形模型...'
 
-    // 创建地形几何体
+    // 生成带高程起伏的地形网格
     const geometry = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, width - 1, height - 1)
     const positions = geometry.attributes.position.array
 
@@ -558,7 +563,7 @@ async function init() {
     loadingProgress.value = 75
     loadingText.value = '加载卫星影像...'
 
-    // 加载卫星纹理
+    // 加载卫星影像纹理并贴图
     const textureLoader = new THREE.TextureLoader()
     const satelliteTexture = await new Promise<THREE.Texture>((resolve, reject) => {
       textureLoader.load(props.satelliteUrl, resolve, undefined, reject)
@@ -567,7 +572,7 @@ async function init() {
     loadingProgress.value = 85
     loadingText.value = '渲染地形...'
 
-    // 创建地形材质
+    // 地形材质（卫星纹理）
     const material = new THREE.MeshStandardMaterial({
       map: satelliteTexture,
       flatShading: false,
@@ -591,7 +596,7 @@ async function init() {
 
     console.log('推荐的选址区域:', recommendedAreas)
 
-    // 缓存分析数据用于后续切换形状
+    // 缓存推荐结果，切换图形时直接复用
     cachedAnalysisData = recommendedAreas
 
     if (recommendedAreas.length === 0) {
@@ -669,7 +674,7 @@ async function init() {
       loading.value = false
     }, 300)
 
-    // 添加点击事件监听
+    // 点击拾取：Raycaster 命中可点击对象后打开信息面板
     const raycaster = new THREE.Raycaster()
     const mouse = new THREE.Vector2()
 
@@ -693,10 +698,10 @@ async function init() {
       }
     })
     
-    // 动画循环
+    // 动画循环（按需渲染）
     let needsRender = true
 
-    // 更新标记大小以保持恒定的屏幕尺寸
+    // 根据相机距离动态缩放标记，保持近似恒定屏幕大小
     function updateMarkerScales() {
       const distance = camera.position.distanceTo(new THREE.Vector3(0, 0, 0))
       // 反向缩放：距离越远，标记越大，这样在屏幕上看起来大小恒定
@@ -738,6 +743,7 @@ async function init() {
 
 function onWindowResize() {
   if (!camera || !renderer || !container.value) return
+  // 同步更新相机宽高比与渲染尺寸
   camera.aspect = container.value.clientWidth / container.value.clientHeight
   camera.updateProjectionMatrix()
   renderer.setSize(container.value.clientWidth, container.value.clientHeight)
@@ -748,7 +754,7 @@ watch(areaShapeType, async () => {
   if (scene && terrainMesh && animationId && props.demUrl && cachedAnalysisData) {
     console.log(`\n🔄 切换区域形状为: ${areaShapeType.value === 'circle' ? '圆形' : '方形'}`)
     
-    // 使用 nextTick 延迟执行，不阻塞主线程
+    // 等待本轮视图更新后再重建标记
     await nextTick()
     
     // 清除旧标记
@@ -767,7 +773,7 @@ watch(areaShapeType, async () => {
     })
     areaMeshes = []
     
-    // 重新添加区域标记
+    // 使用缓存推荐结果重建标记
     cachedAnalysisData.forEach((area: any) => {
       const areaData = {
         id: area.id || 1,
@@ -793,7 +799,7 @@ watch(areaShapeType, async () => {
     
     console.log(`✅ 区域标记已切换为${areaShapeType.value === 'circle' ? '圆形' : '方形'}`)
     
-    // 强制进行一次渲染更新（elevation-map使用按需渲染）
+    // 触发一次重绘（当前页面使用按需渲染）
     if (renderer && scene && camera) {
       // @ts-ignore
       needsRender = true
@@ -819,7 +825,7 @@ onUnmounted(() => {
   if (animationId) cancelAnimationFrame(animationId)
   window.removeEventListener('resize', onWindowResize)
 
-  // 清理区域标记
+  // 清理区域标记及其子对象资源
   areaMarkers.forEach((marker) => {
     marker.children.forEach((child) => {
       if (child instanceof THREE.Mesh) {
@@ -836,7 +842,7 @@ onUnmounted(() => {
   })
   areaMarkers = []
   
-  // 清理区域几何体
+  // 清理区域几何体与材质
   areaMeshes.forEach(mesh => {
     mesh.geometry.dispose()
     if (mesh.material instanceof THREE.Material) {
@@ -860,14 +866,17 @@ onUnmounted(() => {
   if (scene) scene.clear()
 })
 function handleScenePane(state:boolean) {
+  // 供外部控制：是否允许平移
   controls!.enablePan = state
 }
 function handleSceneEnable(state:boolean) {
+  // 供外部控制：是否启用场景交互
   // processFour!.handleSceneEnable(state)
   controls!.enabled = state
 
 }
 function handleSceneScale(state:boolean) {
+  // 供外部控制：是否允许缩放
   controls!.enableZoom = state
 }
 </script>

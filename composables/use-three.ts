@@ -35,13 +35,18 @@ interface LoadOptions {
 }
 
 class BaseThree {
+  // 基础渲染三件套（场景/相机/渲染器）
   public scene: Three.Scene
   public camera: Three.PerspectiveCamera
   public renderer: Three.WebGLRenderer
+  // 轨道控制器
   public controls: OrbitControls
   public options: IOptions
+  // requestAnimationFrame 句柄
   private animateId: number
+  // 容器尺寸监听器
   private resizeObserver: ResizeObserver | null = null
+  // 资源销毁标记，防止重复释放
   private isDestroyed: boolean = false
 
   constructor(
@@ -75,13 +80,16 @@ class BaseThree {
     this.animate()
   }
   public handleScenePane(state:boolean) {
+      // 外部控制：平移开关
         this.controls!.enablePan = state
     }
     public handleSceneEnable(state:boolean) {
+      // 外部控制：整体交互开关
         this.controls!.enabled = state
 
     }
     public handleSceneScale(state:boolean) {
+      // 外部控制：缩放开关
         this.controls!.enableZoom  = state
 
     }
@@ -113,6 +121,7 @@ class BaseThree {
       powerPreference: 'high-performance'
     })
 
+    // 自适配容器尺寸与像素比
     this.renderer.setSize(this.node.clientWidth, this.node.clientHeight)
     this.renderer.setPixelRatio(this.options.pixelRatio)
 
@@ -196,6 +205,7 @@ class BaseThree {
   public animate(): void {
     if (this.isDestroyed) return
 
+    // 持续渲染循环
     this.animateId = requestAnimationFrame(() => this.animate())
 
     if (this.controls.enableDamping) {
@@ -238,7 +248,7 @@ class BaseThree {
       }
     }
 
-    // 清理场景
+    // 清理场景网格资源（几何体/材质/纹理）
     if (this.scene) {
       this.scene.traverse((object) => {
         if (object instanceof Three.Mesh) {
@@ -496,7 +506,9 @@ class BaseThree {
    * @returns Promise<T[]> 所有结果的数组
    */
   protected async runWithConcurrency<T>(tasks: (() => Promise<T>)[], concurrency: number = 3): Promise<T[]> {
+  // 结果按任务原始索引写回，保证顺序稳定
   const results: T[] = [];
+  // 当前正在执行的任务池
   const executing: Promise<void>[] = [];
   let index = 0; // 追踪当前要执行的任务索引
 
@@ -527,7 +539,7 @@ class BaseThree {
     executePromise = Promise.resolve();
   };
 
-  // 启动初始的concurrency个任务
+  // 启动初始并发批次
   const initialRuns = Math.min(concurrency, tasks.length);
   for (let i = 0; i < initialRuns; i++) {
     const promise = executeNext();
@@ -548,6 +560,7 @@ interface ModelDimensions {
 }
 
 class LibaryModal extends BaseThree {
+  // 仅用于模型库预览的根分组
   private wrapper = new Three.Group()
 
   constructor(
@@ -584,7 +597,7 @@ class LibaryModal extends BaseThree {
       // 计算尺寸
       const size = this.calculateGroupDimensions(this.wrapper)
 
-      // 自动调整相机位置和焦点
+      // 自动调整相机位置和焦点，确保模型进入可视区域
       const distance = size.maxDim
       this.camera.position.set(size.center.x, size.center.y - distance, size.center.z + distance)
       this.controls.target.copy(size.center)
@@ -616,7 +629,7 @@ class LibaryModal extends BaseThree {
       return
     }
 
-    // 遍历所有子对象并释放
+    // 逐个释放子组资源
     this.wrapper.children.forEach((child) => {
       if (child instanceof Three.Group) {
         this.disposeGLTFGroup(child)

@@ -121,6 +121,8 @@ const TERRAIN_SIZE = 8
 let demMinHeight = 0
 let demMaxHeight = 0
 
+// DEM 经纬度范围（由父组件传入，缺省时使用默认范围）
+
 const DEM_BOUNDS = computed(() => {
   return props.demBounds || {
     lonMin: 106.2,
@@ -209,6 +211,7 @@ function generateLegend(minHeight: number, maxHeight: number) {
 
 // 添加选址区域标记 - 支持圆形和方形
 function addAreaMarkers(raster: Float32Array, width: number, height: number, min: number, max: number) {
+  // 先完整清理旧对象，避免重复渲染和内存泄漏
   // 清除旧标记
   areaMarkers.forEach(marker => {
     if (marker.element && marker.element.parentNode) {
@@ -242,6 +245,7 @@ function addAreaMarkers(raster: Float32Array, width: number, height: number, min
     : areasData
   
   areasToShow.forEach((area) => {
+    // 将经纬度映射到平面世界坐标，并读取该点高程
     const worldPos = geoToWorld(area.lon, area.lat, raster, width, height, min, max)
     area.elevation = Math.round(worldPos.elevation)
 
@@ -399,6 +403,7 @@ async function init() {
     renderer.setSize(container.value.clientWidth, container.value.clientHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1))
     container.value.appendChild(renderer.domElement)    // 创建CSS2D渲染器
+    // 用于渲染 HTML 标签（区域名称等）
     labelRenderer = new CSS2DRenderer()
     labelRenderer.setSize(container.value.clientWidth, container.value.clientHeight)
     labelRenderer.domElement.style.position = 'absolute'
@@ -424,7 +429,8 @@ async function init() {
     
     loadingProgress.value = 50
     loadingText.value = '处理地形数据...'
-    
+
+    // 动态降采样，控制网格规模，避免过高分辨率导致渲染开销过大
     const step = Math.ceil(Math.sqrt((dem.width * dem.height) / (150 * 150)))
     const width = Math.floor(dem.width / step)
     const height = Math.floor(dem.height / step)
@@ -458,7 +464,7 @@ async function init() {
     geometry.attributes.position.needsUpdate = true
     geometry.computeVertexNormals()
 
-    // 获取高度范围用于shader
+    // 获取归一化高度范围，供 shader 计算颜色分层
     let minHeight = Infinity
     let maxHeight = -Infinity
     for (let i = 0; i < positions.length; i += 3) {
@@ -467,7 +473,7 @@ async function init() {
       if (h > maxHeight) maxHeight = h
     }
     
-    // 创建等高线材质 - 使用颜色渐变
+    // 创建等高线材质：地表底色 + 9 条分级等高线
     const material = new THREE.ShaderMaterial({
       uniforms: {
         minHeight: { value: minHeight },
@@ -529,7 +535,7 @@ async function init() {
     loadingProgress.value = 85
     loadingText.value = '添加区域标记...'
     
-    // 缓存raster数据用于后续切换形状
+    // 缓存 raster 数据，切换形状时可直接复用，避免重复加载 DEM
     cachedRaster = { data: raster, width, height, min, max }
     
     // 添加选址区域标记
@@ -548,7 +554,7 @@ async function init() {
       loading.value = false
     }, 300)
 
-    // 动画循环
+    // 动画循环：每帧更新控制器并渲染 3D 与标签层
     function animate() {
       animationId = requestAnimationFrame(animate)
       controls.update()
@@ -568,6 +574,7 @@ async function init() {
 
 function onWindowResize() {
   if (!camera || !renderer || !labelRenderer || !container.value) return
+  // 同步更新主渲染器与标签渲染器尺寸
   camera.aspect = container.value.clientWidth / container.value.clientHeight
   camera.updateProjectionMatrix()
   renderer.setSize(container.value.clientWidth, container.value.clientHeight)
@@ -579,7 +586,7 @@ watch(areaShapeType, async () => {
   if (scene && terrainMesh && cachedRaster && props.demUrl) {
     console.log(`\n🔄 切换区域形状为: ${areaShapeType.value === 'circle' ? '圆形' : '方形'}`)
     
-    // 使用 nextTick 延迟执行，不阻塞主线程
+    // 等待 DOM 更新后再执行重建，避免与当前渲染帧竞争
     await nextTick()
     
     // 清除旧标记
@@ -601,7 +608,7 @@ watch(areaShapeType, async () => {
     })
     areaMeshes = []
     
-    // 使用缓存的raster数据直接重新添加区域标记
+    // 使用缓存数据重建标记（不触发 DEM 重新下载/解析）
     addAreaMarkers(cachedRaster.data, cachedRaster.width, cachedRaster.height, cachedRaster.min, cachedRaster.max)
     console.log(`✅ 区域标记已切换为${areaShapeType.value === 'circle' ? '圆形' : '方形'}`)
     
@@ -616,6 +623,7 @@ watch(areaShapeType, async () => {
 watch(
   () => props.demUrl,
   (newUrl) => {
+    // DEM 地址变化时重新初始化场景
     if (newUrl && props.analyzedAreas) {
       init()
     }
@@ -631,7 +639,7 @@ onUnmounted(() => {
   if (animationId) cancelAnimationFrame(animationId)
   window.removeEventListener('resize', onWindowResize)
 
-  // 清理等高线标签
+  // 清理等高线标签（DOM 节点 + Three 对象）
   contourLabels.forEach(label => {
     if (label.element && label.element.parentNode) {
       label.element.parentNode.removeChild(label.element)
@@ -639,7 +647,7 @@ onUnmounted(() => {
   })
   contourLabels = []
 
-  // 清理区域标记
+  // 清理区域标记（DOM 节点 + Three 对象）
   areaMarkers.forEach(marker => {
     if (marker.element && marker.element.parentNode) {
       marker.element.parentNode.removeChild(marker.element)
@@ -647,7 +655,7 @@ onUnmounted(() => {
   })
   areaMarkers = []
   
-  // 清理区域几何体
+  // 清理区域几何体与材质，释放 GPU 资源
   areaMeshes.forEach(mesh => {
     scene.remove(mesh)
     mesh.geometry.dispose()

@@ -3,7 +3,9 @@ import { type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 const { BaseThree } = useThree()
 const { getModelUrl, getModelMap } = useModelMap()
 class ProcessFour extends BaseThree {
+    // 流程4模型根节点
     wrapper: THREE.Group
+    // 待加载的模型 code 列表
     private gltfCode: string[] = []
     public promiseFactories: (() => Promise<{
         wrapper: THREE.Group,
@@ -19,6 +21,7 @@ class ProcessFour extends BaseThree {
         super(node, {
 
         })
+        // 初始化业务根分组
         this.wrapper = new THREE.Group()
         this.scene.add(this.wrapper)
         // this.handleOriginModel(position)
@@ -26,11 +29,15 @@ class ProcessFour extends BaseThree {
 
     }
     public async handleOriginModel(position: any) {
+                // 清理上一次模型状态
         this.gltfCode = []
           this.handleClearnJunk(this.wrapper)
+                // 递归解析结构树，构建加载任务
         this.handleLoadUrl(position, this.wrapper)
+                // 批量获取模型映射并并发加载
         await getModelMap(this.gltfCode)
         const results = await this.runWithConcurrency(this.promiseFactories, 500)
+        // 将加载结果按位姿参数挂载到对应父节点
         results.forEach(ele => {
             const { object, wrapper, position, roation, scale, name } = ele
             object.scene.position.set(
@@ -51,6 +58,7 @@ class ProcessFour extends BaseThree {
             // wrapper.name = name
             wrapper.add(object.scene)
         })
+        // 以整体包围盒为基准设置相机视角
         const size = this.calculateGroupDimensions(this.wrapper)
 
 
@@ -78,7 +86,7 @@ class ProcessFour extends BaseThree {
                 console.warn('⚠️ 尝试释放无效的组')
                 return
             }
-            // 递归释放所有资源
+            // 递归释放网格资源
             group.traverse((object) => {
                 if (object instanceof THREE.Mesh) {
                     // 释放几何体
@@ -90,6 +98,7 @@ class ProcessFour extends BaseThree {
         }
     private handleLoadUrl(object: any, parent: any) {
         if (object.code) {
+            // 叶子节点：依据 code 加载模型
             const code = object.code == '10404' ? "04_01_" +object.code :object.code
             this.gltfCode.push(code)
             this.promiseFactories.push(() => {
@@ -109,12 +118,14 @@ class ProcessFour extends BaseThree {
             })
         }
         else if (object.name.indexOf("<组件#") != -1) {
+            // 组件节点：区分“继续递归”与“直接加载模型文件”两种路径
             let name = ""
             if (object.children && object.children.length > 0) {
                 const children = object.children[0]
                 name = children.name
             }
             if (name && name.indexOf("<组件#") != -1) {
+                // 仍是容器节点，创建 group 后继续递归
                 const group = new THREE.Group()
                 group.name = object.name
                 group.position.set(
@@ -137,7 +148,7 @@ class ProcessFour extends BaseThree {
                     this.handleLoadUrl(ele, group)
                 })
             } else {
-                // 说明需要加载组件
+                // 叶子组件：按约定路径加载 xfour 资源
                 const result = object.name.replace(/<组件#(\d+)>.*/, "model$1");
                 // const name = (result as string).split("model")
                 // object.code = "102"+name[name.length -1]
@@ -161,6 +172,7 @@ class ProcessFour extends BaseThree {
             }
         }
         else if (object.children && object.children.length > 0) {
+            // 普通分组节点递归
             const group = new THREE.Group()
             group.name = object.name
             group.position.set(

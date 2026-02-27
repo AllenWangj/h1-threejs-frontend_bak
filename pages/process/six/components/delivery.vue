@@ -97,7 +97,7 @@ const loading = ref(true)
 const loadingText = ref('正在初始化...')
 const loadingProgress = ref(0)
 
-// 路线相关状态
+// 路线相关状态（陆运/空运共享）
 const routePoints = ref<Array<{ x: number; y: number; z: number; elevation: number; lon: number; lat: number }>>([]);
 const airRoutePoints = ref<Array<{ x: number; y: number; z: number; elevation: number; lon: number; lat: number }>>([]);
 const totalDistance = ref(0)
@@ -107,12 +107,15 @@ const isAnimating = ref(false)
 const projectId = ref('')
 const detailInfo = ref(null)
 const route = useRoute()
-const transportMode = ref<'ground' | 'air'>('ground') // 陆运或空运
+const transportMode = ref<'ground' | 'air'>('ground') // 当前运输模式：陆运或空运
 const showList = computed(() => {
+  // 根据项目参数中的 transportation 字段控制按钮显隐
   const params = detailInfo.value ? detailInfo.value.params : []
   const transportation = params.find((param: any) => param.field === 'transportation')
   return transportation ? transportation.value : ''
 })
+
+// Three.js 核心对象
 let scene: THREE.Scene
 let camera: THREE.PerspectiveCamera
 let renderer: THREE.WebGLRenderer
@@ -129,9 +132,10 @@ let demHeight: number
 let demMin: number
 let demMax: number
 let routeAnimationProgress = 0
-let routeAnimationSpeed = 0.001 // 动画速度（降低速度以配合500个点，让动画更流畅）
+let routeAnimationSpeed = 0.001 // 动画速度（点数较多时保持流畅）
 
 const TERRAIN_SIZE = 8
+// DEM 边界范围（由父组件传入）
 const DEM_BOUNDS = computed(() => props.demBounds)
 
 // 加载DEM数据
@@ -177,7 +181,7 @@ function geoToWorld(
   const worldX = (x - 0.5) * TERRAIN_SIZE
   const worldZ = (y - 0.5) * TERRAIN_SIZE
 
-  // 获取该位置的高程
+  // 读取对应栅格高程并转换为世界坐标高度
   const rasterX = Math.max(0, Math.min(width - 1, Math.floor(x * width)))
   const rasterY = Math.max(0, Math.min(height - 1, Math.floor(y * height)))
   const rasterIndex = rasterY * width + rasterX
@@ -204,7 +208,7 @@ function worldToGeo(worldX: number, worldZ: number) {
 
 // 创建路线点标记
 function createRouteMarker(index: number, totalPoints: number) {
-  // 只在起点和终点创建标记
+  // 仅在起点与终点创建可视化标记
   if (index !== 0 && index !== totalPoints - 1) {
     return null
   }
@@ -223,7 +227,7 @@ function createRouteMarker(index: number, totalPoints: number) {
 function drawRoute() {
   console.log('🎨 开始绘制路线，点数:', routePoints.value.length)
   
-  // 清除旧路线
+  // 清除旧路线对象，避免重复叠加
   if (routeLine) {
     scene.remove(routeLine)
     routeLine.geometry.dispose()
@@ -240,7 +244,7 @@ function drawRoute() {
     }
   }
 
-  // 清除旧标记
+  // 清除旧标记并释放资源
   routeMarkers.forEach((marker) => {
     scene.remove(marker)
     if (marker.geometry) marker.geometry.dispose()
@@ -253,10 +257,10 @@ function drawRoute() {
   const points = transportMode.value === 'ground' ? routePoints.value : airRoutePoints.value
   if (points.length === 0) return
   
-  // 根据运输模式确定高度偏移
+  // 根据运输模式设置路线抬升高度（空运更高）
   const heightOffset = transportMode.value === 'air' ? 0.3 : 0.05
   
-  // 绘制路线点标记（起始点）
+  // 绘制起点/终点标记
   const startMarker = createRouteMarker(0, points.length)
   if (startMarker) {
     const startPoint = points[0]
@@ -275,7 +279,7 @@ function drawRoute() {
 
   if (points.length < 2) return
 
-  // 创建完整路线（半透明背景）
+  // 创建完整路线（作为背景主线）
   const allPoints: THREE.Vector3[] = []
   points.forEach((point) => {
     allPoints.push(new THREE.Vector3(point.x, point.y + 0.05, point.z))
@@ -285,7 +289,7 @@ function drawRoute() {
   const lineColor = transportMode.value === 'ground' ? 0xffff00 : 0xff0000 // 陆运黄色，空运红色
   const opacity = transportMode.value === 'air' ? 1.0 : 0.6 // 空运更不透明
   
-  // 为空运线条创建更粗的线条效果（使用双线或增加透明度）
+  // 设置线条材质（空运颜色更醒目）
   const bgMaterial = new THREE.LineBasicMaterial({
     color: lineColor,
     transparent: true,
@@ -305,10 +309,10 @@ function drawRoute() {
     mostLowPoint: Math.min(...points.map(p => p.y))
   })
 
-  // 计算统计信息
+  // 更新里程与海拔统计
   calculateRouteStats()
 
-  // 如果正在播放动画，重新开始
+  // 若当前正在播放，切换路线后重置动画进度
   if (isAnimating.value) {
     routeAnimationProgress = 0
   }
@@ -321,7 +325,7 @@ function updateAnimatedLine() {
   const points = transportMode.value === 'ground' ? routePoints.value : airRoutePoints.value
   if (points.length < 2) return
 
-  // 清除旧的动画线
+  // 每帧重建当前进度的动画线段
   if (animatedLine) {
     scene.remove(animatedLine)
     animatedLine.geometry.dispose()
@@ -330,13 +334,13 @@ function updateAnimatedLine() {
     }
   }
 
-  // 计算当前应该绘制到哪个点
+  // 计算动画当前所在的路径段与段内插值进度
   const totalPoints = points.length
   const currentPointIndex = Math.floor(routeAnimationProgress * (totalPoints - 1))
   const segmentProgress = routeAnimationProgress * (totalPoints - 1) - currentPointIndex
 
   if (currentPointIndex >= totalPoints - 1) {
-    // 动画完成
+    // 动画完成：停止播放并清理移动标记
     isAnimating.value = false
 
     // 移除移动标记
@@ -347,19 +351,19 @@ function updateAnimatedLine() {
     return
   }
 
-  // 创建动画路线点
+  // 构建当前已行进路径点
   const animPoints: THREE.Vector3[] = []
 
-  // 根据运输模式确定高度偏移
+  // 动画线同样遵循运输模式高度偏移
   const heightOffset = transportMode.value === 'air' ? 0.3 : 0.05
   
-  // 添加已完成的点
+  // 添加已完成段落的点
   for (let i = 0; i <= currentPointIndex; i++) {
     const p = points[i]
     animPoints.push(new THREE.Vector3(p.x, p.y + heightOffset, p.z))
   }
 
-  // 添加当前段的插值点
+  // 添加当前段插值点，并同步更新移动标记位置
   if (currentPointIndex < totalPoints - 1) {
     const p1 = points[currentPointIndex]
     const p2 = points[currentPointIndex + 1]
@@ -371,7 +375,7 @@ function updateAnimatedLine() {
     )
     animPoints.push(interpolatedPoint)
     
-    // 更新或创建移动标记
+    // 首次进入动画时创建移动标记，后续仅更新位置
     if (!movingMarker) {
       const geometry = new THREE.SphereGeometry(0.1, 16, 16)
       const markerColor = transportMode.value === 'ground' ? 0x00ffff : 0xff6600
@@ -387,7 +391,7 @@ function updateAnimatedLine() {
     movingMarker.position.y += 0.12
   }
 
-  // 创建动画线
+  // 创建前景动画线
   const animGeometry = new THREE.BufferGeometry().setFromPoints(animPoints)
   const lineColor = transportMode.value === 'ground' ? 0xff0000 : 0xff6600
   const animOpacity = transportMode.value === 'air' ? 1.0 : 1.0
@@ -415,7 +419,7 @@ function toggleAnimation() {
   if (isAnimating.value) {
     routeAnimationProgress = 0
   } else {
-    // 停止动画，移除移动标记
+    // 停止动画时清理动画对象
     if (movingMarker) {
       scene.remove(movingMarker)
       movingMarker = null
@@ -449,13 +453,13 @@ function calculateRouteStats() {
     const p1 = points[i]
     const p2 = points[i + 1]
 
-    // 计算地理距离（使用经纬度）
+    // 使用经纬度计算分段地理距离
     const lat1 = p1.lat
     const lon1 = p1.lon
     const lat2 = p2.lat
     const lon2 = p2.lon
 
-    // 使用 Haversine 公式计算球面距离
+    // Haversine 公式（单位：km）
     const R = 6371 // 地球半径（公里）
     const dLat = ((lat2 - lat1) * Math.PI) / 180
     const dLon = ((lon2 - lon1) * Math.PI) / 180
@@ -491,13 +495,13 @@ function generateAutoRoute() {
   console.log('DEM范围:', DEM_BOUNDS.value)
   console.log('DEM尺寸:', demWidth, 'x', demHeight)
 
-  // 确保 DEM 边界值是数字类型
+  // 确保 DEM 边界参与计算时为数字
   const lonMin = Number(DEM_BOUNDS.value.lonMin)
   const lonMax = Number(DEM_BOUNDS.value.lonMax)
   const latMin = Number(DEM_BOUNDS.value.latMin)
   const latMax = Number(DEM_BOUNDS.value.latMax)
 
-  // 定义起点和终点（基于DEM范围）
+  // 基于 DEM 范围构造起终点（示例策略）
   const lonRange = lonMax - lonMin
   const latRange = latMax - latMin
   
@@ -517,20 +521,20 @@ function generateAutoRoute() {
   console.log('起点世界坐标:', startPos)
   console.log('终点世界坐标:', endPos)
 
-  // 先生成关键控制点（用于构建曲线）
+  // 先生成控制点，再进行样条插值
   const numControlPoints = 6
   const controlPoints: Array<{ lon: number; lat: number }> = []
 
   // 添加起点
   controlPoints.push({ lon: startLon, lat: startLat })
 
-  // 生成中间控制点（带随机偏移）
+  // 中间控制点加入轻微随机偏移，使路线更自然
   for (let i = 1; i < numControlPoints; i++) {
     const t = i / numControlPoints
     const interpLon = startLon + (endLon - startLon) * t
     const interpLat = startLat + (endLat - startLat) * t
 
-    // 添加随机偏移使路线更自然
+    // 偏移幅度按经纬范围比例控制
     const randomOffset = lonRange * 0.05
     const offsetLon = interpLon + (Math.random() - 0.5) * randomOffset
     const offsetLat = interpLat + (Math.random() - 0.5) * randomOffset
@@ -546,26 +550,26 @@ function generateAutoRoute() {
 
   console.log('控制点数量:', controlPoints.length)
 
-  // 使用 Catmull-Rom 样条插值生成平滑路径点
+  // 使用 Catmull-Rom 样条生成平滑路径
   const numInterpolatedPoints = 200
   const points: Array<{ x: number; y: number; z: number; elevation: number; lon: number; lat: number }> = []
 
   for (let i = 0; i < numInterpolatedPoints; i++) {
     const t = i / (numInterpolatedPoints - 1)
 
-    // Catmull-Rom 插值
+    // 计算当前处于哪个控制点区间
     const segmentCount = controlPoints.length - 1
     const segmentT = t * segmentCount
     const segmentIndex = Math.min(Math.floor(segmentT), segmentCount - 1)
     const localT = segmentT - segmentIndex
 
-    // 获取4个控制点用于Catmull-Rom插值
+    // 选取 4 个相邻控制点参与插值
     const p0 = controlPoints[Math.max(0, segmentIndex - 1)]
     const p1 = controlPoints[segmentIndex]
     const p2 = controlPoints[Math.min(controlPoints.length - 1, segmentIndex + 1)]
     const p3 = controlPoints[Math.min(controlPoints.length - 1, segmentIndex + 2)]
 
-    // Catmull-Rom 插值公式
+    // 对经度与纬度分别执行 Catmull-Rom 插值
     const lon = catmullRom(localT, p0.lon, p1.lon, p2.lon, p3.lon)
     const lat = catmullRom(localT, p0.lat, p1.lat, p2.lat, p3.lat)
 
@@ -583,14 +587,14 @@ function generateAutoRoute() {
 
   routePoints.value = points
   
-  // 生成空运路线（和陆运相同路径，但高度更高）
+  // 同步生成空运路径（共享平面轨迹，抬升高度）
   generateAirRoute(points)
   
   drawRoute()
 
   console.log(`✅ 自动生成平滑路线完成，共 ${points.length} 个路径点`)
 
-  // 自动开始播放动画
+  // 初始化完成后自动播放一次动画
   setTimeout(() => {
     const currentPoints = transportMode.value === 'ground' ? routePoints.value : airRoutePoints.value
     if (currentPoints.length >= 2) {
@@ -603,21 +607,20 @@ function generateAutoRoute() {
 function generateAirRoute(groundPoints: Array<{ x: number; y: number; z: number; elevation: number; lon: number; lat: number }>) {
   const airPoints: Array<{ x: number; y: number; z: number; elevation: number; lon: number; lat: number }> = []
   
-  // 找到陆运路线的最高点
+  // 先计算地面路径最高点，作为巡航高度基准
   let maxGroundY = -Infinity
   groundPoints.forEach(p => {
     if (p.y > maxGroundY) maxGroundY = p.y
   })
   
-  // 空运巡航高度（在最高点基础上抬高）
+  // 巡航高度：在地面最高点上方再抬升
   const cruiseHeight = maxGroundY + 0.5
   const totalPoints = groundPoints.length
   
   groundPoints.forEach((point, i) => {
     const progress = i / (totalPoints - 1)
     
-    // 使用正弦函数生成起飞降落弧度
-    // 起点和终点高度为地面高度，中间达到巡航高度
+    // 使用正弦曲线模拟起飞/巡航/降落弧度
     const arcProgress = Math.sin(progress * Math.PI)
     const currentHeight = point.y + arcProgress * (cruiseHeight - point.y)
     
@@ -641,7 +644,7 @@ function switchTransportMode(mode: 'ground' | 'air') {
   
   isAnimating.value = false
   
-  // 清除旧的动画
+  // 切换前先清理旧动画对象
   if (movingMarker) {
     scene.remove(movingMarker)
     movingMarker = null
@@ -655,7 +658,7 @@ function switchTransportMode(mode: 'ground' | 'air') {
     animatedLine = null
   }
   
-  // 切换模式
+  // 写入新模式并重绘
   transportMode.value = mode
   
   // 重新绘制路线
@@ -679,6 +682,7 @@ function catmullRom(t: number, p0: number, p1: number, p2: number, p3: number): 
 }
 const getDetail = async (id: string) => {
   try {
+    // 获取项目参数，用于运输方式按钮控制
     const { data } = await packingParamsDetail({ projectId: id })
     detailInfo.value = data
     console.log(data);
@@ -697,7 +701,7 @@ async function init() {
     loadingProgress.value = 10
     loadingText.value = '初始化3D场景...'
 
-    // 创建场景
+    // 初始化场景、相机、渲染器
     scene = new THREE.Scene()
     scene.background = new THREE.Color(0x87ceeb)
 
@@ -712,12 +716,12 @@ async function init() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1))
     container.value.appendChild(renderer.domElement)
 
-    // 添加控制器
+    // 轨道控制器
     controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.dampingFactor = 0.05
 
-    // 添加光照
+    // 基础光照
     const ambientLight = new THREE.AmbientLight(0x404040, 0.3)
     scene.add(ambientLight)
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.0)
@@ -727,11 +731,12 @@ async function init() {
     loadingProgress.value = 30
     loadingText.value = '加载DEM高程数据...'
 
-    // 加载DEM数据
+    // 读取 DEM 栅格数据
     const dem = await loadDEM(props.demUrl)
 
     loadingProgress.value = 50
     loadingText.value = '处理地形数据...'
+    // 降采样，控制网格规模
     const step = Math.ceil(Math.sqrt((dem.width * dem.height) / (150 * 150)))
     const width = Math.floor(dem.width / step)
     const height = Math.floor(dem.height / step)
@@ -745,7 +750,7 @@ async function init() {
 
     const { min, max } = getMinMax(raster)
 
-    // 保存DEM数据供后续使用
+    // 缓存 DEM 数据，供路径生成与坐标换算复用
     demRaster = raster
     demWidth = width
     demHeight = height
@@ -755,7 +760,7 @@ async function init() {
     loadingProgress.value = 65
     loadingText.value = '生成3D地形模型...'
 
-    // 创建地形几何体
+    // 构建地形几何体并写入高程
     const geometry = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, width - 1, height - 1)
     const positions = geometry.attributes.position.array
 
@@ -773,7 +778,7 @@ async function init() {
     loadingProgress.value = 75
     loadingText.value = '加载卫星影像...'
 
-    // 加载卫星纹理
+    // 加载卫星影像纹理
     const textureLoader = new THREE.TextureLoader()
     const satelliteTexture = await new Promise<THREE.Texture>((resolve, reject) => {
       textureLoader.load(props.satelliteUrl, resolve, undefined, reject)
@@ -782,7 +787,7 @@ async function init() {
     loadingProgress.value = 85
     loadingText.value = '渲染地形...'
 
-    // 创建地形材质
+    // 创建地形材质并加入场景
     const material = new THREE.MeshStandardMaterial({
       map: satelliteTexture,
       flatShading: false,
@@ -794,19 +799,19 @@ async function init() {
     loadingProgress.value = 100
     loadingText.value = '加载完成！'
 
-    // 延迟隐藏加载提示
+    // 加载完成后隐藏遮罩并自动生成路线
     setTimeout(() => {
       loading.value = false
       // 自动生成路线
       generateAutoRoute()
     }, 300)
 
-    // 动画循环
+    // 主循环：按需渲染 + 路线动画更新
     let needsRender = true
 
     function render() {
       if (needsRender && renderer && scene && camera) {
-        // 更新路线动画
+        // 在播放状态下推进动画进度
         if (isAnimating.value && routePoints.value.length >= 2) {
           routeAnimationProgress += routeAnimationSpeed
           if (routeAnimationProgress > 1) {
@@ -835,7 +840,7 @@ async function init() {
 
     animate()
 
-    // 监听窗口大小变化
+    // 响应容器尺寸变化
     window.addEventListener('resize', onWindowResize)
   } catch (error) {
     console.error('高程地图初始化失败:', error)
@@ -845,6 +850,7 @@ async function init() {
 
 function onWindowResize() {
   if (!camera || !renderer || !container.value) return
+  // 同步更新相机比例与渲染分辨率
   camera.aspect = container.value.clientWidth / container.value.clientHeight
   camera.updateProjectionMatrix()
   renderer.setSize(container.value.clientWidth, container.value.clientHeight)
@@ -858,7 +864,7 @@ onUnmounted(() => {
   if (animationId) cancelAnimationFrame(animationId)
   window.removeEventListener('resize', onWindowResize)
 
-  // 清理路线
+  // 清理路线与材质资源
   if (routeLine) {
     scene.remove(routeLine)
     routeLine.geometry.dispose()
@@ -886,6 +892,7 @@ onUnmounted(() => {
 
   if (controls) controls.dispose()
   if (renderer) {
+    // 主动释放 WebGL 上下文
     renderer.dispose()
     renderer.forceContextLoss()
   }

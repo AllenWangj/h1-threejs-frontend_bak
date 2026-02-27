@@ -10,10 +10,13 @@ enum EGroupType {
 }
 // con
 class ProcessThree extends BaseThree {
+    // 流程3的业务根节点
     private wrapper = new THREE.Group()
+    // 按业务类型分组，便于统一显示/隐藏与透明控制
     private outLineGroup: THREE.Group[] = []
     private innerGroup: THREE.Group[] = []
     private topGroup: THREE.Group[] = []
+    // 待拉取的模型 code 缓存
     private gltfCodes: string[] = []
 
     // 射线投射
@@ -34,6 +37,7 @@ class ProcessThree extends BaseThree {
 
         })
         this.scene.add(this.wrapper)
+        // 场景初始化后绑定点击拾取
         this.initRaycaster()
         this.addEventListeners()
         // this.handleOriginModel(plan)
@@ -48,6 +52,7 @@ class ProcessThree extends BaseThree {
     private addEventListeners(): void {
         const element = this.renderer.domElement
 
+        // 点击拾取：用于调试或后续交互扩展
         element.addEventListener('mousedown', (event: MouseEvent) => {
             const ndc = this.convertToNDC(event.clientX, event.clientY)
             this.mouse.set(ndc.x, ndc.y)
@@ -63,6 +68,7 @@ class ProcessThree extends BaseThree {
     }
 
     private setGroupOpacity(group, opacity) {
+        // 统一修改组内所有材质透明度
         // 遍历组内所有子对象
         group.traverse(function (child) {
             // 检查对象是否有材质属性
@@ -85,6 +91,7 @@ class ProcessThree extends BaseThree {
         });
     }
     public async handleOriginModel(data: any) {
+        // 切换数据前先释放旧资源
         this.handleClearnJunk(this.wrapper)
         const base = new THREE.Group()
         if (data.scale) {
@@ -97,10 +104,13 @@ class ProcessThree extends BaseThree {
         this.wrapper.add(base)
 
         this.gltfCodes = []
+        // 先递归收集模型 code 与加载任务
         this.handleLoadUrl(data, base)
         const codes = Array.from(new Set(this.gltfCodes))
+        // 批量拉取映射后并发加载模型
         await getModelMap(codes)
         const results = await this.runWithConcurrency(this.promiseFactories, 200)
+        // 根据业务规则分类组件（外墙/内墙/顶部）
         results.forEach(ele => {
             const { object, wrapper, position, roation, scale, name } = ele
             object.scene.position.set(
@@ -127,10 +137,12 @@ class ProcessThree extends BaseThree {
                 this.topGroup.push(object.scene)
             }
         })
+        // 按场景中心重置相机与控制器目标
         const size = this.calculateGroupDimensions(this.wrapper)
         const number = 600
         this.camera!.position.set(size.center.x, size.center.y, size.center.z - number)
         this.controls.target.set(size.center.x, size.center.y, size.center.z)
+        // 默认隐藏外墙、弱化顶部、保留内部可视
         this.outLineGroup.forEach(ele => {
             ele.visible = false
         })
@@ -165,6 +177,7 @@ class ProcessThree extends BaseThree {
     }
     private handleLoadUrl(object: any, parent: any) {
         if (object.code) {
+            // 叶子节点：记录 code 并创建加载任务
             let code = object.code
             this.gltfCodes.push(code)
             this.promiseFactories.push(() => {
@@ -184,6 +197,7 @@ class ProcessThree extends BaseThree {
             })
         }
         else if (object.children && object.children.length > 0) {
+            // 非叶子节点：创建分组并递归处理子节点
             const group = new THREE.Group()
             group.name = object.name
             group.position.set(
@@ -204,6 +218,7 @@ class ProcessThree extends BaseThree {
         }
     }
     private handleGroupType(name: string) {
+        // 基于命名规则识别分组类型
         // 判断组件是不是墙
         const out = [
             "组件#13",
@@ -264,7 +279,7 @@ class ProcessThree extends BaseThree {
             console.warn('⚠️ 尝试释放无效的组')
             return
         }
-        // 递归释放所有资源
+        // 深度释放网格资源
         group.traverse((object) => {
             if (object instanceof THREE.Mesh) {
                 // 释放几何体

@@ -37,6 +37,7 @@ interface ObjectUserData {
 class RenderPlanLayout extends BaseThree {
   // 场景状态
   private isCompleteLoadScene = false
+  // 业务模型统一挂载根节点
   private wrapper: Three.Group
   private readonly wrapperName = '__WRAPPER__'
   private defaultGroup: Three.Group | null = null
@@ -68,7 +69,7 @@ class RenderPlanLayout extends BaseThree {
       enableShadow: true,
       enableDamping: true
     })
-    // 绑定事件处理函数
+    // 绑定事件处理函数（便于后续 removeEventListener）
     this.handleMouseDownBound = this.handleMouseDown.bind(this)
     this.handleMouseMoveBound = this.handleMouseMove.bind(this)
     this.handleMouseUpBound = this.handleMouseUp.bind(this)
@@ -85,6 +86,7 @@ class RenderPlanLayout extends BaseThree {
    * 初始化场景
    */
   private initializeScene(): void {
+    // 初始化业务容器
     this.wrapper = new Three.Group()
     this.wrapper.name = this.wrapperName
     this.scene.add(this.wrapper)
@@ -124,6 +126,7 @@ class RenderPlanLayout extends BaseThree {
         throw new Error('场景根节点未找到')
       }
 
+      // 保存默认场景引用并挂载根节点子对象
       this.defaultGroup = this.wrapper
       this.wrapper.add(...root.children)
 
@@ -159,6 +162,7 @@ class RenderPlanLayout extends BaseThree {
    */
   public async loadSceneModels(data: any): Promise<void> {
     console.log("data", data)
+    // 每次加载前先释放旧场景对象
     this.handleClearnJunk(this.wrapper)
     // 
     this.loadDefaultScene()
@@ -175,11 +179,13 @@ class RenderPlanLayout extends BaseThree {
         this.loadSingleModel(config, index)
       )
 
+      // 等待所有模型并行加载完成
       await Promise.all(loadPromises)
       const size = this.calculateGroupDimensions(this.wrapper)
       const height = 600
       this.spriteList= []
       const { center } = size
+      // 按布局维度添加功能区标签
       const dormSprite = this.createTextSprite('办公区', {
         fontSize: 40,
         font: '微软雅黑, Arial', // 支持中文字体（确保系统有该字体）
@@ -269,7 +275,7 @@ class RenderPlanLayout extends BaseThree {
         return
       }
 
-      // 使用获取到的 URL 加载实际的 GLTF 模型文件
+      // 加载 GLTF 并转为可交互对象
       const gltf = await this.loadGLTFResource(modelUrl)
       this.addInteractiveModel(gltf, config)
       console.log(`✅ 模型加载成功: ${config.code} -> ${modelUrl}`)
@@ -299,7 +305,7 @@ class RenderPlanLayout extends BaseThree {
     group.rotation.z = (config.deg * Math.PI) / 180
     group.position.set(-size.width / 2, -size.height / 2, config.position.z)
 
-    // 创建枢轴点
+    // 使用 pivot 做交互基准，避免直接改动模型局部坐标
     const pivot = new Three.Object3D()
     pivot.name = config.groupName
     pivot.userData.data = config //原始数据位置 q
@@ -333,6 +339,7 @@ class RenderPlanLayout extends BaseThree {
   private addEventListeners(): void {
     const element = this.renderer.domElement
 
+    // 鼠标按下/移动/抬起驱动选中、拖拽和旋转
     element.addEventListener('mousedown', this.handleMouseDownBound)
     element.addEventListener('mousemove', this.handleMouseMoveBound)
     element.addEventListener('mousemove', this.handleMouseMoveAddBound)
@@ -383,7 +390,7 @@ class RenderPlanLayout extends BaseThree {
     this.controls.enabled = false
     this.isDragging = true
 
-    // 保存初始状态
+    // 保存交互前状态，用于复位
     const parent = object.parent as Three.Object3D
     parent.userData = {
       position: parent.position.clone(),
@@ -404,6 +411,7 @@ class RenderPlanLayout extends BaseThree {
   private handleMouseMove(event: MouseEvent): void {
     if (!this.selectedObject || !this.isDragging) return
 
+    // 根据当前模式执行位移或旋转
     if (this.operationMode === OperationMode.Move) {
       this.updateObjectPosition(event)
     } else {
@@ -429,6 +437,7 @@ class RenderPlanLayout extends BaseThree {
     const mouseX = event.clientX - rect.left
     const mouseY = event.clientY - rect.top
 
+    // 将屏幕坐标投射到场景，得到世界坐标
     const worldPos = this.getWorldPositionFromScreen(mouseX, mouseY)
     const parent = this.selectedObject.parent as Three.Object3D
 
@@ -446,6 +455,7 @@ class RenderPlanLayout extends BaseThree {
       y: event.clientY - this.previousMousePosition.y
     }
 
+    // 使用鼠标 X 位移映射到 Z 轴旋转
     const parent = this.selectedObject.parent as Three.Object3D
     parent.rotation.z += deltaMove.x * 0.05
 
@@ -531,6 +541,7 @@ class RenderPlanLayout extends BaseThree {
    */
   public clearAIData(): void {
     if (this.wrapper) {
+      // 释放当前业务组并重置默认场景引用
       this.disposeGLTFGroup(this.wrapper)
       this.defaultGroup = null
     }
@@ -540,7 +551,7 @@ class RenderPlanLayout extends BaseThree {
       console.warn('⚠️ 尝试释放无效的组')
       return
     }
-    // 递归释放所有资源
+    // 深度释放所有网格资源，避免显存泄漏
     group.traverse((object) => {
       if (object instanceof Three.Mesh) {
         // 释放几何体
@@ -595,6 +606,7 @@ class RenderPlanLayout extends BaseThree {
     super.destory()
   }
   public handlleSaveEvt() {
+    // 导出当前交互对象的位姿，用于持久化
     const position = this.interactiveObjects.map(ele => {
       const { userData } = ele
       return {
@@ -623,6 +635,7 @@ class RenderPlanLayout extends BaseThree {
   }
   // 添加部件
   public async handleCreateModel(code: string) {
+    // 在场景中心追加一个可交互模型
     const modelUrl = getModelUrl(code)
     const size = this.calculateGroupDimensions(this.wrapper)
     const gltf = await this.loadGLTFResource(modelUrl)
@@ -638,6 +651,7 @@ class RenderPlanLayout extends BaseThree {
     })
   }
   public createTextSprite(text, options: any) {
+    // 将文本先绘制为纹理，再转精灵对象
     // 获取文字纹理
     const texture = this.createTextTexture(text, options);
 

@@ -1,414 +1,101 @@
 # H1-ThreeJS-Frontend
 
-工业级三维可视化前端平台 - 基于 Nuxt 3 + Three.js 的 BIM/GIS 融合解决方案
+工业级三维可视化前端平台，基于 Nuxt 3 + Three.js，聚焦 BIM/GIS 融合与七阶段工艺流程。
 
-## 🌟 项目简介
+## 项目简介
 
-H1-ThreeJS-Frontend 是一个面向工业场景的专业三维可视化平台，专注于建筑信息模型(BIM)与地理信息系统(GIS)的深度融合。平台提供从设计到施工全生命周期的数字化解决方案，支持 IFC 模型渲染、工艺流程管理、三维地理分析等核心功能。
+本项目用于工业场景的三维可视化与流程管理，核心能力包括：
 
-## 🏗️ 技术架构
+- 地形高程/等高线分析（GeoTIFF）
+- 三维模型加载与交互编辑（Three.js）
+- 七阶段流程业务页面（规划、设计、生产、运输、组装）
 
-### 核心技术栈
+## 技术架构
 
-**前端框架**
+- Nuxt 3 / Vue 3 / TypeScript
+- Three.js / IFC.js / GeoTIFF
+- Element Plus / TailwindCSS
+- pnpm / Docker / Nginx
 
-- 🔄 **Nuxt 3.19.2** - 基于 Vue 3.5.14 的现代化 SPA 框架
-- ⚡ **Vue 3 Composition API** - 响应式编程范式
-- 📘 **TypeScript 5.8.3** - 严格的类型安全保障
+## 目录结构（核心）
 
-**3D 可视化**
+- `pages/process/`：七阶段核心流程页面
+	- `one/`：地形测绘（高程图、等高线）
+	- `two~four/`：布局与结构/构件设计
+	- `five~seven/`：生产、运输、现场组装
+- `composables/use-three.ts`：Three.js 基础封装（场景、相机、渲染器、资源释放）
+- `apis/`：接口定义
+- `types/`：类型定义
+- `deploy/`：Docker / Nginx 部署配置
 
-- 🎨 **Three.js 0.180.0** - WebGL 3D 渲染引擎
-- 🏗️ **IFC.js** - 建筑信息模型解析与渲染
-- 🌍 **GeoTIFF 2.1.4** - 地理栅格数据处理
-
-**UI 组件**
-
-- 🎯 **Element Plus 2.9.10** - 桌面端组件库
-- 🧩 **@maxtan/ez-ui 0.12.1** - 自研业务组件
-- 🎨 **TailwindCSS 6.14.0** - 原子化 CSS 框架
-
-**工程化工具**
-
-- 📦 **pnpm** - 高效包管理器
-- 🔧 **Prettier + ESLint** - 代码规范与格式化
-- 🐳 **Docker** - 容器化部署
-
-### 架构设计
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Nuxt 3 应用层 (Pages)                     │
-├─────────────────────────────────────────────────────────────┤
-│  Components (基础组件)  │  Component (业务组件)  │ Layouts   │
-├─────────────────────────────────────────────────────────────┤
-│                   Composables (逻辑复用)                    │
-├─────────────────────────────────────────────────────────────┤
-│                    APIs (接口调用层)                        │
-├─────────────────────────────────────────────────────────────┤
-│                    Three.js 3D 渲染引擎                     │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## 📁 项目结构
-
-```
-h1-threejs-frontend/
-├── apis/              # 📡 接口定义
-│   ├── account.ts      # 账户管理
-│   ├── project.ts     # 项目管理
-│   ├── resource.ts    # 资源管理
-│   └── system.ts      # 系统管理
-│
-├── assets/            # 🎨 静态资源
-│   └── css/
-│       └── tailwind.css
-│
-├── component/         # 🧩 业务组件
-│   ├── BaseModel/     # 基础模态框
-│   ├── PlanAndLayout/ # 规划布局
-│   └── process-menu/  # 流程菜单
-│
-├── components/        # 🧱 基础组件
-│   ├── icon-select/   # 图标选择器
-│   ├── layout/        # 布局组件
-│   ├── model-wrapper/ # 模型包装器
-│   └── ...
-│
-├── composables/       # ⚡ 逻辑复用
-│   ├── use-auth.ts           # 认证逻辑
-│   ├── use-base-fetch.ts     # 请求封装
-│   ├── use-dict.ts           # 字典管理
-│   ├── use-model.ts          # 模型管理
-│   ├── use-three.ts          # Three.js 封装
-│   └── ...
-│
-├── pages/             # 📄 页面路由
-│   ├── home/          # 首页
-│   ├── ifc/           # IFC 模型管理
-│   ├── process/       # 工艺流程 (核心)
-│   │   ├── one/       # ① 地形测绘
-│   │   ├── two/       # ② 基础设计
-│   │   ├── three/     # ③ 结构设计
-│   │   ├── four/      # ④ 构件设计
-│   │   ├── five/      # ⑤ 部件生产
-│   │   ├── six/       # ⑥ 物流运输
-│   │   └── seven/     # ⑦ 现场组装
-│   ├── model/         # 模型构建
-│   ├── model-library/ # 模型库
-│   ├── system/        # 系统管理
-│   └── gis.vue        # GIS 地图
-│
-├── plugins/           # 🔌 插件
-│   └── icons.ts       # 图标注册
-│
-├── public/            # 📂 静态文件
-│   └── models/        # 3D 模型资源
-│
-├── types/             # 📋 类型定义
-│   ├── base.ts        # 基础类型
-│   ├── project.ts     # 项目类型
-│   └── ...
-│
-├── deploy/            # 🚀 部署配置
-│   ├── prod/          # 生产环境
-│   ├── test/          # 测试环境
-│   └── nginx.conf     # Nginx 配置
-│
-├── nuxt.config.ts     # Nuxt 配置
-└── package.json       # 项目依赖
-```
-
-## 🚀 快速开始
+## 快速开始
 
 ### 环境要求
 
-- **Node.js 22+** (LTS 版本推荐)
-- **pnpm 10** (包管理工具)
-- 现代浏览器 (Chrome 90+, Firefox 88+, Safari 15+)
+- Node.js 22+
+- pnpm 10+
 
-### 安装依赖
+### 安装
 
 ```bash
-# 使用 pnpm (推荐)
 pnpm install
-
-# 或使用 npm
-npm install
 ```
 
-### 开发运行
+### 开发
 
 ```bash
-# 开发模式 (MODE=DEV)
 pnpm dev
-
-# 访问地址: http://localhost:3000
 ```
 
-### 构建部署
+默认访问：http://localhost:3000
+
+### 构建
 
 ```bash
-# 测试环境构建
+# 测试环境
 pnpm build:test
 
-# 生产环境构建
+# 生产环境
 pnpm build
 
-# 预览构建结果
+# 本地预览
 pnpm preview
 ```
 
-### 环境变量配置
+## 环境变量
+
+在 `.env` 中设置：
 
 ```bash
-# .env 文件
-MODE=DEV          # 开发环境
-# MODE=TEST       # 测试环境
-# MODE=PROD       # 生产环境
+MODE=DEV
+# MODE=TEST
+# MODE=PROD
 ```
 
-## 🎯 核心功能
+## 核心流程
 
-### 1. IFC/BIM 模型管理
+| 阶段 | 功能说明 |
+| --- | --- |
+| ① 地形测绘 | DEM 地形分析、等高线/高程可视化 |
+| ② 基础设计 | 布局编辑、方案管理 |
+| ③ 结构设计 | 结构模型装配与可视化 |
+| ④ 构件设计 | 构件级模型与清单管理 |
+| ⑤ 部件生产 | 物料/生产信息展示 |
+| ⑥ 物流运输 | 路径生成与运输动画 |
+| ⑦ 现场组装 | 组装过程与信息联动 |
 
-支持 IFC 格式建筑信息模型的完整生命周期管理：
+## 开发约定（简版）
 
-```ts
-// 模型加载
-const { loadIFC } = useModel()
-const model = await loadIFC('/models/building.ifc')
+- 组件优先使用 Composition API
+- 业务逻辑优先沉淀在 `composables/`
+- Three.js 资源在销毁时需显式 `dispose()`
+- API 统一收口在 `apis/`
 
-// 属性查询
-const properties = model.getPropertySets()
-
-// 空间分析
-const spatialData = model.getSpatialStructure()
-```
-
-### 2. 七阶段工艺流程
-
-工业项目全生命周期数字化管理：
-
-| 阶段       | 功能         | 核心组件                               |
-| ---------- | ------------ | -------------------------------------- |
-| ① 地形测绘 | 地形高程分析 | `elevation-map.vue`, `contour-map.vue` |
-| ② 基础设计 | 基础结构设计 | `form.vue` + `render.vue`              |
-| ③ 结构设计 | 主体结构建模 | Three.js 参数化建模                    |
-| ④ 构件设计 | 构件详细设计 | IFC 构件库                             |
-| ⑤ 部件生产 | 生产计划管理 | 算法优化 + 系统配置                    |
-| ⑥ 物流运输 | 运输路径规划 | GIS 空间分析                           |
-| ⑦ 现场组装 | 施工进度管控 | 甘特图 + 3D 可视化                     |
-
-### 3. GIS 地理信息集成
-
-二三维一体化地理信息展示：
-
-```vue
-<template>
-  <GisMap :center="[lng, lat]" :zoom="15" @click="handleMapClick" />
-</template>
-```
-
-### 4. 3D 渲染引擎
-
-基于 Three.js 的自研渲染封装：
-
-```ts
-// composables/use-three.ts
-export function useThree() {
-  const { scene, camera, renderer } = createRenderer()
-
-  const loadModel = async (url: string) => {
-    const model = await loader.load(url)
-    scene.add(model)
-    return model
-  }
-
-  const animate = () => {
-    requestAnimationFrame(animate)
-    renderer.render(scene, camera)
-  }
-
-  return { scene, camera, loadModel, animate }
-}
-```
-
-## 🛠️ 开发指南
-
-### 代码规范
-
-1. **TypeScript 优先**
-
-   ```ts
-   // ✅ 好的做法
-   interface Project {
-     id: string
-     name: string
-     status: 'draft' | 'active' | 'completed'
-   }
-
-   // ❌ 避免
-   let project: any = {}
-   ```
-
-2. **Composition API 模式**
-
-   ```ts
-   // composables/use-project.ts
-   export function useProject() {
-     const projects = ref<Project[]>([])
-
-     const fetchProjects = async () => {
-       projects.value = await api.getProjects()
-     }
-
-     return { projects, fetchProjects }
-   }
-   ```
-
-3. **原子化 CSS**
-   ```vue
-   <!-- ✅ 使用 Tailwind 工具类 -->
-   <div class="flex flex-col bg-blue-500 text-white p-4 rounded-lg">
-     <!-- 内容 -->
-   </div>
-   ```
-
-### 项目约定
-
-- 所有组件使用 **Composition API**
-- 类型定义统一放在 **types/** 目录
-- 业务逻辑封装在 **composables/** 中
-- 接口请求统一通过 **apis/** 管理
-- 3D 相关逻辑使用 **use-three.ts** 封装
-
-### 目录结构规范
-
-```
-src/
-├── apis/          # 接口定义 (按业务模块分文件)
-├── components/    # 基础组件 (可复用的UI组件)
-├── composables/   # 逻辑复用 (Composition Functions)
-├── pages/         # 页面路由 (Nuxt自动路由)
-├── types/         # 类型定义 (全局和模块类型)
-└── utils/         # 工具函数 (纯函数工具)
-```
-
-### 命名规范
-
-- **文件名**: kebab-case (如 `user-profile.vue`)
-- **组件名**: PascalCase (如 `UserProfile.vue`)
-- **变量名**: camelCase (如 `userName`)
-- **常量名**: UPPER_SNAKE_CASE (如 `API_BASE_URL`)
-- **接口名**: PascalCase + `I` 前缀 (如 `IUser`)
-
-### Git 提交规范
-
-```
-feat: 新功能
-fix: 修复bug
-chore: 构建工具或辅助工具的变动
-docs: 文档更新
-style: 代码格式调整
-refactor: 代码重构
-perf: 性能优化
-test: 测试相关
-```
-
-示例: `feat: 添加用户登录功能`
-
-### 组件设计原则
-
-1. **单一职责**
-2. **表单与渲染分离**
-3. **逻辑与视图解耦**
-4. **类型安全**
-
-### 3D 开发最佳实践
-
-1. **资源管理**
-
-   ```ts
-   // 及时释放内存
-   const cleanup = () => {
-     geometry.dispose()
-     material.dispose()
-     renderer.dispose()
-   }
-   ```
-
-2. **性能优化**
-   - 使用 LOD (Level of Detail)
-   - 实施视锥剔除
-   - 合理使用 Instancing
-   - 纹理压缩与 mipmaps
-
-## 📦 部署方案
-
-### 镜像源切换
-
-项目默认使用私有镜像仓库，可切换为公有镜像：
-
-```dockerfile
-# 私有镜像 (当前配置)
-FROM registry.cn-hangzhou.aliyuncs.com/maxtan/node:22.20.0 as builder
-FROM registry.cn-hangzhou.aliyuncs.com/maxtan/nginx:1.29.1
-
-# 公有镜像 (推荐)
-FROM node:22.13.1-alpine as builder
-FROM nginx:1.27.3-alpine
-```
-
-### 单体包构建
+## 部署
 
 ```bash
-# 构建 Docker 镜像
 docker build -t h1-threejs-frontend:latest -f deploy/prod/Dockerfile .
-
-# 运行容器 (80 端口)
 docker run -d -p 80:80 h1-threejs-frontend:latest
-
-# 自定义端口
-docker run -d -p 3000:80 h1-threejs-frontend:latest
 ```
 
-> 💡 项目采用 SPA 模式 (`ssr: false`)，构建产物为纯前端单页应用
-
-## 🔧 性能优化
-
-### 构建优化
-
-1. **代码分割**
-
-   ```ts
-   // 动态导入
-   const HeavyComponent = defineAsyncComponent(() => import('@/components/HeavyComponent.vue'))
-   ```
-
-2. **Tree-shaking**
-   ```ts
-   // 只导入需要的函数
-   import { ref, computed } from 'vue'
-   ```
-
-### 运行时优化
-
-1. **虚拟滚动** (大数据列表)
-2. **防抖节流** (事件处理)
-3. **懒加载** (图片/组件)
-4. **Web Workers** (复杂计算)
-
-### 3D 性能优化
-
-- **模型优化**: 使用 Draco 压缩，LOD 层级细节
-- **纹理处理**: 启用压缩纹理格式 (ASTC, ETC)
-- **渲染优化**: 合批渲染，视锥剔除
-- **内存管理**: 及时释放 Three.js 资源
-
-### 构建优化
-
-- **代码分割**: 路由级别分割，动态导入
-- **Tree-shaking**: 移除未使用代码
-- **资源压缩**: Gzip/Brotli 压缩
-- **缓存策略**: 静态资源长期缓存
+项目为 SPA 模式（`ssr: false`）。

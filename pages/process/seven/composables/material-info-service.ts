@@ -1,4 +1,5 @@
 export const materialInfoService = (): any[] => {
+    // 返回流程7（现场组装）物料信息
     // 窗
     const windowData = [
         {
@@ -177,6 +178,7 @@ export const materialInfoService = (): any[] => {
     ]
 
 
+    // value 作为前端分类索引，infoList 为当前类别明细
     return [
         {
             name: '窗',

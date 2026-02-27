@@ -1,4 +1,5 @@
 export const materialInfoService = (): any[] => {
+    // 返回流程4（构件设计）物料清单
     // 墙
     const wallData = [
         {
@@ -112,6 +113,7 @@ export const materialInfoService = (): any[] => {
     ]
 
 
+    // 输出为前端渲染所需的分类数组
     return [
 
     {
