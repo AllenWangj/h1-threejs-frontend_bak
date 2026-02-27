@@ -32,20 +32,26 @@ import ElevationMap from './elevation-map.vue'
 import ContourMap from './contour-map.vue'
 
 const route = useRoute()
+/** 项目ID，从路由参数获取 */
 const projectId = ref('')
+/** 方案列表，包含所有可选的测绘方案 */
 const schemeList = ref<any[]>([])
+/** 当前激活的方案ID */
 const currentAcviteScheme = ref('')
 
+/** GIS 数据配置，包含 DEM 和卫星影像 URL */
 const gis = ref({
   url: '',
   demUrl: '',
   satelliteUrl: ''
 })
 
+/** 地形展示模式：'elevation'(高程地图) 或 'contour'(等高线地图) */
 const terrainMode = ref('elevation')
 
-// 分析结果数据
+/** 分析结果数据，存储平缓区域、坡度等分析结果 */
 const analyzedAreas = ref<any[]>([])
+/** 是否正在进行地形分析 */
 const isAnalyzing = ref(false)
 const demUrl = computed(() => {
   return gis.value?.url || ''
@@ -64,17 +70,30 @@ const DEM_BOUNDS = ref({
 
 const TERRAIN_SIZE = 8
 
+/**
+ * 切换激活方案
+ * @param item 方案对象，包含 id、名称等信息
+ */
 const tapScheme = (item) => {
   console.log('点击了方案', item)
   currentAcviteScheme.value = item.id
   fetchPlanDetail(currentAcviteScheme.value)
 }
 
+/**
+ * 切换地形展示模式
+ * 在高程地图和等高线地图之间切换
+ */
 function toggleTerrainMode() {
   terrainMode.value = terrainMode.value === 'elevation' ? 'contour' : 'elevation'
 }
 
-// 加载DEM数据
+/**
+ * 加载 DEM（数字高程模型）数据
+ * @param url DEM 文件的 URL 地址
+ * @returns 包含栅格数据、宽度和高度的对象
+ * @description 从 GeoTIFF 文件中读取高程数据，用于地形可视化
+ */
 async function loadDEM(url: string) {
   const resp = await fetch(url)
   const buffer = await resp.arrayBuffer()
@@ -84,7 +103,11 @@ async function loadDEM(url: string) {
   return { raster, width: image.getWidth(), height: image.getHeight() }
 }
 
-// 获取最小/最大值
+/**
+ * 获取数组的最小值和最大值
+ * @param array 数值数组
+ * @returns 包含 min 和 max 的对象
+ */
 function getMinMax(array: any) {
   let min = Infinity,
     max = -Infinity
@@ -96,7 +119,10 @@ function getMinMax(array: any) {
   return { min, max }
 }
 
-// 地理坐标转世界坐标
+/**
+ * 将地理坐标转换为 Three.js 世界坐标
+ * @description 基于 DEM 数据和边界范围，计算三维场景中的位置
+ */
 function geoToWorld(
   lon: number,
   lat: number,
@@ -122,8 +148,18 @@ function geoToWorld(
   return { x: worldX, y: worldY, z: worldZ, elevation }
 }
 
-// 计算地形坡度
+/**
+ * 计算指定点的地形坡度
+ * @param raster DEM 栅格数据
+ * @param width 栅格宽度
+ * @param height 栅格高度
+ * @param x 像素 X 坐标
+ * @param y 像素 Y 坐标
+ * @returns 平均坡度值，边界点返回 Infinity
+ * @description 通过计算当前点与周围8个点的高程差平均值来评估坡度
+ */
 function calculateSlope(raster: Float32Array, width: number, height: number, x: number, y: number): number {
+  // 边界点无法计算周围差值，返回无穷大
   if (x <= 0 || x >= width - 1 || y <= 0 || y >= height - 1) {
     return Infinity
   }
@@ -131,6 +167,7 @@ function calculateSlope(raster: Float32Array, width: number, height: number, x: 
   const index = y * width + x
   const current = raster[index]
 
+  // 计算与周围8个方向点的高程差
   const diffs = [
     Math.abs(current - raster[(y - 1) * width + (x - 1)]),
     Math.abs(current - raster[(y - 1) * width + x]),
@@ -142,10 +179,14 @@ function calculateSlope(raster: Float32Array, width: number, height: number, x: 
     Math.abs(current - raster[(y + 1) * width + (x + 1)])
   ]
 
+  // 返回平均高程差作为坡度指标
   return diffs.reduce((a, b) => a + b, 0) / diffs.length
 }
 
-// 计算区域的平均坡度和平坦度
+/**
+ * 计算区域的平均坡度和平坦度
+ * @description 用于评估区域是否适合建设
+ */
 function calculateAreaSlope(
   raster: Float32Array,
   width: number,

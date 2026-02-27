@@ -2,49 +2,75 @@ import { useBaseFetch } from '~~/composables/use-base-fetch'
 const BASE_URL = useRuntimeConfig().public.baseURL
 const baseUrl = '/project/'
 import { Http } from '@maxtan/fetch'
+
 /**
- * 获取项目列表
-*/
+ * 获取项目列表（分页）
+ * @param params - 分页参数，包含 page、pageSize 等
+ * @returns 项目分页数据
+ */
 export const getProjectList = (params) => useBaseFetch().get(`${baseUrl}record/v1/page`, params)
 
 /**
  * 创建项目
-*/
+ * @param params - 项目基本信息，包含项目名称、描述等
+ * @returns 创建结果
+ */
 export const createProject = (params) => useBaseFetch().post(`${baseUrl}record/v1/create`, params)
 
 /**
  * 删除项目
+ * @param params - 项目 ID
+ * @returns 删除结果
  */
 export const removeProject = (params) => useBaseFetch().post(`${baseUrl}record/v1/remove`, params)
 
-
 /**
  * 获取项目详情
-*/
+ * @param params - 项目 ID
+ * @returns 项目完整信息
+ */
 export const getProjectDetail = (params) => useBaseFetch().get(`${baseUrl}record/v1/detail`, params)
 
 /**
- * 更新项目
-*/
+ * 更新项目信息
+ * @param params - 项目 ID 和要更新的字段
+ * @returns 更新结果
+ */
 export const updateProject = (params) => useBaseFetch().post(`${baseUrl}record/v1/update`, params)
 
-
+/**
+ * 更新流程1（选址决策）的文件数据
+ * @param params - 包含 DEM、卫星影像等文件 URL
+ * @returns 更新结果
+ */
+export const updateProjectSiteFile = (params) => useBaseFetch().post(`${baseUrl}site/v1/update-files`, params)
 
 /**
- * 更新工具1（选址决策）的数据
-*/
-export const updateProjectSiteFile = (params) => useBaseFetch().post(`${baseUrl}site/v1/update-files`, params)
+ * 更新流程1（选址决策）的参数
+ * @param params - 地形分析参数，如坡度阈值、面积要求等
+ * @returns 更新结果
+ */
 export const updateProjectSiteParams = (params) => useBaseFetch().post(`${baseUrl}site/v1/update-params`, params)
 
 /**
- * 获取工具1（选址决策）的数据
-*/
+ * 获取流程1（选址决策）的详细数据
+ * @param params - 项目 ID
+ * @returns 地形数据、分析参数等
+ */
 export const getProjectSiteDetail = (params) => useBaseFetch().get(`${baseUrl}site/v1/detail`, params)
+
 /**
- * 工具1（选址决策）生成方案
-*/
+ * 流程1（选址决策）生成方案
+ * @param params - 项目 ID 和生成参数
+ * @returns 方案生成任务 ID
+ */
 export const generateProjectSitePlan = (params) => useBaseFetch().post(`${baseUrl}site/v1/plan/generate`, params)
-// 获取工具1方案列表
+
+/**
+ * 获取流程1的方案列表
+ * @param params - 项目 ID
+ * @returns 选址方案列表
+ */
 export const getProjectSitePlanList = (params) => useBaseFetch().get(`${baseUrl}site/v1/plan/list`, params)
 
 /**

@@ -27,14 +27,22 @@ import { getPartsProductionDetail, algorithmGenerate, planDetail } from '@/apis/
 
 const { baseURL } = useRuntimeConfig().public
 const route = useRoute()
+/** 项目ID，从路由参数获取 */
 const projectId = ref('')
+/** 部件生产方案列表 */
 const schemeList = ref<any[]>([])
-// 当前激活得方案id
+/** 当前激活的方案ID */
 const currentAcviteScheme = ref('')
+
+/**
+ * 切换激活方案
+ * @param item 方案对象，包含 id、type 等信息
+ * @description 根据方案类型(type=3为新版，其他为旧版)切换渲染组件
+ */
 const tapScheme = (item) => {
   currentAcviteScheme.value = item.id
-  // loadModel()
   const {type} = item
+  // 根据方案类型切换新旧渲染器
   if(type == 3) {
     isNew.value =true
   }else {
@@ -67,19 +75,23 @@ const tapScheme = (item) => {
 //         }
 //   })
 }
-// 获取详情
+/**
+ * 获取部件生产方案详情
+ * @description 加载项目的所有部件生产方案，并自动选中第一个方案
+ */
 async function fetchDetail() {
   try {
     const { data } = await getPartsProductionDetail({
       projectId: projectId.value,
-      source: 5
+      source: 5 // 流程5：部件生产
     })
     schemeList.value = data || []
     if (schemeList.value.length > 0) {
       currentAcviteScheme.value = schemeList.value[0].id
-      // loadModel()
+      // 获取方案详细信息并判断使用新旧渲染器
       planDetail({ id: currentAcviteScheme.value }).then(res => {
         const { data: { layouts, status,type } } = res
+        // 根据方案类型切换渲染器
         if(type==3) {
           isNew.value =true
         }else {
@@ -112,6 +124,7 @@ async function fetchDetail() {
   } finally {
   }
 }
+/** 是否使用新版渲染器（type=3 为新版，支持更复杂的装配动画） */
 const isNew =ref(false)
 // const threeContainer = ref(null)
 // let opt: any | null = null

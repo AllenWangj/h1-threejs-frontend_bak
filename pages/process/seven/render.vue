@@ -5,6 +5,7 @@
       <div ref="threeContainer" class="three-container"></div>
       <div class="opt">
         <div class="opt-content">
+          <!-- 禁止拖动场景：锁定相机平移 -->
           <p class="opt-btn" @click="handleScenePane(false)">
             <img
               src="./svg/stop-o.svg"
@@ -12,6 +13,7 @@
             />
             <span>禁止拖动</span>
           </p>
+          <!-- 允许拖动场景：解锁相机平移 -->
           <p class="opt-btn" @click="handleScenePane(true)">
             <img
               src="./svg/drag.svg"
@@ -19,6 +21,7 @@
             />
             <span>允许拖动</span>
           </p>
+          <!-- 关闭场景：隐藏场景模型 -->
           <p class="opt-btn" @click="handleSceneEnable(false)">
             <img
               src="./svg/closescene.svg"
@@ -26,6 +29,7 @@
             />
             <span>关闭场景</span>
           </p>
+          <!-- 开启场景：显示场景模型 -->
           <p class="opt-btn" @click="handleSceneEnable(true)">
             <img
               src="./svg/openscene.svg"
@@ -33,6 +37,7 @@
             />
             <span>开启场景</span>
           </p>
+          <!-- 允许缩放：启用鼠标滚轮缩放 -->
           <p class="opt-btn" @click="handleSceneScale(true)">
             <img
               src="./svg/okscale.svg"
@@ -40,6 +45,7 @@
             />
             <span>允许缩放</span>
           </p>
+          <!-- 禁止缩放：禁用鼠标滚轮缩放 -->
           <p class="opt-btn" @click="handleSceneScale(false)">
             <img
               src="./svg/hide.svg"
@@ -47,6 +53,7 @@
             />
             <span>禁止缩放</span>
           </p>
+          <!-- 播放/暂停动画：控制装配步骤动画播放 -->
           <p class="opt-btn flex items-center justify-center" @click="toggleAnimation">
             <el-icon v-if="isPaused" size="22"><VideoPlay /></el-icon>
             <el-icon v-else size="22"><VideoPause /></el-icon>

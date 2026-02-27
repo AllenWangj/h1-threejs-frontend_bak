@@ -92,39 +92,49 @@ import { planLayoutDetailInfo,getInternalLayoutDetail, planDetailInfo, planList,
 import { useRender } from "./composables/use-render"
 const { formatTime } = useUtils()
 import dayjs from "dayjs"
-// import {plan} from "./composables/plan1.ts"
-// import {plan} from "./composables/plan2"
-// import {plan} from "./composables/a"
 const three = ref()
 const { ProcessThree } = useRender()
+/** 流程三渲染器实例 */
 let processThree: InstanceType<typeof ProcessThree> | null = null
+/** 加载状态 */
 const loading = ref(false)
 const route = useRoute()
+/** 项目ID */
 const projectId = ref('')
+/** 结构设计方案列表 */
 const schemeList = ref<any[]>([])
-// 当前激活得方案id
+/** 当前激活的方案ID */
 const currentAcviteScheme = ref('')
 
+/**
+ * 切换激活方案
+ * @param item 方案对象
+ * @description 切换并加载方案的结构设计数据
+ */
 const tapScheme = (item) => {
   currentAcviteScheme.value = item.id
   currentPlan.value = item
+  // 加载方案详情并渲染模型
   planDetailInfo({ id: currentAcviteScheme.value }).then(async (res) => {
     const { data: { layouts } } = res
     info.value = res.data.info
     loading.value = true
     console.log("layouts", layouts)
+    // 加载原始模型布局
     await processThree!.handleOriginModel(layouts)
     loading.value = false
   })
-  // console.log('点击了内部布局方案', item)
 }
 
-// 下载方案
+/**
+ * 下载结构设计方案
+ * @description 生成 Word 文档并下载到本地
+ */
 const downloadSolution = async () => {
   try {
     const url = planExport({
       projectId: projectId.value,
-      source: 3
+      source: 3 // 流程3：结构设计
     })
     const a = document.createElement('a')
     a.href = url
@@ -136,8 +146,13 @@ const downloadSolution = async () => {
     console.error('下载方案失败', error)
   }
 }
+/** 方案详细信息，包含位置和结构信息 */
 const info = ref<any>({ locationInfo: {}, structureInfo: {} })
-// 获取详情
+
+/**
+ * 获取结构设计方案列表
+ * @description 加载项目的所有结构设计方案，并自动选中第一个方案
+ */
 async function fetchDetail() {
   try {
     const { data } = await planList({

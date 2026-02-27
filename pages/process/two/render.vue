@@ -152,18 +152,31 @@ const { formatTime } = useUtils()
 import { planLayoutDetailInfo,planList, planDetailInfo, removePlan, createPlan, updatePlan, planExport } from '@/apis/project'
 import dayjs from 'dayjs'
 const route = useRoute()
+/** 项目ID */
 const projectId = ref('')
+/** 规划布局方案列表 */
 const schemeList = ref<any[]>([])
+/** 当前方案详情 */
 const currentPlan = ref<any>({})
-// 当前激活得方案id
+/** 当前激活的方案ID */
 const currentAcviteScheme = ref('')
+/** 渲染容器引用 */
 const renderRef = ref<HTMLDivElement | null>(null)
 const { RenderPlanLayout } = useRender()
+/** 规划布局渲染器实例 */
 let renderPlanLayout: InstanceType<typeof RenderPlanLayout> | null = null
+/** 加载状态 */
 const loading = ref(false)
+
+/**
+ * 切换激活方案
+ * @param item 方案对象
+ * @description 加载并渲染指定方案的建筑布局模型
+ */
 const tapScheme = (item) => {
   currentPlan.value = item
   currentAcviteScheme.value = item.id
+  // 获取方案详情并加载场景模型
   planDetailInfo({ id: item.id }).then(async (res) => {
     const {
       data: { layouts }
@@ -174,12 +187,15 @@ const tapScheme = (item) => {
   })
 }
 
-// 下载方案
+/**
+ * 下载规划布局方案
+ * @description 生成 Word 文档并下载到本地
+ */
 const downloadSolution = async () => {
   try {
     const url = planExport({
       projectId: projectId.value,
-      source: 2
+      source: 2 // 流程2：规划布局
     })
     const a = document.createElement('a')
     a.href = url
@@ -192,9 +208,18 @@ const downloadSolution = async () => {
   }
 }
 
+/**
+ * 启用移动模式
+ * @description 允许用户平移建筑模型
+ */
 function handllePlanRoatationEvt() {
   renderPlanLayout!.setMoveMode()
 }
+
+/**
+ * 启用旋转模式
+ * @description 允许用户旋转建筑模型
+ */
 function handllePlanScaleEvt() {
   renderPlanLayout!.setRotateMode()
 }
